@@ -1,19 +1,55 @@
 project:
   type: website
+  preview:
+    port: 3434
+    browser: true
+    watch-inputs: true
+    timeout: 3600
+
+execute:
+  freeze: auto
 
 website:
-  title: "personal-website"
+  title: "Steven Ponce"
+  description: "R code and Data Viz Projects"
+  site-url: https://stevenponce.com
+  repo-url: https://github.com/poncest/personal-website
+  repo-actions:
+    - source
+    - issue
+  favicon: favicon.png
+  twitter-card: true
+  open-graph: true
+  
   navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - about.qmd
-
+    pinned: true
+    background: dark
+    foreground: light
+    left: 
+      - text: "About"
+        file: index.qmd
+      - text: "Data Viz Projects"
+        file: projects.qmd
+      - text: "Blog"
+        file: blog.qmd
+    right:
+      - icon: github
+        href: https://github.com/poncest
+      - icon: linkedin
+        href: https://www.linkedin.com/in/stevenponce/
+      - icon: x
+        href: https://twitter.com/sponce1
+      - icon: mastodon
+        href: https://graphics.social/@sponce1
+        
 format:
   html:
-    theme: cosmo
-    css: styles.css
+    theme: [flatly, assets/styling/theme.scss]
     toc: true
-
-editor: visual
-
+    toc-depth: 4
+    pagetitle: "Jadey Ryan | {{< meta title >}}"
+    page-layout: article
+    smooth-scroll: true
+    link-external-newwindow: true
+    code-link: true
+    highlight-style: a11y
