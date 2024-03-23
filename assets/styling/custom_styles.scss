@@ -1,0 +1,228 @@
+/*-- scss:defaults --*/
+  
+  // fonts
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Nunito:wght@300;800&family=Roboto+Mono:wght@300;400&family=Sanchez&display=swap');
+
+// Fonts (CSS rules)
+$font-family-sans-serif: 'Nunito', sans-serif;
+$font-family-serif: 'Sanchez', serif; 
+//$font-family-sans-serif: 'Montserrat', sans-serif;
+$font-family-monospace: 'Roboto Mono', monospace;
+
+// Colors
+$baby-blue: #d2e3f3;
+  $teal: #047C90;
+  $dark-blue: #003660;
+  $white: #FFFFFF;
+  $green: #78A540; 
+  $magenta: #900C3F;
+  $white: #FFFFFF;
+  $off-white: #F7F7F7; 
+  $gray: #ADADAD; 
+  
+  // scss variables
+$presentation-title-slide-text-align: "left";
+$body-bg: $white;
+$link-color: $green; 
+$code-color: $magenta;
+$code-bg: $off-white;  // was $white
+$code-block-font-size: 0.4em;
+$code-block-bg: $off-white;
+
+/*-- scss:rules --*/
+  
+  // bold styling
+strong, b {
+  font-weight: 900;
+  color: $teal;
+}
+
+// table header font size
+th {
+  font-size: 35px;  
+}
+
+// table text font size
+td {
+  font-size: 20px;
+}
+
+// horizontal line (default dark blue)
+hr { 
+  border: 4px solid $dark-blue;
+  border-radius: 5px;
+  margin-bottom: 30px;
+}
+
+// teal horizontal line
+.hr-teal { 
+  border: 4px solid $teal;
+}
+
+// custom slide title
+.custom-title { 
+  font-family: $font-family-serif;
+  color: $baby-blue;
+  font-size: 1.7em;
+  //position: absolute; 
+  left: 20px; 
+}
+
+// cover slide subtitle (large)
+.custom-subtitle { 
+  font-family: $font-family-sans-serif;
+  color: $baby-blue;
+  font-size: 1.2em;
+  left: 20px; 
+}
+
+// cover slide subtitle (medium)
+.custom-subtitle2 { 
+  font-family: $font-family-sans-serif;
+  color: $baby-blue;
+  font-size: 1em;
+  left: 20px; 
+}
+
+// cover slide subtitle (small)
+.custom-subtitle3 { 
+  font-family: $font-family-sans-serif;
+  color: $baby-blue;
+  font-size: 0.7em;
+  left: 20px; 
+}
+
+// cover slide footer text
+.title-footer { 
+  text-align: center !important;
+  color: $baby-blue;
+  font-size: 0.5em !important;
+}
+
+// slide title (large)
+.slide-title {
+  font-family: $font-family-serif;
+  color: $teal;
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+// slide title (medium)
+.slide-title2 { 
+  font-family: $font-family-serif;
+  color: $teal;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+// slide title (small)
+.slide-title3 { 
+  font-family: $font-family-serif;
+  color: $teal;
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+// XL body text
+.body-text-xl { 
+  font-family: $font-family-sans-serif;
+  font-size: 1em;
+}
+
+// L body text
+.body-text-l { 
+  font-size: 25px;
+  line-height: 1.7em;
+  margin-bottom: 1em;
+}
+
+// normal body text
+.body-text {
+  font-size: 23px;
+  line-height: 1.7em;
+  margin-bottom: 1em;
+}
+
+// S body text
+.body-text-s { 
+  font-size: 20px; // 19px
+  line-height: 1.6em;
+}
+
+// XS body text
+.body-text-xs { 
+  font-size: 14px;
+  line-height: 1.5em;
+}
+
+// baby blue text
+.baby-blue-text {
+  color: $baby-blue;
+}
+
+// teal text
+.teal-text {
+  color: $teal;
+}
+
+// gray text
+.gray-text {
+  color: $gray;
+}
+
+.important-text-bg {
+  background-color: rgba(217, 178, 189, 0.5); 
+  padding-top: 5px; 
+  padding-bottom: 5px; 
+  padding-right: 5px; 
+  padding-left: 8px; 
+  border-radius: 25px;
+}
+
+.blue-underline { 
+  text-decoration: underline $dark-blue;
+  text-underline-offset: 10px; 
+  text-decoration-thickness: 4px;
+}
+
+// center text (horizontally)
+.center-text{
+  text-align: center;
+}
+
+// center text vertically (??)
+.vertical-center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+// center text vertically and horizontally 
+.page-center {
+  line-height: 700px;
+  text-align: center;
+}
+
+// extra space above line
+.topbr {
+  display: block;
+  margin-top: 1em;
+}
+
+// extra space below line
+.bottombr {
+  display: block;
+  margin-bottom: 1em;
+}
+
+// smaller break
+.br-smaller { 
+  line-height: 6px;
+}
+
+// idk?
+  .panel-tabset {
+    font-size: 30px;
+  }

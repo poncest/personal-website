@@ -17,11 +17,12 @@ website:
   repo-actions:
     - source
     - issue
-  favicon: favicon.png
+  favicon: assets/img/favicon.png
   twitter-card: true
   open-graph: true
   
   navbar:
+    title: false
     pinned: true
     background: dark
     foreground: light
@@ -29,7 +30,7 @@ website:
       - text: "About"
         file: index.qmd
       - text: "Data Viz Projects"
-        file: projects.qmd
+        file: data_viz_projects.qmd
       - text: "Blog"
         file: blog.qmd
     right:
@@ -37,19 +38,22 @@ website:
         href: https://github.com/poncest
       - icon: linkedin
         href: https://www.linkedin.com/in/stevenponce/
-      - icon: x
+      - icon: twitter
         href: https://twitter.com/sponce1
       - icon: mastodon
         href: https://graphics.social/@sponce1
-        
+      - icon: envelope
+        text: Email
+        href: mailto:steven_ponce@yahoo.com
+  
+  page-footer: 
+    left: Copyright 2023, Steven Ponce
+    right: This website is built with {{< fa heart title="a heart" >}}, [{{< fa brands github title="GitHub octocat logo" >}}](https://github.com/poncest/personal-website){target=_blank}, [{{< fa brands r-project title="R Project" >}}](https://www.r-project.org/about.html){target=_blank} and [Quarto](https://quarto.org/){target=_blank}
+
 format:
   html:
-    theme: [flatly, assets/styling/theme.scss]
+    page-layout: full
+    sidebar: false
+    theme: [flatly, assets/styling/custom_theme.scss]
+    mainfont: Nunito
     toc: true
-    toc-depth: 4
-    pagetitle: "Jadey Ryan | {{< meta title >}}"
-    page-layout: article
-    smooth-scroll: true
-    link-external-newwindow: true
-    code-link: true
-    highlight-style: a11y
