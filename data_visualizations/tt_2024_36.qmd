@@ -26,7 +26,7 @@ share:
   bluesky: true
 ---
 
-
+![The Sankey diagram illustrates the top 20 responses to key questions in the 2024 Stack Overflow survey, tracking the flow of responses about AI tool usage and work situations in selected countries. The responses are divided into categories like "Yes," "No Plan," "Plan Soon," "Hybrid," "In-person," and "Remote," and the paths are color-coded to show different questions and responses from each country.](tt_2024_36.png){#fig-1}
 
 ### __Steps to Create this Graphic__
 
@@ -276,7 +276,7 @@ ggsave(
 
 
 ### |-  plot thumbnail----  
-magick::image_read(here::here("tt_2024_36.png")) |> 
+magick::image_read(here::here("data_visualizations/tt_2024_36.png")) |> 
   magick::image_resize(geometry = "400") |> 
   magick::image_write(here::here("data_visualizations/thumbnails/tt_2024_36.png"))
 ```
