@@ -30,7 +30,7 @@ share:
 
 ### __Steps to Create this Graphic__
 
-## 1. LOAD PACKAGES & SETUP
+#### 1. LOAD PACKAGES & SETUP
 
 ```{r}
 #| label: load
@@ -66,7 +66,7 @@ camcorder::gg_record(
 showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
 ```
 
-## 2. READ IN THE DATA
+#### 2. READ IN THE DATA
 
 ```{r}
 #| label: read
@@ -81,7 +81,7 @@ tidytuesdayR::readme(tt)
 rm(tt)
 ```
 
-## 3. EXAMINING THE DATA
+#### 3. EXAMINING THE DATA
 
 ```{r}
 #| label: examine
@@ -91,7 +91,7 @@ glimpse(survey_questions)
 glimpse(single_response)
 ```
 
-## 4. TIDYDATA
+#### 4. TIDYDATA
 
 ```{r}
 #| label: tidy
@@ -142,7 +142,7 @@ plot_data <- alluvial_data |>
 ```
 
 
-## 5. VISUALIZATION PARAMETERS
+#### 5. VISUALIZATION PARAMETERS
 
 ```{r}
 #| label: params
@@ -200,7 +200,7 @@ theme_update(
 ```
 
 
-## 6. PLOT
+#### 6. PLOT
 
 ```{r}
 #| label: plot
@@ -259,7 +259,7 @@ p <- ggplot(plot_data, aes(axis1 = question, axis2 = country, axis3 = label, y =
 
 ```
 
-## 7. SAVE
+#### 7. SAVE
 
 ```{r}
 #| label: save
@@ -282,7 +282,7 @@ magick::image_read(here::here("data_visualizations/tt_2024_36.png")) |>
 ```
 
 
-## 8. SESSION INFO 
+#### 8. SESSION INFO 
 
 ```{r}
 sessioninfo::session_info(include_base = TRUE)
