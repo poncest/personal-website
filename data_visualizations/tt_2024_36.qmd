@@ -1,0 +1,289 @@
+---
+title: "Top 20 Responses to Key Questions in the 2024 Stack Overflow Survey"
+subtitle: "Analysis of AI Tool Usage and Work Situation Across Countries"
+author: "Steven Ponce"
+date: "2024-09-02"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_36.png"
+format:
+  html:
+    code-fold: true
+editor_options: 
+  chunk_output_type: console
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: false
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.html"
+  twitter: true
+  linkedin: true
+  email: true
+  bluesky: true
+---
+
+
+
+### __Steps to Create this Graphic__
+
+## 1. LOAD PACKAGES & SETUP
+
+```{r}
+#| label: load
+
+pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,         # Compact and Flexible Summaries of Data
+  scales,        # Scale Functions for Visualization
+  lubridate,     # Make Dealing with Dates a Little Easier
+  MetBrewer,     # Color Palettes Inspired by Works at the Metropolitan Museum of Art
+  MoMAColors,    # Color Palettes Inspired by Artwork at the Museum of Modern Art in New York City
+  glue,          # Interpreted String Literals
+  ggalluvial,    # Alluvial Plots in 'ggplot2' # Alluvial Plots in 'ggplot2' # Alluvial Plots in 'ggplot2'
+  ggrepel,       # Automatically Position Non-Overlapping Text Labels with 'ggplot2'
+  magick         # Advanced Graphics and Image-Processing in R 
+ )  
+
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  7.77,
+  height =  8,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+## 2. READ IN THE DATA
+
+```{r}
+#| label: read
+
+tt <- tidytuesdayR::tt_load(2024, week = 36) 
+
+response_crosswalk <- tt$qname_levels_single_response_crosswalk |> clean_names() |> glimpse()
+survey_questions   <- tt$stackoverflow_survey_questions |> clean_names() |> glimpse()
+single_response    <- tt$stackoverflow_survey_single_response |> clean_names() |> glimpse()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+## 3. EXAMINING THE DATA
+
+```{r}
+#| label: examine
+
+glimpse(response_crosswalk)
+glimpse(survey_questions)
+glimpse(single_response)
+```
+
+## 4. TIDYDATA
+
+```{r}
+#| label: tidy
+
+# Tidyy
+tidy_data <- single_response |>
+    pivot_longer(cols = -c(response_id, country, currency, comp_total, converted_comp_yearly), 
+                 names_to = "qname", 
+                 values_to = "response_code") |>
+    left_join(response_crosswalk, by = c("qname", "response_code" = "level")) |>
+    left_join(survey_questions, by = "qname") |> 
+    mutate(
+        country = case_when(
+            country == "United Kingdom of Great Britain and Northern Ireland" ~ "UK",
+            country == "United States of America" ~ "USA",
+            TRUE ~ as.factor(country)
+        )
+    ) |> 
+    drop_na(country) 
+
+# Prepare data for Alluvial plot
+alluvial_data <- tidy_data |>
+    filter(qname %in% c("remote_work", "ai_select")) |> 
+    count(question, country, label) |>
+    arrange(desc(n)) |>
+    slice_head(n = 20) |> 
+    mutate(
+        question = str_remove(question, "\\s*\\*"),                             # Removing the '*' from questions
+        question = case_when(
+            question == "Do you currently use AI tools in your development process?" ~ "AI Tool Usage",
+            question == "Which best describes your current work situation?" ~ "Work Situation",
+            TRUE ~ question
+        ),
+        label = case_when(
+            label == "No, and I don't plan to" ~ "No Plan",
+            label == "No, but I plan to soon" ~ "Plan Soon",
+            label == "Hybrid (some remote, some in-person)" ~ "Hybrid",
+            TRUE ~ label
+        ),
+        ) |> 
+    filter(!is.na(label))
+
+
+# Plot data
+plot_data <- alluvial_data |> 
+    filter(!is.na(question))
+
+```
+
+
+## 5. VISUALIZATION PARAMETERS
+
+```{r}
+#| label: params
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- MoMAColors::moma.colors(palette_name = "Koons", n = 2, type = 'discrete')
+
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 36 } &bull; Source: Stack Overflow Annual Developer Survey 2024<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("Top 20 Responses to Key Questions in the 2024 Stack Overflow Survey")
+
+subtitle_text <- str_glue("Analysis of AI Tool Usage and Work Situation Across Countries")
+
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", "fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = 'top',
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 20, r = 20, b = 20, l = 20),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
+    axis.line.x           = element_line(color = "gray40", linewidth = .15),
+    panel.grid.minor.y    = element_blank(),
+    panel.grid.major.y    = element_line(linetype = "dotted", linewidth = 0.1, color = 'gray'),
+    panel.grid.minor.x    = element_blank(),
+    panel.grid.major.x    = element_blank(),
+)  
+```
+
+
+## 6. PLOT
+
+```{r}
+#| label: plot
+
+### |-  final plot ----  
+p <- ggplot(plot_data, aes(axis1 = question, axis2 = country, axis3 = label, y = n)) +
+    
+    # Geoms
+    geom_alluvium(aes(fill = question), width = 1/12) +
+    geom_stratum(aes(fill = question), width = 1/8, alpha = 0.4) +
+    geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3.5, hjust = 0, nudge_x = 0.08) +
+    
+    # Labs
+    labs(
+        y = "Number of Responses",
+        x = "",
+        fill = "Question: ",
+        title    = title_text,
+        subtitle = subtitle_text,
+        caption  = caption_text
+    ) +
+    
+    # Scales
+    scale_x_discrete(limits = c("Question", "Country", "Response"), expand = c(0.15, 0.05)) +
+    scale_y_continuous(labels = scales::number_format(scale = 1/1000, suffix = " K")) +
+    scale_fill_manual(values = col_palette, na.translate = FALSE) +    
+    coord_cartesian(clip = 'off') +
+    
+    # Theme
+    theme(
+        plot.title = element_text(
+            size = rel(1.3),
+            family = "title",
+            color = title_col,
+            face = "bold",
+            lineheight = 0.85,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(1),
+            family = "subtitle",
+            color = title_col,
+            lineheight = 1,
+            margin = margin(t = 5, b = 15)
+        ),
+        plot.caption = element_markdown(
+            size = rel(.5),
+            family = "caption",
+            color = caption_col,
+            lineheight = 0.6,
+            hjust = 0,
+            halign = 0,
+            margin = margin(t = 0, b = 0)
+        )
+    )
+
+```
+
+## 7. SAVE
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+ggsave(
+  filename = here::here("data_visualizations/tt_2024_36.png"),
+  plot = p,
+  width  =  7.77,
+  height =  8,
+  units  = "in",
+  dpi    = 320
+)
+
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("tt_2024_36.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/thumbnails/tt_2024_36.png"))
+```
+
+
+## 8. SESSION INFO 
+
+```{r}
+sessioninfo::session_info(include_base = TRUE)
+```
