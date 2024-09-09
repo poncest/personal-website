@@ -28,9 +28,9 @@ share:
 
 ![The Sankey diagram illustrates the top 20 responses to key questions in the 2024 Stack Overflow survey, tracking the flow of responses about AI tool usage and work situations in selected countries. The responses are divided into categories like "Yes," "No Plan," "Plan Soon," "Hybrid," "In-person," and "Remote," and the paths are color-coded to show different questions and responses from each country.](tt_2024_36.png){#fig-1}
 
-### __Steps to Create this Graphic__
+### <mark> __Steps to Create this Graphic__ </mark>
 
-#### 1. LOAD PACKAGES & SETUP
+#### 1. Load Packages & Setup 
 
 ```{r}
 #| label: load
@@ -51,7 +51,6 @@ pacman::p_load(
   magick         # Advanced Graphics and Image-Processing in R 
  )  
 
-
 ### |- figure size ----
 camcorder::gg_record(
   dir    = here::here("temp_plots"),
@@ -66,7 +65,7 @@ camcorder::gg_record(
 showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
 ```
 
-#### 2. READ IN THE DATA
+#### 2. Read in the Data 
 
 ```{r}
 #| label: read
@@ -81,7 +80,7 @@ tidytuesdayR::readme(tt)
 rm(tt)
 ```
 
-#### 3. EXAMINING THE DATA
+#### 3. Examing the Data 
 
 ```{r}
 #| label: examine
@@ -91,7 +90,7 @@ glimpse(survey_questions)
 glimpse(single_response)
 ```
 
-#### 4. TIDYDATA
+#### 4. Tidy Data 
 
 ```{r}
 #| label: tidy
@@ -134,7 +133,6 @@ alluvial_data <- tidy_data |>
         ) |> 
     filter(!is.na(label))
 
-
 # Plot data
 plot_data <- alluvial_data |> 
     filter(!is.na(question))
@@ -142,7 +140,7 @@ plot_data <- alluvial_data |>
 ```
 
 
-#### 5. VISUALIZATION PARAMETERS
+#### 5. Visualization Parameters 
 
 ```{r}
 #| label: params
@@ -155,7 +153,6 @@ caption_col  <- "gray30"
 text_col     <- "gray20"    
 col_palette  <- MoMAColors::moma.colors(palette_name = "Koons", n = 2, type = 'discrete')
 
-
 ### |-  titles and caption ----
 # icons
 tt <- str_glue("#TidyTuesday: { 2024 } Week { 36 } &bull; Source: Stack Overflow Annual Developer Survey 2024<br>")
@@ -165,9 +162,7 @@ mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
 
 # text
 title_text    <- str_glue("Top 20 Responses to Key Questions in the 2024 Stack Overflow Survey")
-
 subtitle_text <- str_glue("Analysis of AI Tool Usage and Work Situation Across Countries")
-
 caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
 
 ### |-  fonts ----
@@ -200,7 +195,7 @@ theme_update(
 ```
 
 
-#### 6. PLOT
+#### 6. Plot
 
 ```{r}
 #| label: plot
@@ -256,10 +251,9 @@ p <- ggplot(plot_data, aes(axis1 = question, axis2 = country, axis3 = label, y =
             margin = margin(t = 0, b = 0)
         )
     )
-
 ```
 
-#### 7. SAVE
+#### 7. Save
 
 ```{r}
 #| label: save
@@ -273,7 +267,6 @@ ggsave(
   units  = "in",
   dpi    = 320
 )
- 
 
 ### |-  plot thumbnail----  
 magick::image_read(here::here("data_visualizations/tt_2024_36.png")) |> 
@@ -282,8 +275,8 @@ magick::image_read(here::here("data_visualizations/tt_2024_36.png")) |>
 ```
 
 
-#### 8. SESSION INFO 
+#### 8. Session Info
 
 ```{r, eval=TRUE}
-sessioninfo::session_info(include_base = TRUE)
+sessionInfo()
 ```

@@ -7,19 +7,25 @@ project:
     timeout: 3600
 
 execute:
-  freeze: auto
+  freeze: auto                # re-render only when source changes
 
 website:
   title: "Steven Ponce"
-  description: "R code and Data Viz Projects"
-  site-url: https://stevenponce.com
+  description: "Data Visualizations and R Code"
+  site-url: https://stevenponce.netlify.app/
   repo-url: https://github.com/poncest/personal-website
+  repo-branch: master   
+  repo-subdir: data_visualizations
   repo-actions:
     - source
     - issue
-  favicon: assets/img/favicon.png
+  favicon: assets/img/SP_avatar.png  
   twitter-card: true
   open-graph: true
+  back-to-top-navigation: true
+  search: true
+  page-navigation: true
+
   
   navbar:
     title: false
@@ -38,7 +44,7 @@ website:
         href: https://github.com/poncest
       - icon: linkedin
         href: https://www.linkedin.com/in/stevenponce/
-      - icon: twitter
+      - icon: twitter-x
         href: https://twitter.com/sponce1
       # - icon: bluesky
       #   href: https://bsky.app/profile/sponce1.bsky.social
@@ -46,8 +52,17 @@ website:
         text: Email
         href: mailto:steven_ponce@yahoo.com
   
-  page-footer: 
-    left: Copyright 2024, Steven Ponce
+  # page-footer: 
+  #   left: Copyright 2024, Steven Ponce
+    
+   page-footer: 
+    center: "Copyright 2024, Steven Ponce"
+    border: true
+  open-graph: true
+  twitter-card: 
+    creator: "@poncest"
+  # google-analytics: 
+  favicon: "assets/img/SP_avatar.png"
 
 format:
   html:

@@ -1,13 +1,28 @@
 /*-- scss:defaults --*/
   
   // fonts
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Nunito:wght@300;800&family=Roboto+Mono:wght@300;400&family=Sanchez&display=swap');
+//@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Nunito:wght@300;800&family=Roboto+Mono:wght@300;400&family=Sanchez&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;800&display=swap');
+
+
 
 // Fonts (CSS rules)
-$font-family-sans-serif: 'Nunito', sans-serif;
-$font-family-serif: 'Sanchez', serif; 
+//$font-family-sans-serif: 'Nunito', sans-serif;
+//$font-family-serif: 'Sanchez', serif; 
 //$font-family-sans-serif: 'Montserrat', sans-serif;
-$font-family-monospace: 'Roboto Mono', monospace;
+//$font-family-monospace: 'Roboto Mono', monospace;
+
+// Font settings to use only Nunito
+$font-family-sans-serif: 'Nunito', sans-serif !important;
+$font-family-serif: 'Nunito', sans-serif !important;
+$font-family-monospace: 'Nunito', sans-serif !important;
+
+
+body, h1, h2, h3, h4, h5, h6, p, span {
+  font-family: 'Nunito', sans-serif !important;
+}
+
 
 // Colors
 $baby-blue: #d2e3f3;
@@ -179,7 +194,7 @@ hr {
   border-radius: 25px;
 }
 
-.blue-underline { 
+.blue-underline {  
   text-decoration: underline $dark-blue;
   text-underline-offset: 10px; 
   text-decoration-thickness: 4px;
