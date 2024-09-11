@@ -291,7 +291,7 @@ p <- p +
 
 ### |-  plot image ----  
 ggsave(
-  filename = here::here("data_visualizations/swd_2024_09.png"),
+  filename = here::here("data_visualizations/SWD Challenge/2024/swd_2024_09.png"),
   plot = p,
   width  =  8,
   height =  8,
@@ -300,7 +300,7 @@ ggsave(
 )
  
 ### |-  plot thumbnail----  
-magick::image_read(here::here("data_visualizations/swd_2024_09.png")) |> 
+magick::image_read(here::here("data_visualizations/SWD Challenge/2024/swd_2024_09.png")) |> 
   magick::image_resize(geometry = "400") |> 
   magick::image_write(here::here("data_visualizations/thumbnails/swd_2024_09.png"))
 ```

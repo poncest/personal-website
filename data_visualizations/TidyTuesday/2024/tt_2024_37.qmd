@@ -247,7 +247,7 @@ p <- ggplot(college_admissions_clean,
 
 ### |-  plot image ----  
 ggsave(
-  filename = here::here("data_visualizations/tt_2024_37.png"),
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_37.png"),
   plot = p,
   width  =  7.77,
   height =  8,
@@ -256,7 +256,7 @@ ggsave(
 )
 
 ### |-  plot thumbnail----  
-magick::image_read(here::here("data_visualizations/tt_2024_37.png")) |> 
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_37.png")) |> 
   magick::image_resize(geometry = "400") |> 
   magick::image_write(here::here("data_visualizations/thumbnails/tt_2024_37.png"))
 ```

@@ -1,11 +1,11 @@
 ---
-title: "Exploring Individual Word Trends Across 27 Seasons of Power Rangers"
-subtitle: "Tracking the top 10 words and how they evolve independently over time in episode descriptions"
+title: "Top 20 Responses to Key Questions in the 2024 Stack Overflow Survey"
+subtitle: "Analysis of AI Tool Usage and Work Situation Across Countries"
 author: "Steven Ponce"
-date: "2024-08-27"
+date: "2024-09-02"
 categories:
   - "#TidyTuesday"
-image: "thumbnails/tt_2024_35.png"
+image: "thumbnails/tt_2024_36.png"
 format:
   html:
     code-fold: true
@@ -26,7 +26,7 @@ share:
   email: true
 ---
 
-![The faceted area chart displays the frequency of the top 10 words used in Power Rangers episode descriptions over 27 seasons. Each word is plotted separately, with its frequency on the y-axis and the season number on the x-axis. This highlights individual word trends over time.](tt_2024_35.png){#fig-1}
+![The Sankey diagram illustrates the top 20 responses to key questions in the 2024 Stack Overflow survey, tracking the flow of responses about AI tool usage and work situations in selected countries. The responses are divided into categories like "Yes," "No Plan," "Plan Soon," "Hybrid," "In-person," and "Remote," and the paths are color-coded to show different questions and responses from each country.](tt_2024_36.png){#fig-1}
 
 ### <mark> __Steps to Create this Graphic__ </mark>
 
@@ -44,8 +44,12 @@ pacman::p_load(
   scales,        # Scale Functions for Visualization
   lubridate,     # Make Dealing with Dates a Little Easier
   MetBrewer,     # Color Palettes Inspired by Works at the Metropolitan Museum of Art
-  tidytext       # Text Mining using 'dplyr', 'ggplot2', and Other Tidy Tools
- )   
+  MoMAColors,    # Color Palettes Inspired by Artwork at the Museum of Modern Art in New York City
+  glue,          # Interpreted String Literals
+  ggalluvial,    # Alluvial Plots in 'ggplot2' # Alluvial Plots in 'ggplot2' # Alluvial Plots in 'ggplot2'
+  ggrepel,       # Automatically Position Non-Overlapping Text Labels with 'ggplot2'
+  magick         # Advanced Graphics and Image-Processing in R 
+ )  
 
 ### |- figure size ----
 camcorder::gg_record(
@@ -66,10 +70,11 @@ showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
 ```{r}
 #| label: read
 
-tt <-tidytuesdayR::tt_load(2024, week = 35) 
+tt <- tidytuesdayR::tt_load(2024, week = 36) 
 
-episodes <- tt$power_rangers_episodes |> clean_names() |> glimpse()
-seasons  <- tt$power_rangers_seasons |> clean_names() |> glimpse()
+response_crosswalk <- tt$qname_levels_single_response_crosswalk |> clean_names() |> glimpse()
+survey_questions   <- tt$stackoverflow_survey_questions |> clean_names() |> glimpse()
+single_response    <- tt$stackoverflow_survey_single_response |> clean_names() |> glimpse()
 
 tidytuesdayR::readme(tt)
 rm(tt)
@@ -80,8 +85,9 @@ rm(tt)
 ```{r}
 #| label: examine
 
-glimpse(episodes)
-glimpse(seasons)
+glimpse(response_crosswalk)
+glimpse(survey_questions)
+glimpse(single_response)
 ```
 
 #### 4. Tidy Data 
@@ -89,35 +95,48 @@ glimpse(seasons)
 ```{r}
 #| label: tidy
 
-# Tidy
-joined_data <- episodes |> 
-    left_join(y = seasons, by = "season_title") |> 
-    rename(
-        imdb_rating_episode = imdb_rating.x,
-        imdb_rating_season = imdb_rating.y,
+# Tidyy
+tidy_data <- single_response |>
+    pivot_longer(cols = -c(response_id, country, currency, comp_total, converted_comp_yearly), 
+                 names_to = "qname", 
+                 values_to = "response_code") |>
+    left_join(response_crosswalk, by = c("qname", "response_code" = "level")) |>
+    left_join(survey_questions, by = "qname") |> 
+    mutate(
+        country = case_when(
+            country == "United Kingdom of Great Britain and Northern Ireland" ~ "UK",
+            country == "United States of America" ~ "USA",
+            TRUE ~ as.factor(country)
+        )
     ) |> 
-    mutate(air_date_last_ep = ymd(air_date_last_ep)) 
+    drop_na(country) 
 
-# Unnest tokens from the 'desc' column, remove stop words, and calculate word frequency
-word_frequency_over_time <- joined_data |>
-    unnest_tokens(word, desc) |>
-    anti_join(stop_words, by = "word") |>
-    count(season_num, word, sort = TRUE) |>
-    group_by(season_num) |>
-    mutate(frequency = n / sum(n)) |>
-    ungroup()
+# Prepare data for Alluvial plot
+alluvial_data <- tidy_data |>
+    filter(qname %in% c("remote_work", "ai_select")) |> 
+    count(question, country, label) |>
+    arrange(desc(n)) |>
+    slice_head(n = 20) |> 
+    mutate(
+        question = str_remove(question, "\\s*\\*"),                             # Removing the '*' from questions
+        question = case_when(
+            question == "Do you currently use AI tools in your development process?" ~ "AI Tool Usage",
+            question == "Which best describes your current work situation?" ~ "Work Situation",
+            TRUE ~ question
+        ),
+        label = case_when(
+            label == "No, and I don't plan to" ~ "No Plan",
+            label == "No, but I plan to soon" ~ "Plan Soon",
+            label == "Hybrid (some remote, some in-person)" ~ "Hybrid",
+            TRUE ~ label
+        ),
+        ) |> 
+    filter(!is.na(label))
 
-# Select the top 10 words by total frequency across all seasons
-top_words <- word_frequency_over_time |>
-    group_by(word) |>
-    summarise(total_frequency = sum(frequency)) |>
-    top_n(10, total_frequency) |>
-    pull(word)
+# Plot data
+plot_data <- alluvial_data |> 
+    filter(!is.na(question))
 
-# Filter for top words 
-data_plot <- word_frequency_over_time |>
-    filter(word %in% top_words) |>
-    mutate(word = fct_reorder(word, -frequency))
 ```
 
 
@@ -132,17 +151,18 @@ title_col    <- "gray20"
 subtitle_col <- "gray20"     
 caption_col  <- "gray30"   
 text_col     <- "gray20"    
+col_palette  <- MoMAColors::moma.colors(palette_name = "Koons", n = 2, type = 'discrete')
 
 ### |-  titles and caption ----
 # icons
-tt <- str_glue("#TidyTuesday: { 2024 } Week { 35 } &bull; Source: Power Rangers: Seasons and episodes data<br>")
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 36 } &bull; Source: Stack Overflow Annual Developer Survey 2024<br>")
 li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
 gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
 mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
 
 # text
-title_text    <- str_glue("Exploring Individual Word Trends Across 27 Seasons of Power Rangers")
-subtitle_text <- str_glue("Tracking the top 10 words and how they evolve independently over time in\nepisode descriptions")
+title_text    <- str_glue("Top 20 Responses to Key Questions in the 2024 Stack Overflow Survey")
+subtitle_text <- str_glue("Analysis of AI Tool Usage and Work Situation Across Countries")
 caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
 
 ### |-  fonts ----
@@ -159,7 +179,7 @@ theme_set(theme_minimal(base_size = 14, base_family = "text"))
 theme_update(
     plot.title.position   = "plot",
     plot.caption.position = "plot",
-    legend.position       = 'plot',
+    legend.position       = 'top',
     plot.background       = element_rect(fill = bkg_col, color = bkg_col),
     panel.background      = element_rect(fill = bkg_col, color = bkg_col),
     plot.margin           = margin(t = 20, r = 20, b = 20, l = 20),
@@ -171,18 +191,6 @@ theme_update(
     panel.grid.major.y    = element_line(linetype = "dotted", linewidth = 0.1, color = 'gray'),
     panel.grid.minor.x    = element_blank(),
     panel.grid.major.x    = element_blank(),
-    
-    strip.text            = element_textbox(size     = rel(1),
-                                            face     = 'bold',
-                                            color    = text_col,
-                                            hjust    = 0.5,
-                                            halign   = 0.5,
-                                            r        = unit(5, "pt"),
-                                            width    = unit(5.5, "npc"),
-                                            padding  = margin(3, 0, 3, 0),
-                                            margin   = margin(3, 3, 3, 3),
-                                            fill     = "transparent"),
-    panel.spacing       = unit(1, 'lines')
 )  
 ```
 
@@ -193,31 +201,28 @@ theme_update(
 #| label: plot
 
 ### |-  final plot ----  
-p <- data_plot |> 
-    ggplot(aes(x = season_num, y = frequency, color = word, fill = word)) +
+p <- ggplot(plot_data, aes(axis1 = question, axis2 = country, axis3 = label, y = n)) +
     
     # Geoms
-    geom_line(linewidth = 0.6) +  
-    geom_area(alpha = 0.5) +
-    
-    # Scales
-    scale_x_continuous(breaks = pretty_breaks()) +
-    scale_y_continuous(breaks = pretty_breaks(n = 2)) +
-    scale_color_viridis_d(option = "F", begin = 0.05, end = .85) + 
-    scale_fill_viridis_d(option = "F", begin = 0.05, end = .85) + 
-    coord_cartesian(clip = 'off') +
+    geom_alluvium(aes(fill = question), width = 1/12) +
+    geom_stratum(aes(fill = question), width = 1/8, alpha = 0.4) +
+    geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3.5, hjust = 0, nudge_x = 0.08) +
     
     # Labs
     labs(
-        x = "Season Number",
-        y = "Word Frequency",
-        title = title_text,
+        y = "Number of Responses",
+        x = "",
+        fill = "Question: ",
+        title    = title_text,
         subtitle = subtitle_text,
-        caption = caption_text
+        caption  = caption_text
     ) +
     
-    # Facets
-    facet_wrap(~ word, scales = "free_y", ncol = 2) +  
+    # Scales
+    scale_x_discrete(limits = c("Question", "Country", "Response"), expand = c(0.15, 0.05)) +
+    scale_y_continuous(labels = scales::number_format(scale = 1/1000, suffix = " K")) +
+    scale_fill_manual(values = col_palette, na.translate = FALSE) +    
+    coord_cartesian(clip = 'off') +
     
     # Theme
     theme(
@@ -243,7 +248,7 @@ p <- data_plot |>
             lineheight = 0.6,
             hjust = 0,
             halign = 0,
-            margin = margin(t = 10, b = 0)
+            margin = margin(t = 0, b = 0)
         )
     )
 ```
@@ -255,7 +260,7 @@ p <- data_plot |>
 
 ### |-  plot image ----  
 ggsave(
-  filename = here::here("data_visualizations/tt_2024_35.png"),
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_36.png"),
   plot = p,
   width  =  7.77,
   height =  8,
@@ -264,9 +269,9 @@ ggsave(
 )
 
 ### |-  plot thumbnail----  
-magick::image_read(here::here("data_visualizations/tt_2024_35.png")) |> 
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_36.png")) |> 
   magick::image_resize(geometry = "400") |> 
-  magick::image_write(here::here("data_visualizations/thumbnails/tt_2024_35.png"))
+  magick::image_write(here::here("data_visualizations/thumbnails/tt_2024_36.png"))
 ```
 
 
