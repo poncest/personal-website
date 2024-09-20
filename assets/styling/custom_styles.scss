@@ -1,242 +1,150 @@
 /*-- scss:defaults --*/
   
-  // fonts
-//@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Nunito:wght@300;800&family=Roboto+Mono:wght@300;400&family=Sanchez&display=swap');
-
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+// IMPORT FONTS
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Roboto+Serif:wght@100..900&display=swap');
 
 
-:root {
-  --bs-root-font-family: 'Roboto', sans-serif;
-  --bs-body-font-family: 'Roboto', sans-serif;
+/* Apply Roboto Mono to all heading tags */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Roboto Mono', monospace;
 }
 
-// Fonts (CSS rules)
-$font-family-sans-serif: 'Roboto', sans-serif 
-$font-family-sans-serif: 'Roboto', sans-serif 
-$font-family-monospace: 'Roboto Mono', monospace 
-
-
-
-body, h1, h2, h3, h4, h5, h6, p, span {
-  font-family: 'Roboto', sans-serif 
+/* Apply Roboto Serif to all paragraphs, captions, and other text */
+p, caption, body, .caption, blockquote, li, .text, div {
+  font-family: 'Roboto Serif', serif;
 }
 
-
-// Colors
-$baby-blue: #d2e3f3;
-  $teal: #047C90;
-  $dark-blue: #003660;
-  $white: #FFFFFF;
-  $green: #78A540; 
-  $magenta: #900C3F;
-  $white: #FFFFFF;
-  $off-white: #F7F7F7; 
-  $gray: #ADADAD; 
-  
-  // scss variables
-$presentation-title-slide-text-align: "left";
-$body-bg: $white;
-$link-color: $green; 
-$code-color: $magenta;
-$code-bg: $off-white;  // was $white
-$code-block-font-size: 0.4em;
-$code-block-bg: $off-white;
-
-/*-- scss:rules --*/
-  
-  // bold styling
-strong, b {
-  font-weight: 900;
-  color: $teal;
+/* You can customize specific elements as needed, for example: */
+h1 {
+  font-size: 2.5em;
 }
 
-// table header font size
-th {
-  font-size: 35px;  
+h2 {
+  font-size: 2em;
 }
 
-// table text font size
-td {
-  font-size: 20px;
-}
-
-// horizontal line (default dark blue)
-hr { 
-  border: 4px solid $dark-blue;
-  border-radius: 5px;
-  margin-bottom: 30px;
-}
-
-// teal horizontal line
-.hr-teal { 
-  border: 4px solid $teal;
-}
-
-// custom slide title
-.custom-title { 
-  font-family: $font-family-sans-serif;
-  color: $baby-blue;
-  font-size: 1.7em;
-  //position: absolute; 
-  left: 20px; 
-}
-
-// cover slide subtitle (large)
-.custom-subtitle { 
-  font-family: $font-family-sans-serif;
-  color: $baby-blue;
-  font-size: 1.2em;
-  left: 20px; 
-}
-
-// cover slide subtitle (medium)
-.custom-subtitle2 { 
-  font-family: $font-family-sans-serif;
-  color: $baby-blue;
-  font-size: 1em;
-  left: 20px; 
-}
-
-// cover slide subtitle (small)
-.custom-subtitle3 { 
-  font-family: $font-family-sans-serif;
-  color: $baby-blue;
-  font-size: 0.7em;
-  left: 20px; 
-}
-
-// cover slide footer text
-.title-footer { 
-  text-align: center !important;
-  color: $baby-blue;
-  font-size: 0.5em !important;
-}
-
-// slide title (large)
-.slide-title {
-  font-family: $font-family-sans-serif;
-  color: $teal;
-  font-size: 1.4em;
-  font-weight: 700;
-}
-
-// slide title (medium)
-.slide-title2 { 
-  font-family: $font-family-sans-serif;
-  color: $teal;
-  font-size: 1.3em;
-  font-weight: 700;
-}
-
-// slide title (small)
-.slide-title3 { 
-  font-family: $font-family-sans-serif;
-  color: $teal;
+p {
   font-size: 1.1em;
-  font-weight: 700;
 }
 
-// XL body text
-.body-text-xl { 
-  font-family: $font-family-sans-serif;
-  font-size: 1em;
+
+
+// NAV
+
+/* Change the font size of the navigation links */
+nav ul li a {
+    font-size: 15px;
+    color: white; /* Adjust text color if needed */
 }
 
-// L body text
-.body-text-l { 
-  font-size: 25px;
-  line-height: 1.7em;
-  margin-bottom: 1em;
+/* Change the banner background color */
+nav {
+    background-color: #3b4252;
 }
 
-// normal body text
-.body-text {
-  font-size: 23px;
-  line-height: 1.7em;
-  margin-bottom: 1em;
+nav ul li:first-child a {
+    font-size: 26px;  /* Font size for "Steven Ponce" */
+    color: white;     /* Adjust color if necessary */
 }
 
-// S body text
-.body-text-s { 
-  font-size: 20px; // 19px
-  line-height: 1.6em;
+
+/* Align the navbar items using Flexbox */
+nav ul {
+    display: flex;
+    justify-content: space-between; /* Ensure space between items */
+    align-items: center; /* Vertically align items */
 }
 
-// XS body text
-.body-text-xs { 
-  font-size: 14px;
-  line-height: 1.5em;
+/* Ensure spacing between navbar items */
+nav ul li {
+    margin-right: 20px;
 }
 
-// baby blue text
-.baby-blue-text {
-  color: $baby-blue;
+/* Specific styling for 'Steven Ponce' */
+.site-owner {
+    font-size: 26px;
+    font-family: 'Roboto Mono', monospace;
 }
 
-// teal text
-.teal-text {
-  color: $teal;
+/* Apply 'Roboto Mono' to all navbar items */
+nav ul li a, .site-owner {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px; /* Adjust font size for other navbar links */
 }
 
-// gray text
-.gray-text {
-  color: $gray;
+/* Apply background to navbar only */
+nav, .navbar {
+    background-color: #3b4252 !important;
 }
 
-.important-text-bg {
-  background-color: rgba(217, 178, 189, 0.5); 
-  padding-top: 5px; 
-  padding-bottom: 5px; 
-  padding-right: 5px; 
-  padding-left: 8px; 
-  border-radius: 25px;
+
+
+// FOOTER
+
+/* Footer */
+footer {
+    font-size: 12px; /* Smaller size */
+    color: #666; /* Subtle color */
+    text-align: center; /* Center-align text if needed */
 }
 
-.blue-underline {  
-  text-decoration: underline $dark-blue;
-  text-underline-offset: 10px; 
-  text-decoration-thickness: 4px;
+.page-footer {
+    font-size: 12px; /* Targeting specific class if needed */
 }
 
-// center text (horizontally)
-.center-text{
-  text-align: center;
+
+
+// TOC
+
+/* Target the TOC container with the specific ID and class */
+nav#TOC.toc-active {
+    background-color: transparent !important; /* Remove background color */
+    font-size: 0.9em !important; /* Adjust the font size */
+    color: #212529 !important; /* Set readable text color */
+    padding: 10px !important; /* Add padding for better spacing */
 }
 
-// center text vertically (??)
-.vertical-center {
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
+/* Style the links inside the TOC */
+nav#TOC.toc-active a {
+    color: #212529 !important; /* Set readable color for links */
+    font-size: 0.9em !important; /* Ensure smaller font size */
+    text-decoration: none !important; /* Remove underline from links */
 }
 
-// center text vertically and horizontally 
-.page-center {
-  line-height: 700px;
-  text-align: center;
+/* Add hover effects to TOC links */
+nav#TOC.toc-active a:hover {
+    color: #000 !important; /* Set darker color for better readability on hover */
 }
 
-// extra space above line
-.topbr {
-  display: block;
-  margin-top: 1em;
+nav#TOC.toc-active a.active {
+    font-weight: bold; /* Make the active section bold */
+    color: #000 !important; /* Ensure visibility of the active section */
+    border-left: 3px solid #000; /* Add a left border for better visibility */
 }
 
-// extra space below line
-.bottombr {
-  display: block;
-  margin-bottom: 1em;
+
+
+
+// FONTS
+
+/* Set base font size for the entire document */
+body {
+    font-size: 1em !important; /* Adjust as necessary */
+    line-height: 1.6 !important; /* Ensure proper readability */
+    font-family: 'Roboto Mono', monospace; /* Apply Roboto Mono for consistency */
 }
 
-// smaller break
-.br-smaller { 
-  line-height: 6px;
+/* Heading adjustments */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 1.5em !important; /* Adjust heading size */
+    margin-bottom: 15px; /* Add some spacing */
 }
 
-// idk?
-  .panel-tabset {
-    font-size: 30px;
-  }
+/* Paragraph adjustments */
+p {
+    font-size: 1em !important; /* Adjust for readability */
+    margin-bottom: 20px; /* Add spacing after paragraphs */
+}
+
+
