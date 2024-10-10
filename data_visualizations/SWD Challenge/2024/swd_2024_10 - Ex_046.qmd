@@ -217,9 +217,8 @@ magick::image_read(here::here("data_visualizations/SWD Challenge/2024/swd_2024_1
 
 #### 8. Session Info
 
-```{r, eval=TRUE}
-info <- capture.output(sessioninfo::session_info())
-# Remove lines that contain "[1]" and "[2]" (the file paths)
-filtered_info <- grep("\\[1\\]|\\[2\\]", info, value = TRUE, invert = TRUE)
-cat(filtered_info, sep = "\n")
+```{r}
+#| eval: true
+
+sessioninfo::session_info(include_base = TRUE)
 ```
