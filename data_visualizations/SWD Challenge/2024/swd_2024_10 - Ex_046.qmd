@@ -4,6 +4,8 @@ subtitle: |
   Top 10 Accounts by Sales Volume: 4-week sales ending January 31st
 author: "Steven Ponce"
 date: "2024-10-09"
+date-modified: last-modified
+
 categories:
   - "#SWDchallenge"
   - "#Exercise"
@@ -11,6 +13,8 @@ image: "thumbnails/swd_2024_10 - Ex_046.png"
 
 format:
   html:
+    toc: true
+    toc-depth: 5
     code-fold: true
     code-link: true
     df_print: kable
@@ -30,6 +34,15 @@ share:
   twitter: true
   email: true
 ---
+
+
+**Update**: This post has been updated based on valuable feedback from the #SWDchallenge community. The changes include:
+
+- Reordering the table by Sales Volume to bring Account J, which has the largest negative percentage change, to the top for better emphasis.
+- Adjusting the color scheme to differentiate between positive and negative growth values more clearly, ensuring a more intuitive visual representation.
+- Highlighting Accounts J and H to emphasize the largest decrease and the highest growth, respectively.
+
+
 
 ### Original
 
@@ -96,6 +109,7 @@ glimpse(sales_data)
 
 ### |- Create a gt table ----
 sales_table <- sales_data |>
+  arrange(desc(sales_volume)) |>  # Reorder by Sales Volume descending
   gt() |>
   tab_header(
     title = md("**WakeUp Coffee Sales Summary**"),
@@ -123,11 +137,23 @@ sales_table <- sales_data |>
       )
     }
   ) |>
+  # Emphasize Accounts H and J
+  tab_style(
+    style = list(
+      cell_fill(color = "#D3E4CD"),
+      cell_text(color = "black")
+    ),
+    locations = cells_body(
+      rows = account %in% c("J","H")
+    )
+  ) |>
+  # Now add the color gradient for the % Change column
   data_color(
     columns = c(percent_change_vs_prior),
-    fn = col_numeric(
-      domain = c(-0.1, 0.4),
-      palette = c("#CA0020", "#F4A582", "#92C5DE", "#0571B0")
+    fn = col_bin(
+      bins = c(-0.1, -0.04, 0, 0.065, 0.4), 
+      palette = c("#CA0020", "#F4A582", "#92C5DE", "#0571B0"),
+      na.color = "transparent"  
     )
   ) |>
   cols_align(
@@ -150,7 +176,7 @@ sales_table <- sales_data |>
     source_note = html("<span style='font-size: 10px;'>UPC is the Universal Product Code, the barcode symbology.<br>ACV is All-Commodity Volume, measured as a percentage from 0 to 100.</span>")
   ) |>
   tab_footnote(
-    footnote = md("<span style='font-size: 14px;'>**Account H shows the highest positive growth (+37.90%)**, **Account D has the highest sales volume ($547,265)**, **Accounts J and E show significant declines**</span>"),
+    footnote = md("**Account H shows the highest positive growth (+37.90%)**, **Account D has the highest sales volume ($547,265)**, **Account J shows the largest decrease (-8.70%)**</span>"),
     locations = cells_title(groups = "title")
   ) |>
   tab_style(
@@ -178,15 +204,6 @@ sales_table <- sales_data |>
       cells_body(columns = everything()),          # Data cells
       cells_stub(rows = everything()),             # Row labels (stub)
       cells_source_notes()                         # Source notes
-    )
-  ) |>
-  tab_style(
-    style = list(
-      cell_fill(color = "#D3E4CD"),
-      cell_text(color = "black")
-    ),
-    locations = cells_body(
-      rows = account == "H" & percent_change_vs_prior == max(percent_change_vs_prior)
     )
   )
 
@@ -220,7 +237,7 @@ magick::image_read(here::here("data_visualizations/SWD Challenge/2024/swd_2024_1
 ```{r}
 #| eval: true
 
-sessioninfo::session_info(include_base = FALSE)
+sessioninfo::session_info(include_base = TRUE)
 ```
 
 
