@@ -6,14 +6,18 @@ subtitle: |
   from nationality, mission type, gender, to occupation.
 author: "Steven Ponce"
 date: "2024-10-02"
+
 categories:
   - "#SWDchallenge"
 image: "thumbnails/swd_2024_10.png"
 
 format:
   html:
+    toc: true
+    toc-depth: 5
+    code-link: true
     code-fold: true
-    df_print: kable
+    code-tools: true
   
 editor_options: 
   chunk_output_type: console
@@ -80,7 +84,7 @@ astronaut_db <- read_csv(
 
 ```
 
-#### 3. Examing the Data 
+#### 3. Examine the Data
 
 ```{r}
 #| label: examine
@@ -377,9 +381,22 @@ magick::image_read(here::here("data_visualizations/SWD Challenge/2024/swd_2024_1
 
 #### 8. Session Info
 
-```{r, eval=TRUE}
-info <- capture.output(sessioninfo::session_info())
-# Remove lines that contain "[1]" and "[2]" (the file paths)
-filtered_info <- grep("\\[1\\]|\\[2\\]", info, value = TRUE, invert = TRUE)
-cat(filtered_info, sep = "\n")
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+
+sessionInfo()
 ```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
+
