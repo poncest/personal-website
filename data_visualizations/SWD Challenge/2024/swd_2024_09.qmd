@@ -3,22 +3,28 @@ title: "Hydrogen Projects by Country and Status"
 subtitle: "Focusing on the top 10 countries and highlighting operational projects"
 author: "Steven Ponce"
 date: "2024-09-01"
+
 categories:
   - "#SWDchallenge"
 image: "thumbnails/swd_2024_09.png"
+
 format:
   html:
+    toc: true
+    toc-depth: 5
+    code-link: true
     code-fold: true
+    code-tools: true
+  
 editor_options: 
   chunk_output_type: console
+
 execute: 
   error: false
   message: false
   warning: false
   eval: false
 
-# filters:
-#   - social-share
 share:
   permalink: "https://stevenponce.netlify.app/data_visualizations.html"
   linkedin: true
@@ -76,7 +82,7 @@ worldwide_hydrogen_projects <- read_xlsx(
   glimpse()
 ```
 
-#### 3. Examing the Data 
+#### 3. Examine the Data
 
 ```{r}
 #| label: examine
@@ -308,6 +314,22 @@ magick::image_read(here::here("data_visualizations/SWD Challenge/2024/swd_2024_0
 
 #### 8. Session Info
 
-```{r, eval=TRUE}
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+
 sessionInfo()
 ```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
+
