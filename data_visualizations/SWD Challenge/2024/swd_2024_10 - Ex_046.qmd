@@ -15,9 +15,9 @@ format:
   html:
     toc: true
     toc-depth: 5
-    code-fold: true
     code-link: true
-    df_print: kable
+    code-fold: true
+    code-tools: true
   
 editor_options: 
   chunk_output_type: console
@@ -234,15 +234,21 @@ magick::image_read(here::here("data_visualizations/SWD Challenge/2024/swd_2024_1
 
 #### 8. Session Info
 
-```{r}
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
 #| eval: true
 
-sessioninfo::session_info(include_base = TRUE)
+sessionInfo()
 ```
-
+:::
 
 #### 9. GitHub Repository
 
-I've linked my GitHub repository so you can check out the source code and data behind this visualization. You'll find the full Quarto document, data processing scripts, and other resources used for this project there. Feel free to explore how the analysis was done or even adapt the methods for your own projects.
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
  
 [Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
