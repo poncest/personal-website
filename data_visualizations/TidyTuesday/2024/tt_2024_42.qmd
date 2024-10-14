@@ -1,0 +1,401 @@
+---
+title: "Orca Encounter Observations: Leading Vessels"
+subtitle: "Highlighting vessels with more than one recorded orca encounter in the Salish Sea region"
+author: "Steven Ponce"
+date: "2024-10-14"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_42.png"
+
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+
+editor_options: 
+  chunk_output_type: inline
+
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: true
+  
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.png"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+### Static
+
+![A bar chart displaying the number of orca encounters in the Salish Sea region, along with a map showing the locations of the encounters. Orcinus and Mike 1 are the vessels with the highest number of encounters, each exceeding 200.](tt_2024_42.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+## 1. LOAD PACKAGES & SETUP ----
+pacman::p_load(
+    tidyverse,         # Easily Install and Load the 'Tidyverse'
+    ggtext,            # Improved Text Rendering Support for 'ggplot2'
+    showtext,          # Using Fonts More Easily in R Graphs
+    janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,             # Compact and Flexible Summaries of Data
+    scales,            # Scale Functions for Visualization
+    lubridate,         # Make Dealing with Dates a Little Easier
+    glue,              # Interpreted String Literals
+    patchwork,         # The Composer of Plots
+    here,              # A Simpler Way to Find Your Files
+    sf,                # Simple Features for R
+    ggiraph,           # Make 'ggplot2' Graphics Interactive
+    htmltools,         # Tools for HTML
+    rnaturalearth,     # World Map Data from Natural Earth 
+    rnaturalearthhires # High Resolution World Vector Map Data from Natural Earth used inrnaturalearth
+)  
+
+# Note: disabled { camcorder }. Issues with plot rendering (ggiraph)
+
+# ### |- figure size ---- 
+# camcorder::gg_record(
+#     dir    = here::here("temp_plots"),
+#     device = "png",
+#     width  =  10,
+#     height =  10,
+#     units  = "in",
+#     dpi    = 320
+# )
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+
+tt <-tidytuesdayR::tt_load(2024, week = 42) 
+
+orcas_data <- tt$orcas |> clean_names() 
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+
+glimpse(orcas_data)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+### |- tidy data ----
+orcas_data_clean <- orcas_data |>
+    filter(!is.na(vessel)) |>
+    # Standardize 'ids_encountered' to be comma-separated
+    mutate(
+        ids_encountered = str_replace_all(ids_encountered, "and", ","),
+        ids_encountered = str_replace_all(ids_encountered, ",[[:space:]]*", ", "),
+        ids_encountered = str_trim(ids_encountered)
+    ) |>  
+    # Extract numeric duration from the 'duration' column and convert to minutes
+    mutate(
+        duration_minutes = str_extract(duration, "[[:digit:]]+") |> as.numeric() / 60,
+        duration_minutes = ifelse(duration_minutes < 0, NA, duration_minutes)
+    ) |>
+    # Convert 'date' to proper Date class and create month column
+    mutate(
+        date = as.Date(date),
+        month = month(date, label = TRUE, abbr = FALSE)
+    ) |>
+    # Handle missing values
+    filter(!is.na(encounter_number), !is.na(begin_latitude), !is.na(begin_longitude))
+
+
+# ### |- data for bar plot ----
+
+# Number of Encounters per Vessel
+bar_plot_data <- orcas_data_clean |>
+    filter(!is.na(vessel)) |>
+    count(vessel, sort = TRUE) |>
+    filter(n > 1) |>
+    mutate(
+        vessel = str_wrap(vessel, width = 20),
+        vessel = fct_reorder(vessel, -n)
+    )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- paletteer::paletteer_d("lisa::OdilonRedon")[c(1,2)] 
+# show_col(col_palette)
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 42 } &bull; Source: Center for Whale Research<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("Orca Encounter Observations: Leading Vessels")
+subtitle_text <- str_glue("Highlighting vessels with more than one recorded orca encounter in the Salish Sea region.")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+#font_add("fa6-brands", "personal-website/fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = 'plot',
+    
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 10, r = 10, b = 5, l = 10),
+    
+    panel.grid.minor      = element_blank(),
+    panel.grid.major.y    = element_blank(),
+    panel.grid.major.x    = element_line(linetype = "dotted", linewidth = 0.2, color = 'gray'),
+    
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(0.85), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(0.85), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    
+    axis.text.y           = element_text(color = text_col, family = "text", size = rel(0.65)),
+    axis.text.x           = element_text(color = text_col, family = "text", size = rel(0.65)),
+    
+    axis.ticks.x          = element_line(color = text_col),  
+    axis.line.x           = element_line(color = "#252525", linewidth = .2)
+)
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+### |- world map for background ----
+world <- st_as_sf(rnaturalearth::ne_countries(scale = 'large', returnclass = 'sf'))
+
+### |- Base map ----
+
+# Focus on the Salish Sea region
+map <- ggplot() +
+    
+    # Geoms
+    geom_sf(data = world, fill = "lightgrey", color = "white") +
+    geom_sf_interactive(
+        data = st_as_sf(orcas_data_clean, coords = c("begin_longitude", "begin_latitude"), crs = 4326),
+        aes(tooltip = paste("Date:", date, "<br>Location:", location), data_id = vessel), 
+        color = col_palette[1],
+        alpha = 0.5,
+        shape = 1,
+        size = 1
+    ) +
+    
+    # Scales
+    coord_sf(xlim = c(-127, -121), ylim = c(47, 51), expand = FALSE) +          # Focus on the Salish Sea region
+    
+    # Labs 
+    labs(
+        title = "",
+        x = "Longitude",
+        y = "Latitude"
+    ) +
+    
+    # Theme
+    ggthemes::theme_map() 
+
+
+### |- Bar plot plot ----
+
+# Number of Encounters per Vessel
+bar <- ggplot(bar_plot_data, aes(x = vessel, -n, y = n)) +
+    
+    # Geom
+    geom_bar_interactive(
+        aes(
+            tooltip = paste("Vessel:", vessel, "<br>Encounters:", n), 
+            data_id = vessel), 
+        stat = "identity", 
+        fill = col_palette[1]
+    ) +
+    
+    # Scale
+    scale_x_discrete() +
+    scale_y_continuous() +    
+    coord_flip() +
+    
+    # Labs
+    labs(
+        x = "Vessel",
+        y = "Number of Encounters",
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text
+    )  +
+    
+    # Theme
+    theme(
+        plot.title = element_text(
+            size = rel(1.3),
+            family = "title",
+            face = "bold",
+            color = title_col,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(0.65),
+            family = "subtitle",
+            color = subtitle_col,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.caption = element_markdown(    
+            size = rel(0.40),
+            family = "caption", 
+            color = caption_col,
+            lineheight = 1.1,
+            hjust = 0.5,
+            halign = 1,
+            margin = margin(t = 5, b = 5)
+        )
+    )
+
+### |- inset element ----
+
+# Insert the map into the upper right corner of the bar plot 
+combined_plot <- bar + 
+    inset_element(map, left = 0, bottom = 0.2, right = 1.3, top = 1.05)
+
+```
+
+
+### Interactive
+```{r}
+#| label: interactive
+#| eval: true
+#| include: true
+
+### |-  interactive plots ----
+
+# Create the interactive plot with ggiraph
+interactive_plot <- girafe(ggobj = combined_plot)
+
+interactive_plot <- girafe_options(
+    interactive_plot,
+    opts_tooltip(
+        opacity = 0.8, use_fill = TRUE,
+        use_stroke = FALSE,
+        css = "padding:5pt;font-family: 'Open Sans', sans-serif;font-size:1.2rem;color:white"
+    ),
+    opts_hover_inv(css = "opacity:0.4"),
+    opts_hover(
+        css = girafe_css(
+            css = glue("fill:{col_palette[2]};"),
+            text = "stroke:none;fill:white;fill-opacity:1;"
+        )
+    ),
+    opts_selection(type = "single", css = "fill:yellow;stroke:black;stroke-width:2px;"),
+    opts_sizing(rescale = TRUE), # Adjust width and height, make it responsive
+    opts_toolbar(saveaspng = TRUE) # Add an option to save as PNG
+)
+
+interactive_plot
+```
+
+__Note__: This chart was inspired by Yan Holtz (@R_Graph_Gallery) ___"Combine charts in ggiraph"___ post that can be found [HERE](https://r-graph-gallery.com/414-map-multiple-charts-in-ggiraph.html)
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |- html ---- 
+# Create the directory if it does not exist
+dir.create(here::here("data_visualizations/TidyTuesday/2024"), recursive = TRUE, showWarnings = FALSE)
+
+# Save as an html widget
+htmltools::save_html(interactive_plot, here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.html"))
+
+### |-  plot image ----  
+
+# # Save the plot as PNG
+ggsave(
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.png"),
+  plot = combined_plot,
+  width = 8, height = 6, units = "in", dpi = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_42.png"))
+```
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
+
