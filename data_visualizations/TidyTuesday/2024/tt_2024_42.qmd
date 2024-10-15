@@ -14,6 +14,9 @@ format:
     code-link: true
     code-fold: true
     code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    runtime: shiny
 
 editor_options: 
   chunk_output_type: inline
@@ -35,6 +38,11 @@ share:
 
 ![A bar chart displaying the number of orca encounters in the Salish Sea region, along with a map showing the locations of the encounters. Orcinus and Mike 1 are the vessels with the highest number of encounters, each exceeding 200.](tt_2024_42.png){#fig-1}
 
+__NOTE:__ We used `runtime: shiny` to make the interactive features of our visualizations work smoothly, especially the interactive orca map. This let us add dynamic, user-driven exploration that wasn't possible with the usual Quarto options (I needed help figuring it out!).
+
+While it means the final result looks more like markdown and less like a sleek Quarto document, it was the best way to ensure the interactivity worked well. 
+
+
 
 ### <mark> __Steps to Create this Graphic__ </mark>
 
@@ -42,6 +50,7 @@ share:
 
 ```{r}
 #| label: load
+#| warning: false
 
 ## 1. LOAD PACKAGES & SETUP ----
 pacman::p_load(
@@ -84,6 +93,7 @@ showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
 #| label: read
 #| include: true
 #| eval: true
+#| warning: false
 
 tt <-tidytuesdayR::tt_load(2024, week = 42) 
 
@@ -100,6 +110,7 @@ rm(tt)
 #| include: true
 #| eval: true
 #| results: 'hide'
+#| warning: false
 
 glimpse(orcas_data)
 ```
@@ -108,6 +119,7 @@ glimpse(orcas_data)
 
 ```{r}
 #| label: tidy
+#| warning: false
 
 ### |- tidy data ----
 orcas_data_clean <- orcas_data |>
@@ -151,6 +163,7 @@ bar_plot_data <- orcas_data_clean |>
 ```{r}
 #| label: params
 #| include: true
+#| warning: false
 
 ### |- plot aesthetics ----
 bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
@@ -174,7 +187,7 @@ subtitle_text <- str_glue("Highlighting vessels with more than one recorded orca
 caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
 
 ### |-  fonts ----
-#font_add("fa6-brands", "personal-website/fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
+# font_add("fa6-brands", "personal-website/fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
 font_add_google("Oswald", regular.wt = 400, family = "title")
 font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
 font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
@@ -211,10 +224,11 @@ theme_update(
 ```
 
 
-#### 6. Plot
+#### 6. Plot (Interactive)
 
 ```{r}
 #| label: plot
+#| warning: false
 
 ### |- world map for background ----
 world <- st_as_sf(rnaturalearth::ne_countries(scale = 'large', returnclass = 'sf'))
@@ -314,59 +328,57 @@ combined_plot <- bar +
 ```
 
 
-### Interactive
 ```{r}
 #| label: interactive
 #| eval: true
 #| include: true
+#| fig.width: 8
+#| fig.height: 6
+#| warning: false
+
 
 ### |-  interactive plots ----
 
 # Create the interactive plot with ggiraph
-interactive_plot <- girafe(ggobj = combined_plot)
-
-interactive_plot <- girafe_options(
-    interactive_plot,
+interactive_plot <- girafe(
+  ggobj = combined_plot,
+  bg = bkg_col,
+  options = list(
     opts_tooltip(
-        opacity = 0.8, use_fill = TRUE,
-        use_stroke = FALSE,
-        css = "padding:5pt;font-family: 'Open Sans', sans-serif;font-size:1.2rem;color:white"
-    ),
+      opacity = 0.8, use_fill = TRUE,
+      use_stroke = FALSE,
+      css = "padding:5pt;font-family: 'Open Sans', sans-serif;font-size:1.2rem;color:white"),
+    opts_selection(type = "single", css = "fill:yellow;stroke:black;stroke-width:2px;"),
+    opts_sizing(rescale = TRUE),
+    opts_toolbar(saveaspng = TRUE),
     opts_hover_inv(css = "opacity:0.4"),
     opts_hover(
-        css = girafe_css(
-            css = glue("fill:{col_palette[2]};"),
-            text = "stroke:none;fill:white;fill-opacity:1;"
-        )
-    ),
-    opts_selection(type = "single", css = "fill:yellow;stroke:black;stroke-width:2px;"),
-    opts_sizing(rescale = TRUE), # Adjust width and height, make it responsive
-    opts_toolbar(saveaspng = TRUE) # Add an option to save as PNG
+      css = girafe_css(
+        css = glue("fill:{col_palette[2]};"),
+        text = "stroke:none;fill:white;fill-opacity:1;")
+    )
+  )
 )
 
-interactive_plot
+# Use tagList to render it properly in Quarto
+htmltools::tagList(interactive_plot)
 ```
 
-__Note__: This chart was inspired by Yan Holtz (@R_Graph_Gallery) ___"Combine charts in ggiraph"___ post that can be found [HERE](https://r-graph-gallery.com/414-map-multiple-charts-in-ggiraph.html)
+
+__Note__: This chart was inspired by Yan Holtz (@R_Graph_Gallery) _"Combine charts in ggiraph"_ post that can be found [HERE](https://r-graph-gallery.com/414-map-multiple-charts-in-ggiraph.html)
 
 
 #### 7. Save
 
 ```{r}
 #| label: save
-
-### |- html ---- 
-# Create the directory if it does not exist
-dir.create(here::here("data_visualizations/TidyTuesday/2024"), recursive = TRUE, showWarnings = FALSE)
-
-# Save as an html widget
-htmltools::save_html(interactive_plot, here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.html"))
+#| warning: false
 
 ### |-  plot image ----  
 
-# # Save the plot as PNG
+# Save the plot as PNG
 ggsave(
-  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.png"),
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.png"), 
   plot = combined_plot,
   width = 8, height = 6, units = "in", dpi = 320
 )
@@ -378,6 +390,7 @@ magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.p
 ```
 
 
+
 #### 8. Session Info
 
 ::: {.callout-tip collapse="true"}
@@ -385,6 +398,7 @@ magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_42.p
 
 ```{r, echo = FALSE}
 #| eval: true
+#| warning: false
 
 sessionInfo()
 ```
