@@ -1,0 +1,300 @@
+---
+title: "Bob's Burgers Viewership from Seasons 1 to 14"
+subtitle: "Highlighting the highest viewed episode per season, based on Wikipedia viewership data."
+author: "Steven Ponce"
+date: "2024-10-27"
+categories: ["Bob's Burgers", "{ bobsburgersR }", "#Standalone", ]
+image: "thumbnails/sa_2024-10-28.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+editor_options: 
+  
+  chunk_output_type: inline
+execute: 
+  
+  error: false
+  message: false
+  warning: false
+  eval: true
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.png"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![Bob's Burgers Viewership by Season: A dot plot highlighting the highest viewed episode for each season from 1 to 14. Season 1's 'Human Flesh' episode had the highest viewership with 9.38 million viewers.](sa_2024-10-28){#fig-1}
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+
+## 1. LOAD PACKAGES & SETUP ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,             # Compact and Flexible Summaries of Data
+  scales,            # Scale Functions for Visualization
+  glue,              # Interpreted String Literals
+  ggrepel,           # Automatically Position Non-Overlapping Text Labels with'ggplot2' 
+  ggbeeswarm,        # Categorical Scatter (Violin Point) Plots
+  bobsburgersR       # Bob's Burgers Datasets for Data Visualization
+)    
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  8,
+  height =  8,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+bobsburgersR::imdb_wikipedia_data
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(imdb_wikipedia_data)
+skim(imdb_wikipedia_data)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+## |- highlight  data ----
+
+highlight_data <- imdb_wikipedia_data |>
+  group_by(season) |>
+  filter(wikipedia_viewers == max(wikipedia_viewers, na.rm = TRUE)) |>
+  slice(1) |>
+  ungroup() |>
+  mutate(
+    label = paste0("Ep: ", episode, " - ", imdb_title, "\nViewers: ", wikipedia_viewers, " M")
+  )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- "#f5f5f2"     
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette <- c("#b358a6", "#762a83", "#4d004b", "grey50") 
+
+### |-  titles and caption ----
+
+# icons
+tt <- str_glue("Source: {{bobsburgersR}}")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+
+# text
+title_text    <- str_glue("Bob's Burgers Viewership from Seasons 1 to 14")
+subtitle_text <- str_glue("Highlighting the highest viewed episode per season, based on Wikipedia viewership data.")
+caption_text  <- str_glue("{li} stevenponce &bull; {gh} poncest &bull; #rstats #ggplot2 &bull; {tt}")
+
+### |-  fonts ----
+font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+  plot.title.position   = "plot",
+  plot.caption.position = "plot",
+  legend.position       = 'plot',
+  plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+  panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+  plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+  axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
+  axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
+  axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
+  panel.grid.major.y    = element_line(color = "#e0e0e0", linewidth = 0.6, linetype = 'dotted'),
+  panel.grid.major.x    = element_line(color = "#d3d3d3", linewidth = 0.6, linetype = 'dotted'),
+  panel.grid.minor      = element_blank()
+)
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+p <- ggplot(imdb_wikipedia_data, 
+            aes(x = wikipedia_viewers, y = factor(season, levels = rev(unique(season))))) +
+
+  # Geoms
+  ggbeeswarm::geom_beeswarm(cex = 1, color = col_palette[2], size = 2, 
+                            alpha = 0.5, shape = 21, na.rm = TRUE) +
+  ggbeeswarm::geom_beeswarm(
+    data = highlight_data,
+    aes(color = factor(ifelse(season == 1, "highlight", "normal"))),
+    cex = 1, size = 2.1, alpha = 0.75, shape = 19, na.rm = TRUE
+  ) +
+  geom_segment(
+    data = highlight_data,
+    aes(
+      x = wikipedia_viewers, xend = wikipedia_viewers + 0.5,
+      y = as.numeric(factor(season, levels = rev(unique(season)))), yend = as.numeric(factor(season, levels = rev(unique(season))))
+    ),
+    color = col_palette[4], size = 0.2, linetype = "dotted"
+  ) +
+  geom_text(
+    data = highlight_data, aes(
+      x = wikipedia_viewers + 0.6, y = factor(season, levels = rev(unique(season))),
+      label = label, lineheight = 1, color = factor(ifelse(season == 1, "highlight", "normal"))
+    ),
+    size = 3, hjust = 0
+  ) +
+
+  # Scales
+  scale_x_continuous(
+    breaks = seq(0, 10, by = 2),
+    limits = c(1, 12)
+  ) +
+  scale_y_discrete() +
+  scale_color_manual(values = c("highlight" = col_palette[3], "normal" = col_palette[4])) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+
+  labs(
+    x = "US Viewers (in millions)",
+    y = "Season",
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text
+  ) +
+  
+  # Theme
+  theme(
+    plot.margin  = margin(10, 20, 10, 20),
+    plot.title   = element_markdown(
+      size       = rel(1.6),
+      family     = "title",
+      face       = "bold",
+      color      = title_col,
+      lineheight = 1.1,
+      margin     = margin(t = 10, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size       = rel(0.85),
+      family     = "subtitle",
+      color      = subtitle_col,
+      lineheight = 1.1,
+      margin     = margin(t = 5, b = 15)
+    ),
+    plot.caption = element_markdown(
+      size       = rel(0.65),
+      family     = "caption",
+      color      = caption_col,
+      lineheight = 1.1,
+      hjust      = 0.5,
+      halign     = 0.5,
+      margin     = margin(t = 5, b = 5)
+    ),
+  )
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+# Save the plot as PNG
+ggsave(
+  filename = here::here("projects/standalone_visualizations/sa_2024-10-28.png"), 
+  plot = p,
+  width = 8, height = 8, units = "in", dpi = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("projects/standalone_visualizations/sa_2024-10-28.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("projects/standalone_visualizations/thumbnails/sa_2024-10-28.png"))
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
