@@ -1,0 +1,515 @@
+---
+title: "The Architecture of Global Country Codes"
+subtitle: "Analysis of ISO country codes reveals geographic and alphabetic patterns
+      in international standardization. Most nations maintain three distinct identifiers."
+author: "Steven Ponce"
+date: "2024-11-09"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_46.png"
+
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+  
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: true
+  
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.png"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![A visualization titled 'The Architecture of Global Country Codes' showing an analysis of 249 ISO country codes by first letter and numeric value. Ridge plots in purple to orange show the distribution of country codes, with early alphabet countries having lower numeric codes and later alphabet countries having higher codes. A waffle chart in the top right indicates which countries maintain complete sets of Alpha-2, Alpha-3, and Numeric codes.](tt_2024_46.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+
+## 1. LOAD PACKAGES & SETUP ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse, # Easily Install and Load the 'Tidyverse'
+  ggtext, # Improved Text Rendering Support for 'ggplot2'
+  showtext, # Using Fonts More Easily in R Graphs
+  janitor, # Simple Tools for Examining and Cleaning Dirty Data
+  scales, # Scale Functions for Visualization
+  glue, # Interpreted String Literals
+  here, # A Simpler Way to Find Your Files
+  ggridges, # Ridgeline Plots in 'ggplot2'
+  waffle, # Create Waffle Chart Visualizations
+  patchwork # The Composer of Plots
+)
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  10,
+  height =  12,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2024, week = 46)
+
+countries            <- tt$countries |> clean_names()
+country_subdivisions <- tt$country_subdivisions |> clean_names()
+former_countries     <- tt$former_countries |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(countries)
+glimpse(country_subdivisions)
+glimpse(former_countries)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+
+### |- ridge data ----
+ridge_data <- countries |>
+  mutate(
+    first_letter = substr(alpha_2, 1, 1),
+    first_letter = factor(first_letter, levels = rev(sort(unique(first_letter))))
+  )
+
+### |- waffle data ----
+waffle_data <- countries |>
+  summarise(
+    `Complete System` = sum(!is.na(alpha_2) & !is.na(alpha_3) & !is.na(numeric)),
+    `Partial System` = n() - sum(!is.na(alpha_2) & !is.na(alpha_3) & !is.na(numeric))
+  ) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = "key",
+    values_to = "value"
+  ) |>
+  mutate(
+    value = value / 10,
+    key = factor(key, levels = c("Complete System", "Partial System"))
+  )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- "#f5f5f2"
+title_col    <- "gray20"
+subtitle_col <- "gray20"
+caption_col  <- "gray30"
+text_col     <- "gray30"
+col_palette  <- viridis::rocket(5)
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 46 } &bull; Source: ISOcodes R Package<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
+
+# text
+caption_text <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Source Sans Pro", family = "text")
+font_add_google("Roboto Mono", family = "numbers")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = "plot",
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 5, r = 15, b = 5, l = 15),
+    panel.spacing         = unit(1, "lines"),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), 
+                                         size = rel(1),
+                                         color = text_col,
+                                         family = "text",
+                                         face = "bold"),
+    axis.title.y          = element_text(margin = margin(0, 10, 0, 0),
+                                         size = rel(1),
+                                         color = text_col,
+                                         family = "text",
+                                         face = "bold"),
+    axis.text             = element_text(size = rel(0.8),
+                                         color = text_col,
+                                         family = "text"),
+    panel.grid.minor      = element_blank(),
+    panel.grid.major      = element_line(color = "gray95", linewidth = 0.2),
+    panel.grid.major.y    = element_blank()
+)
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- ridge plot ----
+ridge_plot <- ridge_data |>
+  ggplot(aes(x = numeric, y = first_letter, fill = after_stat(x))) +
+
+  # Geoms
+  # add reference lines
+  geom_vline(
+    xintercept = seq(0, 1000, 200),
+    color = "gray90",
+    linetype = "dashed"
+  ) +
+  # ridges
+  geom_density_ridges_gradient(
+    alpha = 0.8,
+    scale = 0.95,
+    rel_min_height = 0.005,
+    bandwidth = 25,
+    color = text_col,
+    show.legend = TRUE
+  ) +
+  # country positions
+  geom_point(
+    data = ridge_data,
+    aes(x = numeric, y = first_letter),
+    size = 0.8,
+    alpha = 0.3,
+    color = text_col
+  ) +
+  # annotations
+  annotate(
+    "text",
+    x = 10,
+    y = "E",
+    label = "Early alphabet countries\noften have lower codes",
+    size = 3.0,
+    family = "text",
+    color = "gray25",
+    lineheight = 0.9,
+    hjust = 0.4
+  ) +
+  annotate(
+    "text",
+    x = 850,
+    y = "W",
+    label = "Higher codes cluster in\nlater alphabet regions",
+    size = 3.0,
+    family = "text",
+    color = "gray25",
+    lineheight = 0.9,
+    vjust = 0.5
+  ) +
+
+  # Scales
+  scale_x_continuous(
+    breaks = seq(0, 1000, 200),
+    expand = c(0.02, 0)
+  ) +
+  scale_y_discrete() +
+  scale_fill_gradientn(
+    colors = col_palette,
+    name = "Numeric Code Range",
+    guide = guide_colorbar(
+      title.position = "top",
+      barwidth = unit(15, "lines"),
+      barheight = unit(0.5, "lines")
+    )
+  ) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    x = "Numeric Country Code (0-999)",
+    y = "First Letter of Alpha-2 Code"
+  ) +
+
+  # Theme
+  theme(
+    legend.position = "top",
+    legend.justification = "right",
+    legend.direction = "horizontal",
+    legend.title = element_text(size = rel(0.8)),
+    legend.text = element_text(size = rel(0.7)),
+    legend.key.width = unit(2.2, "cm"),
+    legend.key.height = unit(0.3, "cm"),
+    legend.spacing.x = unit(0.2, "cm"),
+    plot.margin = margin(-5, 30, 5, 30),
+    panel.spacing = unit(2, "lines")
+  )
+
+### |- waffle plot ----
+waffle_plot <- waffle_data |>
+  ggplot(aes(fill = key, values = value)) +
+
+  # Geom
+  geom_waffle(
+    n_rows = 5,
+    size = 0.5,
+    colour = "white",
+    flip = TRUE,
+    radius = unit(2, "pt")
+  ) +
+  # Scales
+  scale_fill_manual(values = col_palette[c(1, 5)]) +
+  coord_equal(ratio = 1) +
+
+  # Theme
+  theme_void() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = rel(1)),
+    plot.margin = margin(10, 5, 0, 5),
+    plot.background = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background = element_rect(fill = bkg_col, color = bkg_col),
+  )
+
+### |- title plot ----
+
+# Add total count annotation
+n_countries <- nrow(countries)
+
+title_plot <- ggplot() +
+  # Geoms
+  annotate(
+    "text",
+    x = 0, y = 0.85,
+    label = "The Architecture of\nGlobal Country Codes",
+    hjust = 0,
+    size = 10,
+    lineheight = 1,
+    fontface = "bold",
+    family = "title",
+    color = title_col
+  ) +
+  annotate(
+    "text",
+    x = 0, y = 0.5,
+    label = str_wrap(
+      "Analysis of ISO country codes reveals geographic and alphabetic patterns
+      in international standardization. Most nations maintain three distinct identifiers.",
+      width = 65
+    ),
+    hjust = 0,
+    size = 3.5,
+    color = title_col,
+    family = "text"
+  ) +
+  annotate(
+    "text",
+    x = 0, y = 0.3,
+    label = glue("Analysis of {n_countries} country codes"),
+    hjust = 0,
+    size = 3.5,
+    family = "text",
+    color = title_col
+  ) +
+  annotate("text",
+    x = 0, y = 0.1,
+    label = "Example:\nUS (Alpha-2)\nUSA (Alpha-3)\n840 (Numeric)",
+    hjust = 0,
+    size = 2.8,
+    color = title_col,
+    family = "text",
+    lineheight = 1.2
+  ) +
+
+  # Scales
+  scale_x_continuous(limits = c(0, 1)) +
+  scale_y_continuous(limits = c(0, 1)) +
+
+  # Them
+  theme_void() +
+  theme(
+    plot.background = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin = margin(5, 10, 0, 10)
+  )
+
+### |- explanatory text plot for the waffle chart ----
+waffle_explanation <- ggplot() +
+
+  # Geoms
+  annotate("text",
+    x = 0, y = 0.85,
+    label = "Country Code Systems\n",
+    hjust = 0, size = 3.5, fontface = "bold", family = "text"
+  ) +
+  annotate("text",
+    x = 0, y = 0.55,
+    label = str_wrap("Each square represents 10 countries. A complete system means a country has
+                     all three standardized codes shown in the ridge plot below: Alpha-2 (e.g., US),
+                     Alpha-3 (USA), and Numeric (840).", 55),
+    hjust = 0, size = 2.8, color = title_col, family = "text"
+  ) +
+
+  # Scales
+  scale_x_continuous(limits = c(0, 1)) +
+  scale_y_continuous(limits = c(0, 1)) +
+
+  # Theme
+  theme_void() +
+  theme(
+    plot.background = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin = margin(5, 10, 0, 10)
+  )
+
+### |- combined plot ----
+
+# define layout design
+design <- c(
+  area(1, 1, 2, 4), # title_plot
+  area(1, 5, 1, 6), # waffle_plot
+  area(2, 5, 2, 6), # waffle_explanation
+  area(3, 1, 5, 6) # ridge_plot
+)
+
+combined_plot <- title_plot + waffle_plot + waffle_explanation + ridge_plot +
+  plot_layout(
+    design = design,
+    heights = c(1.2, 1, 2, 1, 1), # Simplified heights
+    widths = c(1, 1, -0.4, 1, 0.9, 0.9) # Slightly wider right side
+  ) +
+  plot_annotation(
+    caption = caption_text,
+    theme = theme(
+      plot.background  = element_rect(fill = bkg_col, color = bkg_col),
+      panel.background = element_rect(fill = bkg_col, color = bkg_col),
+      plot.margin  = margin(10, 10, 10, 10),
+      plot.caption = element_markdown(
+        size       = rel(0.60),
+        family     = "caption",
+        color      = alpha(caption_col, 0.9),
+        lineheight = 0.65,
+        hjust      = 0.5,
+        margin     = margin(t = 10, b = 5)
+      )
+    )
+  )
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----
+
+library(ggplotify)
+library(grid)
+
+# Convert patchwork plot to grob
+# There was some issues between patchwork and ggsave
+plot_grob <- as.grob(combined_plot)
+
+# Activate showtext manually
+showtext_begin()
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+
+# Save the plot as PNG
+invisible({
+  png(
+    filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_46.png"),
+    width = 10, height = 12, units = "in", res = 320
+  )
+  grid.draw(plot_grob)
+  dev.off()
+})
+
+# Deactivate showtext
+showtext_end()
+
+### |-  plot thumbnail----
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_46.png")) |>
+  magick::image_resize(geometry = "400") |>
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_46.png"))
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
