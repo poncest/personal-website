@@ -247,7 +247,7 @@ theme_update(
 ```
 
 
-#### 6. Plot - it works stop here
+#### 6. Plot
 
 ```{r}
 ### |- main plot ---- 
@@ -372,9 +372,7 @@ design <- c(
 combined_plot <- title_plot +  main_plot + key_patterns_plot +
   plot_layout(
     design = design,
-    # heights = c(0.8, 4, 4, 4, 4),
-    # widths = c(1, 1, 1, 1, 1, 1)
-    heights = c(0.8, 4, 4, 4, 0.2), #.2
+    heights = c(0.8, 4, 4, 4, 0.2), 
     widths = c(1, 1, 1, 1, 1, 0.2)
   ) +
   plot_annotation(
@@ -401,6 +399,8 @@ combined_plot <- title_plot +  main_plot + key_patterns_plot +
 #| label: save
 #| warning: false
 
+# There was some issues between patchwork and ggsave
+
 # Make sure these pkgs are installed
 if (!require("ggplotify")) install.packages("ggplotify")
 if (!require("grid")) install.packages("grid")
@@ -411,7 +411,6 @@ windowsFonts(Arial = windowsFont("Arial"))
 font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
 
 # Convert patchwork plot to grob
-# There was some issues between patchwork and ggsave
 plot_grob <- as.grob(combined_plot)
 
 # Set up the PNG device with proper font handling
@@ -421,7 +420,7 @@ png(
   height = 10, 
   units = "in", 
   res = 320,
-  type = "cairo"  # Important for font rendering
+  type = "cairo" 
 )
 
 # Enable showtext with specific settings
