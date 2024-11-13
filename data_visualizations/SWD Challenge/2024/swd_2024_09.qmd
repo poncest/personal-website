@@ -32,6 +32,7 @@ share:
   email: true
 ---
 
+
 ![This stacked bar chart showcases the number of hydrogen projects in the top 10 countries, emphasizing operational projects. The countries included are Germany, the United States, Australia, Spain, France, the United Kingdom, the Netherlands, China, India, and Denmark. The bars are divided by project status, with operational projects highlighted in orange. The United Kingdom is also singled out with the annotation "Total H2 Projects per Country," indicating its total of 110 projects. The data is from The Hydrogen Production Projects Database, and the visualization aims to underscore the distribution and status of hydrogen projects in these leading countries.](swd_2024_09.png){#fig-1}
 
 ### <mark> __Steps to Create this Graphic__ </mark>
@@ -143,12 +144,12 @@ gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
 mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
 
 # text
-title_text   <- str_glue("Hydrogen Projects by Country and Status") 
+title_text    <- str_glue("Hydrogen Projects by Country and Status") 
 subtitle_text <- "Focusing on the top 10 countries and highlighting {#E69F00 _**operational**_} projects"
-caption_text <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) &bull; {gh} poncest &bull; #rstats #ggplot2")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) &bull; {gh} poncest &bull; #rstats #ggplot2")
 
 ### |-  fonts ----
-font_add('fa6-brands', 'fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf')  
+font_add('fa6-brands', here::here('fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf'))
 font_add_google("Oswald", regular.wt = 400, family = "title")                 
 font_add_google("Quattrocento Sans", regular.wt = 400, family = "subtitle")  
 font_add_google("Quattrocento Sans", regular.wt = 400, family = "text")        
