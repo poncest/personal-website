@@ -4,29 +4,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Roboto+Serif:wght@100..900&display=swap');
 
 
-// Light theme colors
-$body-bg: #ffffff;
-$body-color: #212529;
-$link-color: #3b4252;
-$navbar-bg: #3b4252;
+// Dark theme colors
+$body-bg: #1a1a1a;
+$body-color: #f8f9fa;
+$link-color: #75b5aa;
+$navbar-bg: #2d333b;
 $navbar-fg: #ffffff;
-$code-block-bg: #f8f9fa;
-$code-color: #3b4252;
-
-// Add smooth transitions
-* {
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
+$code-block-bg: #2d2d2d;
+$code-color: #75b5aa;
 
 
 /* Apply Roboto Mono to all heading tags */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Roboto Mono', monospace;
+  color: $body-color;
 }
 
 /* Apply Roboto Serif to all paragraphs, captions, and other text */
 p, caption, body, .caption, blockquote, li, .text, div {
   font-family: 'Roboto Serif', serif;
+  color: $body-color;
 }
 
 /* You can customize specific elements as needed, for example: */
@@ -51,20 +48,20 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
 
 // NAV
 
-/* Change the font size of the navigation links */
-nav ul li a {
-    font-size: 15px;
-    color: $navbar-fg !important; /* Adjust text color if needed */
-}
-
-/* Change the banner background color */
+/*  Dark theme specific navbar */
 nav {
     background-color: $navbar-bg !important;
+    
+    ul li a {
+        font-size: 15px;
+        color: $navbar-fg !important;
+    }
 }
+
 
 nav ul li:first-child a {
     font-size: 26px;  /* Font size for "Steven Ponce" */
-    color: $navbar-fg !important;  // Using the light theme variable
+    color: white;     /* Adjust color if necessary */
 }
 
 
@@ -94,8 +91,9 @@ nav ul li a, .site-owner {
 
 /* Apply background to navbar only */
 nav, .navbar {
-    background-color: $navbar-bg !important;
+    background-color: $navbar-bg !important;  
 }
+
 
 
 // FOOTER
@@ -103,41 +101,40 @@ nav, .navbar {
 /* Footer */
 footer {
     font-size: 12px; /* Smaller size */
-    color: #666; /* Subtle color */
+    color: $body-color; /* Subtle color */
     text-align: center; /* Center-align text if needed */
 }
 
 .page-footer {
     font-size: 12px; /* Targeting specific class if needed */
+    color: $body-color;
 }
 
 
 // TOC
 
-/* Target the TOC container with the specific ID and class */
+// Dark theme TOC
 nav#TOC.toc-active {
-    background-color: transparent !important; /* Remove background color */
-    font-size: 0.9em !important; /* Adjust the font size */
-    color: #212529 !important; /* Set readable text color */
-    padding: 10px !important; /* Add padding for better spacing */
-}
+    background-color: transparent !important;
+    font-size: 0.9em !important;
+    color: $body-color !important;
+    padding: 10px !important;
 
-/* Style the links inside the TOC */
-nav#TOC.toc-active a {
-    color: #212529 !important; /* Set readable color for links */
-    font-size: 0.9em !important; /* Ensure smaller font size */
-    text-decoration: none !important; /* Remove underline from links */
-}
+    a {
+        color: $body-color !important;
+        font-size: 0.9em !important;
+        text-decoration: none !important;
 
-/* Add hover effects to TOC links */
-nav#TOC.toc-active a:hover {
-    color: #000 !important; /* Set darker color for better readability on hover */
-}
+        &:hover {
+            color: $link-color !important;
+        }
 
-nav#TOC.toc-active a.active {
-    font-weight: bold; /* Make the active section bold */
-    color: #000 !important; /* Ensure visibility of the active section */
-    border-left: 3px solid #000; /* Add a left border for better visibility */
+        &.active {
+            font-weight: bold;
+            color: $link-color !important;
+            border-left: 3px solid $link-color;
+        }
+    }
 }
 
 
@@ -161,32 +158,80 @@ nav#TOC.toc-active ul li {
 }
 
 
-// Add styles for links
+
+// Add smooth transitions
+* {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+// Add styles for code blocks
+pre {
+    background-color: $code-block-bg !important;
+    color: $code-color !important;
+}
+
+code {
+    color: $code-color !important;
+}
+
+// Add styles for cards in dark mode
+.card {
+    background-color: lighten($body-bg, 5%) !important;
+    border-color: lighten($body-bg, 10%) !important;
+}
+
+// Add styles for inputs and buttons in dark mode
+input, select, textarea {
+    background-color: lighten($body-bg, 5%) !important;
+    color: $body-color !important;
+    border-color: lighten($body-bg, 15%) !important;
+}
+
+// Add styles for tables in dark mode
+table {
+    color: $body-color;
+    
+    th, td {
+        border-color: lighten($body-bg, 15%) !important;
+    }
+}
+
+// Add styles for blockquotes in dark mode
+blockquote {
+    border-left-color: $link-color !important;
+    background-color: lighten($body-bg, 5%) !important;
+}
+
+// Add styles for horizontal rules
+hr {
+    border-color: lighten($body-bg, 15%) !important;
+}
+
+// links 
 a {
     color: $link-color !important;
     
     &:hover {
-        color: darken($link-color, 15%) !important;
+        color: lighten($link-color, 15%) !important;
     }
 }
 
-// Add styles for selection highlighting
+// selection highlighting
 ::selection {
     background-color: $link-color !important;
     color: $body-bg !important;
 }
 
-// Add styles for callouts
+// styles for callouts
 .callout {
-    background-color: darken($body-bg, 5%) !important;
+    background-color: lighten($body-bg, 5%) !important;
     border-color: $link-color !important;
     
     .callout-title {
-        background-color: darken($body-bg, 8%) !important;
+        background-color: lighten($body-bg, 8%) !important;
     }
 }
-
-
 
 // OTHERS
 

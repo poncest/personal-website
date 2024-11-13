@@ -7,7 +7,7 @@ project:
     timeout: 3600
 
 execute:
-  freeze: auto                # re-render only when source changes
+  freeze: auto                
 
 website:
   title: "Steven Ponce"
@@ -53,6 +53,8 @@ website:
       - icon: envelope
         text: Email
         href: mailto:steven_ponce@yahoo.com
+      - text: ""
+        file: _components/theme-toggle.qmd
   
   page-footer: 
     left: "&#169; Copyright 2024"
@@ -71,9 +73,18 @@ format:
   html:
     page-layout: full
     sidebar: false
-    theme: [flatly, assets/styling/custom_styles.scss]
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
     mainfont: "Roboto Mono"
-    toc: true  # This enables the TOC
+    toc: true
+    include-in-header:
+      - text: |
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          <script>
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+          </script>
     
 
 
