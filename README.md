@@ -1,6 +1,6 @@
 
 
-# stevenponce.netlify.app 
+# stevenponce.netlify.app
 
 This repo contains the code for [stevenponce.netlify.app](https://stevenponce.netlify.app)
 
@@ -14,8 +14,7 @@ This website showcases my work in R programming, data visualizations, and relate
 
 ## Features:
 - **Data Visualizations**: Explore my visual analyses of various datasets.
-- **Blog**: I write about topics in data science, visualization, and tools. (Under Construction)
-- **Projects**: A collection of projects I've worked on with code examples. (Under Construction)
+- **Projects**: A collection of projects I've worked on with code examples. 
 
 ## Licenses
 
