@@ -1,0 +1,17 @@
+{
+  "hash": "c6e18b8e7657694a3ba5bc2d1dabcec4",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"renv Test\"\nformat: html\n---\n\n\n\n## Basic Test\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(tidyverse)\n```\n\n::: {.cell-output .cell-output-stderr}\n\n```\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.0\n✔ ggplot2   3.5.1     ✔ tibble    3.2.1\n✔ lubridate 1.9.3     ✔ tidyr     1.3.1\n✔ purrr     1.0.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors\n```\n\n\n:::\n\n```{.r .cell-code}\nlibrary(janitor)\n```\n\n::: {.cell-output .cell-output-stderr}\n\n```\n\nAttaching package: 'janitor'\n\nThe following objects are masked from 'package:stats':\n\n    chisq.test, fisher.test\n```\n\n\n:::\n\n```{.r .cell-code}\n# Simple data manipulation\nmtcars %>%\n  clean_names() %>%\n  group_by(cyl) %>%\n  summarise(\n    mean_mpg = mean(mpg),\n    n = n()\n  )\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n# A tibble: 3 × 3\n    cyl mean_mpg     n\n  <dbl>    <dbl> <int>\n1     4     26.7    11\n2     6     19.7     7\n3     8     15.1    14\n```\n\n\n:::\n:::",
+    "supporting": [
+      "test_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

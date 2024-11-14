@@ -1,0 +1,17 @@
+{
+  "hash": "dbd4f1d6d1f134f80c3eb0201569a10b",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Theme Test Page\"\nformat:\n  html:\n    theme:\n      light: [flatly, assets/styling/custom_styles.scss]\n      dark: [darkly, assets/styling/custom_styles_dark.scss]\n    toc: true\n    code-fold: true\n    include-in-header:\n      - text: |\n          <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\">\n          <script>\n            const savedTheme = localStorage.getItem('theme') || 'light';\n            document.documentElement.setAttribute('data-theme', savedTheme);\n          </script>\n---\n\n```{=html}\n<div class=\"theme-toggle\">\n  <button \n    id=\"theme-toggle-button\"\n    class=\"btn btn-outline-secondary btn-sm\"\n    aria-label=\"Toggle theme\"\n    onclick=\"toggleTheme()\"\n  >\n    <i class=\"fas fa-moon\"></i>\n  </button>\n</div>\n\n<script>\nfunction toggleTheme() {\n  const currentTheme = localStorage.getItem('theme') || 'light';\n  const newTheme = currentTheme === 'light' ? 'dark' : 'light';\n  \n  localStorage.setItem('theme', newTheme);\n  document.documentElement.setAttribute('data-theme', newTheme);\n  \n  // Update button icon\n  const icon = document.querySelector('#theme-toggle-button i');\n  icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';\n  \n  // Reload page to apply new theme\n  location.reload();\n}\n\ndocument.addEventListener('DOMContentLoaded', () => {\n  const currentTheme = localStorage.getItem('theme') || 'light';\n  const icon = document.querySelector('#theme-toggle-button i');\n  icon.className = currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';\n});\n</script>\n```\n\n\n\n## Text Elements\n\nRegular paragraph text with **bold** and *italic* formatting.\n\n[This is a link](https://example.com)\n\n## Code Examples\n\n### R Code Block\n\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(tidyverse)\n\nmtcars %>%\n  group_by(cyl) %>%\n  summarise(\n    mean_mpg = mean(mpg),\n    sd_mpg = sd(mpg)\n  ) %>%\n  arrange(desc(mean_mpg))\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n# A tibble: 3 × 3\n    cyl mean_mpg sd_mpg\n  <dbl>    <dbl>  <dbl>\n1     4     26.7   4.51\n2     6     19.7   1.45\n3     8     15.1   2.56\n```\n\n\n:::\n:::\n\n\n\n## Callouts\n\n::: {.callout-note}\nThis is a note callout with some important information.\n:::\n\n::: {.callout-warning}\nThis is a warning callout to highlight potential issues.\n:::\n\n::: {.callout-tip}\nThis is a tip callout with helpful suggestions.\n:::\n\n## Tables\n\n| Column 1 | Column 2 | Column 3 |\n|----------|----------|----------|\n| Data 1   | Data 2   | Data 3   |\n| Data 4   | Data 5   | Data 6   |\n| Data 7   | Data 8   | Data 9   |\n\n## Lists\n\n1. First ordered item\n2. Second ordered item\n   - Unordered sub-item\n   - Another sub-item\n3. Third ordered item\n\n- Unordered list item\n- Another item\n  1. Ordered sub-item\n  2. Another ordered sub-item\n- Final item\n\n## Blockquote\n\n> This is a blockquote that should be styled differently in dark mode.\n> It can span multiple lines and should maintain proper spacing.\n\n## Math Equations\n\nInline equation: $E = mc^2$\n\nDisplay equation:\n\n$$\nf(x) = \\int_{-\\infty}^\\infty\\hat f(\\xi)\\,e^{2 \\pi i \\xi x}\\,d\\xi\n$$",
+    "supporting": [
+      "theme-test_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

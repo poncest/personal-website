@@ -1,0 +1,270 @@
+---
+title: "Distribution of College Attendance Rates by Selectivity Tier"
+subtitle: "A Comparison of Attendance Rates for U.S. Colleges Across Selectivity Levels"
+author: "Steven Ponce"
+date: "2024-09-10"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_37.png"
+format:
+  html:
+    code-fold: true
+editor_options: 
+  chunk_output_type: console
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: false
+
+# filters:
+#   - social-share
+ 
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.html"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![A faceted bar plot displaying the distribution of college attendance rates based on selectivity tier. The x-axis is labeled "Attendance Rate," and the y-axis is labeled "Frequency." Six panels represent different college tiers: Ivy Plus, Highly Selective Private, Highly Selective Public, Other Elite Schools (Public and Private), Selective Private, and Selective Public. Each panel has a histogram in gray with colored bars highlighting specific sections, using different colors for each tier.](tt_2024_37.png){#fig-1}
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,             # Compact and Flexible Summaries of Data
+  scales,            # Scale Functions for Visualization
+  lubridate,         # Make Dealing with Dates a Little Easier
+  MetBrewer,         # Color Palettes Inspired by Works at the Metropolitan Museum of Art
+  MoMAColors,        # Color Palettes Inspired by Artwork at the Museum of Modern Art in New York City
+  glue,              # Interpreted String Literals
+  gghighlight        # Highlight Lines and Points in 'ggplot2'
+ )  
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  7.77,
+  height =  8,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+
+tt <-tidytuesdayR::tt_load(2024, week = 37) 
+
+college_admissions <- tt$college_admissions |> clean_names() |> glimpse()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examing the Data 
+
+```{r}
+#| label: examine
+
+glimpse(college_admissions)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+# Tidy
+college_admissions_clean <- college_admissions  |> 
+    filter(!is.na(attend)) |> 
+    mutate(
+        tier = str_to_title(tier),
+        tier = case_when(
+            tier == "Highly Selective Private" ~ "Highly Selective<br>Private",
+            tier == "Highly Selective Public"  ~ "Highly Selective<br>Public",
+            tier == "Other Elite Schools (Public And Private)" ~ "Other Elite Schools<br>(Public And Private)",
+            TRUE ~ tier
+        ),
+        tier = factor(tier, 
+                      levels = c("Ivy Plus", 
+                                 "Highly Selective<br>Private", 
+                                 "Highly Selective<br>Public", 
+                                 "Other Elite Schools<br>(Public And Private)", 
+                                 "Selective Private", 
+                                 "Selective Public"))
+    ) 
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- MoMAColors::moma.colors(palette_name = "Panton", n = 6, type = 'discrete')
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 37 } &bull; Source: Opportunity Insights: College-Level Data for 139 Selective American Colleges<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("Distribution of College Attendance Rates by Selectivity Tier")
+subtitle_text <- str_glue("A Comparison of Attendance Rates for U.S. Colleges Across Selectivity Levels")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", "fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = 'plot',
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
+    axis.line.x           = element_line(color = "gray40", linewidth = .15),
+    panel.grid.minor.y    = element_blank(),
+    panel.grid.major.y    = element_line(linetype = "dotted", linewidth = 0.1, color = 'gray10'),
+    panel.grid.minor.x    = element_blank(),
+    panel.grid.major.x    = element_line(linetype = "dotted", linewidth = 0.1, color = 'gray10'),
+    
+    strip.text            = element_textbox(size     = rel(0.9),
+                                            face     = 'bold',
+                                            color    = text_col,
+                                            hjust    = 0.5,
+                                            halign   = 0.5,
+                                            r        = unit(3, "pt"),
+                                            width    = unit(6, "npc"),
+                                            padding  = margin(2, 0, 2, 0),
+                                            margin   = margin(3, 3, 3, 3),
+                                            fill     = "transparent"),
+    panel.spacing         = unit(1, 'lines')
+)  
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+### |-  final plot ----  
+p <- ggplot(college_admissions_clean, 
+       aes(x = attend, fill = tier)) + 
+    
+    # Geoms
+    geom_histogram(bins = 30, color = "gray10", linewidth = 0.2, alpha = 0.75) +
+    gghighlight::gghighlight() +
+    
+    # Labs
+    labs(
+        x = "Attendance Rate",
+        y = "Frequency",
+        title    = title_text,
+        subtitle = subtitle_text,
+        caption  = caption_text
+    ) +
+    
+    # Scales
+    scale_x_continuous(breaks = pretty_breaks(n = 2)) +
+    scale_y_continuous() +
+    scale_fill_manual(values = col_palette) +
+    coord_cartesian(clip = 'off') +
+    
+    # Facets
+    facet_wrap(vars(tier)) +
+
+    # Theme
+    theme(
+        plot.title = element_text(
+            size = rel(1.5),
+            family = "title",
+            color = title_col,
+            face = "bold",
+            lineheight = 0.85,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(0.95),
+            family = "subtitle",
+            color = title_col,
+            lineheight = 1,
+            margin = margin(t = 5, b = 15)
+        ),
+        plot.caption = element_markdown(
+            size = rel(.5),
+            family = "caption",
+            color = caption_col,
+            lineheight = 0.6,
+            hjust = 0,
+            halign = 0,
+            margin = margin(t = 10, b = 5)
+        )
+    )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+ggsave(
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_37.png"),
+  plot = p,
+  width  =  7.77,
+  height =  8,
+  units  = "in",
+  dpi    = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_37.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_37.png"))
+```
+
+
+#### 8. Session Info
+
+```{r, eval=TRUE}
+sessionInfo()
+```

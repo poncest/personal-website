@@ -1,0 +1,317 @@
+---
+title: "Age at Marriage of Kings and Consorts"
+subtitle: "A comparison of ages at marriage among monarchs and their consorts across history"
+author: "Steven Ponce"
+date: "2024-08-19"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_34.png"
+format:
+  html:
+    code-fold: true
+editor_options: 
+  chunk_output_type: console
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: false
+
+# filters:
+#   - social-share
+ 
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.html"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![The Dumbell chart compares monarchs' ages and consorts' ages at the time of marriage. The x-axis shows ages from 0 to 80 years, with green dots representing consorts' ages and brown dots representing kings' ages. Dotted lines connect each pair, indicating the age difference. The chart is organized by consorts' ages, from the youngest at the bottom to the oldest at the top.](tt_2024_34.png){#fig-1}
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,         # Compact and Flexible Summaries of Data
+  scales,        # Scale Functions for Visualization
+  lubridate,     # Make Dealing with Dates a Little Easier
+  MetBrewer,     # Color Palettes Inspired by Works at the Metropolitan Museum of Art
+  ggalt          # Extra Coordinate Systems, 'Geoms', Statistical Transformations, Scales and Fonts for 'ggplot2'
+ )   
+
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  8,
+  height =  12,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+
+tt <-tidytuesdayR::tt_load(2024, week = 34) 
+
+monarchs_marriages <- tt$english_monarchs_marriages_df |> clean_names() |> glimpse()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examing the Data 
+
+```{r}
+#| label: examine
+
+glimpse(monarchs_marriages)
+skim(monarchs_marriages)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+# Tidy
+cleaned_monarchs_marriages <- monarchs_marriages |>
+    mutate(
+        across(everything(), ~na_if(., "-")),
+        across(everything(), ~na_if(., "NA")),
+        across(everything(), ~na_if(., "?")),
+        across(everything(), ~na_if(., "–")),
+        across(where(is.character), str_trim),
+        across(c(king_age, consort_age, year_of_marriage), ~str_replace_all(., "\\(\\?\\)", "")),
+        across(c(king_age, consort_age, year_of_marriage), as.numeric),
+        pair_name = paste(king_name, "-", consort_name)
+    )
+
+# Filter out rows with NA values in king_age or consort_age, and calculate the age gap
+filtered_monarchs_marriages <- cleaned_monarchs_marriages |>
+    filter(!is.na(king_age) & !is.na(consort_age)) |>
+    mutate(
+        age_gap = abs(king_age - consort_age),
+        pair_name = paste(king_name, "-", consort_name),
+        pair_name = fct_reorder(pair_name, -consort_age, .desc = TRUE)
+    ) 
+
+# Subset for kings labels
+kings_data <- filtered_monarchs_marriages |>
+    select(pair_name, king_name,king_age, consort_age) |>
+    mutate(hjust = case_when(
+        king_age < consort_age ~ 1,  
+        king_age > consort_age ~ -0.5,  
+        TRUE ~ -1                  
+    ))
+
+# Subset for consorts labels
+consorts_data <- filtered_monarchs_marriages|>
+    select(pair_name, consort_name, consort_age, king_age) |>
+    mutate(hjust = case_when(
+        consort_age < king_age ~ 1,
+        consort_age > king_age ~ -0.4,
+        TRUE ~ 1
+    ))
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- col_palette  <- MetBrewer::met.brewer("Degas")[c(6, 2)]  
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 34 } &bull; Source: List of Monarchs by marriage (.ianvisits.co.uk)<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("Age at Marriage of Kings and Consorts")
+subtitle_text <- str_glue("A comparison of ages at marriage among monarchs and their consorts across history.")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", "fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 12, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = "top",
+    
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 20, r = 25, b = 20, l = 25),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.2), color = text_col,
+                                         family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_blank(),                                                                # Hide y-axis title
+    axis.text.y           = element_blank(),                                                                # Hide y-axis labels
+    axis.text.x           = element_text(size = rel(0.95), color = text_col, family = "text"),
+    axis.line.x           = element_line(color = "gray40", linewidth = 0.12),
+    panel.grid.minor.x    = element_blank(),
+    panel.grid.major.x    = element_blank(),
+    panel.grid.major.y    = element_blank(),  
+    panel.grid.minor.y    = element_blank(),
+    
+    axis.text.x.top       = ggtext::element_markdown(),
+)   
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+### |-  final plot ----  
+p <- ggplot() +
+    geom_dumbbell(
+        data = filtered_monarchs_marriages,
+        aes(x = king_age, xend = consort_age, y = pair_name),
+        size = 0.25, 
+        color = 'gray50', 
+        size_x = 3, 
+        size_xend = 3, 
+        dot_guide = FALSE
+    ) +
+    
+    # Plot kings' data
+    geom_point(
+        data = kings_data,
+        aes(x = king_age, y = pair_name, color = "King's Age"), 
+        size = 3
+    ) +
+    geom_text(
+        data = kings_data,
+        aes(x = king_age, y = pair_name, label = king_name, hjust = hjust),
+        size = 2.8,
+        color = col_palette[2],                
+        fontface = 'bold',
+        nudge_x = -2  
+    ) +
+    
+    # Plot consorts' data
+    geom_point(
+        data = consorts_data,
+        aes(x = consort_age, y = pair_name, color = "Consort's Age"), 
+        size = 3
+    ) +
+    geom_text(
+        data = consorts_data,
+        aes(x = consort_age, y = pair_name, label = consort_name, hjust = hjust),
+        size = 2.8,
+        color = col_palette[1],               
+        fontface = 'bold',
+        nudge_x = -2  
+    ) +
+    
+    # Scales
+    scale_x_continuous(
+        limits = c(-15,80),
+        labels = scales::label_number(suffix = " yrs"),
+        position = "top"
+    ) +
+    scale_y_discrete() +
+    scale_color_manual(
+        name = "Legend:",
+        values = col_palette                
+    ) +
+    coord_cartesian(clip = 'off') +
+    
+    # Labs
+    labs(
+        x = element_blank(),
+        y = element_blank(),
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text
+    ) +
+    
+    # Theme
+    theme(
+        plot.title = element_markdown(
+            size = rel(2),
+            family = "title",
+            color = title_col,
+            face = "bold",
+            lineheight = 0.85,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_markdown(
+            size = rel(1.1),
+            family = "subtitle",
+            color = title_col,
+            lineheight = 1,
+            margin = margin(t = 5, b = 15)
+        ),
+        plot.caption = element_markdown(
+            size = rel(.65),
+            family = "caption",
+            color = caption_col,
+            lineheight = 0.6,
+            hjust = 0,
+            halign = 0,
+            margin = margin(t = 10, b = 0)
+        )
+    ) 
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+ggsave(
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_34.png"),
+  plot = p,
+  width  =  8,
+  height =  12,
+  units  = "in",
+  dpi    = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_34.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_34.png"))
+```
+
+
+#### 8. Session Info
+
+```{r, eval=TRUE}
+sessionInfo()
+```

@@ -1,0 +1,462 @@
+---
+title: "Bob's Burgers Episode Fingerprints by Season"
+subtitle: "Analyzing dialogue patterns across seasons"
+author: "Steven Ponce"
+date: "2024-11-11"
+categories: ["Bob's Burgers", "{ bobsburgersR }", "#Standalone"]
+image: "thumbnails/sa_2024-11-11.png"
+format:
+  html:
+    
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    fig-width: 9
+    fig-height: 10
+    fig-dpi: 320
+    fig-format: "png"
+    embed-resources: true
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: true
+share:
+  permalink: "https://stevenponce.netlify.app/projects.html"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(
+  dev = "png",
+  fig.width = 9,
+  fig.height = 10,
+  dpi = 320
+)
+```
+
+![A series of radar charts showing dialogue patterns across 14 seasons of Bob's Burgers. Each season chart displays metrics including Dialogue Density, Average Length, Sentiment Variance, Unique Words, Question Ratio, and Exclamation Ratio. Light purple polygons represent individual episodes, while dark purple lines show season averages, revealing how dialogue patterns evolved throughout the series.](sa_2024-11-11){#fig-1}
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+
+## 1. LOAD PACKAGES & SETUP ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,             # Compact and Flexible Summaries of Data
+  scales,            # Scale Functions for Visualization
+  glue,              # Interpreted String Literals
+  bobsburgersR,      # Bob's Burgers Datasets for Data Visualization
+  tidytext,          # Text Mining using 'dplyr', 'ggplot2', and Other Tidy Tools 
+  textdata,          # Download and Load Various Text Datasets 
+  patchwork          # The Composer of Plots
+)    
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  9,
+  height =  10,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+bobsburgersR::transcript_data
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(transcript_data)
+skim(transcript_data)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# Calculate metrics 
+episode_metrics <- transcript_data |>
+  filter(!is.na(dialogue)) |>
+  group_by(season, episode) |>
+  summarise(
+    # Basic dialogue metrics
+    dialogue_density = n() / max(line),
+    avg_length       = mean(str_length(dialogue)),
+    
+    # Sentiment analysis - AFINN Sentiment Lexicon
+    sentiment_variance = dialogue |>
+      tibble(text = _) |>
+      unnest_tokens(word, text) |>
+      inner_join(get_sentiments("afinn"), by = "word") |>
+      pull(value) |>
+      var(na.rm = TRUE),
+    
+    # Word and punctuation metrics  
+    unique_words      = dialogue |>
+      str_split("\\s+") |>
+      unlist() |>
+      n_distinct(),
+    
+    question_ratio    = mean(str_detect(dialogue, "\\?")),
+    exclamation_ratio = mean(str_detect(dialogue, "!")),
+    
+    .groups = "drop"
+  ) |>
+  # Scale all metrics
+  mutate(across(dialogue_density:exclamation_ratio, scale))
+
+
+# Prepare data for visualization 
+episode_metrics_long <- episode_metrics |>
+  pivot_longer(
+    cols = c(dialogue_density:exclamation_ratio),
+    names_to = "metric",
+    values_to = "value"
+  ) |>
+  mutate(
+    angle = (as.numeric(factor(metric)) - 1) * 2 * pi / 6,
+    hjust = ifelse(angle < pi, 1, 0),
+    metric = case_when(
+      metric == "dialogue_density" ~ "Dialogue\nDensity",
+      metric == "avg_length" ~ "Average\nLength",
+      metric == "sentiment_variance" ~ "Sentiment\nVariance",
+      metric == "unique_words" ~ "Unique\nWords",
+      metric == "question_ratio" ~ "Question\nRatio",
+      metric == "exclamation_ratio" ~ "Exclamation\nRatio"
+    )
+  )
+
+# Filter data to remove empty groups
+episode_metrics_long <- episode_metrics_long |>
+  filter(!is.na(value)) |>
+  group_by(season) |>
+  filter(n() > 1) |>  
+  ungroup()
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- "#f5f5f2"  
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"   
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("Source: {{bobsburgersR}}")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
+
+# text
+light_purple <- str_glue("<span style='color:#A374C2'>**Light Purple**</span>")
+dark_purple  <- str_glue("<span style='color:#8856a7'>**Dark Purple**</span>")
+
+title_text    <- str_glue("Bob's Burgers Episode Fingerprints by Season")
+subtitle_text <- str_glue("Analyzing dialogue patterns across seasons<br><br>
+                          **Note:** Metrics are standardized (**z-scores**). { light_purple } polygons represent individual episodes.<br>
+                          { dark_purple } line shows season average.")
+caption_text  <- str_glue("{li} stevenponce &bull; {gh} poncest &bull; #rstats #ggplot2 &bull; {tt}")
+
+### |-  fonts ----
+font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Source Sans Pro", family = "subtitle")
+font_add_google("Source Sans Pro", family = "text")  
+font_add_google("Roboto Mono", family = "numbers")  
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+  plot.title.position   = "plot",
+  plot.caption.position = "plot",
+  legend.position       = "plot",
+  plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+  panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+  plot.margin           = margin(t = 10, r = 10, b = 10, l = 10),
+  axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
+  axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
+  axis.text             = element_text(size = rel(0.5), color = text_col, family = "text"),
+  strip.text            = element_text(size = rel(1), face = "bold", margin = margin(b = 10), family = "text"),
+  panel.grid.major      = element_line(color = "gray90", linewidth = 0.2),
+  panel.spacing.x       = unit(3, "lines"),  
+  panel.spacing.y       = unit(1, "lines"),  
+  aspect.ratio          = 1  
+)
+```
+
+
+#### 6. Plot
+
+```{r}
+### |- main plot ---- 
+main_plot <- episode_metrics_long |>   
+  ggplot(aes(x = metric, y = value)) +
+
+  # Geoms
+  # Add grid lines
+  geom_hline(yintercept = seq(-2, 7, by = 1), color = "gray90", linewidth = 0.2) +
+  
+  # Add episode polygons
+  geom_polygon(aes(group = interaction(season, episode)),
+               fill = "#8856a7",
+               alpha = 0.2) +
+  
+  # Add season average line
+  stat_summary(aes(group = season),
+               fun = 'mean', 
+               geom = "path",
+               color = "#8856a7",
+               size = 0.8,
+               alpha = 0.9,
+               na.rm = TRUE) +
+  
+  # Scales
+  scale_x_discrete(expand = expansion(add = 1.2)) +  
+  scale_y_continuous(
+    expand = expansion(add = c(0.5, 1)),
+    limits = c(-2, 7)                 
+  ) +
+  coord_polar(clip = 'off') +
+
+  # Labs
+  labs(
+    x = NULL,
+    y = NULL,
+  ) +
+  
+  # Facet 
+  facet_wrap(~season, nrow = 4, 
+             labeller = labeller(season = function(x) paste("Season", x))
+  ) +
+  
+  # Theme
+  theme(
+    axis.text.y = element_blank(),
+    axis.title = element_blank(),
+    plot.margin = margin(0, 0, 0, 0)
+  )
+
+### |- key pattern plot ----
+key_patterns_plot <- ggplot() +
+  annotate(
+    "richtext",
+    x = 0,
+    y = 0,
+    label = glue::glue(
+      "<span style='font-family:title;font-size:12pt;color:{title_col}'>**Key Patterns:**</span><br>
+      <span style='font-family:subtitle;font-size:9pt;color:{text_col}'>
+      • Early seasons (1-3): more experimental patterns<br>
+      • Middle seasons (4-8): consistent style<br>
+      • Later seasons: refined structure<br>
+      • Higher variance: character episodes<br>
+      • Higher question ratios: mystery plots
+      </span>"
+    ),
+    fill = NA,
+    label.color = NA,
+    hjust = 0,
+    vjust = 1.2,
+  ) +
+  theme_void() +
+  theme(
+    plot.margin = margin(5, 10, 5, 10)      
+  )
+
+### |- title & subtitle plot ----
+title_plot <- ggplot() +
+  labs(
+    title = title_text,
+    subtitle = subtitle_text
+  ) +
+  theme_void() +
+  theme(
+    plot.title      = element_text(
+      size          = rel(1.8),
+      family        = "title",
+      face          = "bold",
+      color         = title_col,
+      lineheight    = 1.1,
+      margin        = margin(t = 5, b = 5)
+    ),   
+    plot.subtitle   = element_markdown(
+      size          = rel(1.1),
+      family        = "subtitle",
+      color         = subtitle_col,
+      lineheight    = 1.1,
+      margin        = margin(t = 5, b = 15)
+    ),
+    plot.background = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin     = margin(10, 10, 0, 10)
+  )
+
+### |- combined plot ----
+
+# Define layout design with adjusted areas
+
+# area(t, l, b, r)
+
+# where:
+# t = top row position
+# l = left column position
+# b = bottom row position
+# r = right column position
+
+design <- c(
+    area(1, 1, 1, 6),      # title area
+    area(2, 1, 5, 6),      # main plot area
+    area(4, 2, 5, 6)       # key patterns area 
+)
+
+combined_plot <- title_plot +  main_plot + key_patterns_plot +
+  plot_layout(
+    design = design,
+    heights = c(0.8, 4, 4, 4, 0.2), 
+    widths = c(1, 1, 1, 1, 1, 0.2)
+  ) +
+  plot_annotation(
+    caption = caption_text,
+    theme = theme(
+      plot.background = element_rect(fill = bkg_col, color = bkg_col),
+      plot.margin     = margin(10, 10, 10, 10),
+      plot.caption    = element_markdown(
+        size          = rel(0.65),
+        family        = "caption",
+        color         = caption_col,
+        lineheight    = 1.1,
+        hjust         = 0.5,
+        margin        = margin(t = 10, b = 5)
+      )
+    )
+  )
+```
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+# There was some issues between patchwork and ggsave
+
+# Make sure these pkgs are installed
+if (!require("ggplotify")) install.packages("ggplotify")
+if (!require("grid")) install.packages("grid")
+
+# Use Arial (Windows system font)
+windowsFonts(Arial = windowsFont("Arial"))
+
+font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+
+# Convert patchwork plot to grob
+plot_grob <- as.grob(combined_plot)
+
+# Set up the PNG device with proper font handling
+png(
+  filename = here::here("projects/standalone_visualizations/sa_2024-11-11.png"),
+  width = 9, 
+  height = 10, 
+  units = "in", 
+  res = 320,
+  type = "cairo" 
+)
+
+# Enable showtext with specific settings
+showtext::showtext_begin()
+showtext::showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+
+# Draw the plot
+grid::grid.draw(plot_grob)
+
+# Clean up
+showtext::showtext_end()
+invisible(dev.off())
+
+# Create thumbnail
+magick::image_read(here::here("projects/standalone_visualizations/sa_2024-11-11.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("projects/standalone_visualizations/thumbnails/sa_2024-11-11.png"))
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::

@@ -1,0 +1,309 @@
+---
+title: "Rise and Fall of Democracies and Non-Democracies (1950-2020)"
+subtitle: "Historical trend in the number of democratic versus non-democratic countries, 
+           illustrating the growth of democracies and the decline of non-democracies over time"
+author: "Steven Ponce"
+date: "2024-11-03"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_45.png"
+
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+  
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: true
+  
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.png"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![Line chart showing the rise and fall of democracies and non-democracies globally from 1950 to 2020. The number of democracies has increased steadily since the 1950s, while the number of non-democracies has declined significantly, especially around 1990.](tt_2024_45.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+
+## 1. LOAD PACKAGES & SETUP ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,         # Easily Install and Load the 'Tidyverse'
+    ggtext,            # Improved Text Rendering Support for 'ggplot2'
+    showtext,          # Using Fonts More Easily in R Graphs
+    janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+    scales,            # Scale Functions for Visualization
+    glue,              # Interpreted String Literals
+    here,              # A Simpler Way to Find Your Files
+    geomtextpath       # Curved Text in 'ggplot2'
+)    
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <-tidytuesdayR::tt_load(2024, week = 45) 
+
+democracy_data <- tt$democracy_data |> clean_names() 
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(democracy_data)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+
+# Line Plot of Democracy Count Over Time 
+line_data <- democracy_data |>
+    group_by(year) |>
+    summarize(
+        democratic_count = sum(is_democracy, na.rm = TRUE),
+        non_democratic_count = sum(is_communist, na.rm = TRUE)
+    ) |>
+    ungroup()
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- "#f5f5f2"  
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 45 } &bull; Source: democracyData R Package<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
+
+# text
+title_text    <- str_glue("Rise and Fall of Democracies and Non-Democracies (1950-2020)")
+subtitle_text <- str_wrap("Historical trend in the number of democratic versus non-democratic countries, 
+                          illustrating the growth of democracies and the decline of non-democracies over time",
+                          width = 85)
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add('fa6-brands', here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = "plot",
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
+    axis.ticks.x          = element_line(color = text_col),
+    axis.line.x           = element_line(color = "#252525", linewidth = .2),
+    panel.grid.minor      = element_blank(),
+    panel.grid.major      = element_blank(),
+    panel.grid.major.y    = element_line(color = "grey85", size = .4),
+) 
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- initial plot ----
+
+p <- line_data |>
+  ggplot() +
+
+  # Geoms
+  geom_ribbon(aes(x = year, ymin = non_democratic_count, ymax = democratic_count), fill = "gray80", alpha = 0.5) +
+  geom_textline(
+    aes(x = year, y = democratic_count, label = "Democratic Count", color = "Democratic Count"),
+    linewidth = 1,
+    family = "text",
+    size = 4.5,
+    offset = unit(0.15, "cm"),
+    text_smoothing = 30
+  ) +
+  geom_textline(
+    aes(x = year, y = non_democratic_count, label = "Non-Democratic Count", color = "Non-Democratic Count"),
+    linewidth = 1,
+    family = "text",
+    size = 4.5,
+    offset = unit(0.15, "cm"),
+    text_smoothing = 30
+  ) +
+
+  # Scales
+  scale_x_continuous() +
+  scale_y_continuous(
+    breaks = seq(0, 150, by = 50),
+    limits = c(0, 150)
+  ) +
+  scale_color_manual(values = c(
+    "Democratic Count" = "#1B3A54FF",
+    "Non-Democratic Count" = "#913914FF"
+  )) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    x = "Year",
+    y = "Count",
+    color = "Type",
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text
+  ) +
+
+  # Theme
+  theme(
+    axis.text.y = ggtext::element_markdown(),
+    plot.title = element_text(
+      size        = rel(1.75),
+      family      = "title",
+      face        = "bold",
+      color       = title_col,
+      margin      = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size        = rel(1.1),
+      family      = "subtitle",
+      color       = title_col,
+      lineheight  = 1.1,
+      margin      = margin(t = 5, b = 15)
+    ),
+    plot.caption = element_markdown(
+      size        = rel(.65),
+      family      = "caption",
+      color       = caption_col,
+      lineheight  = 0.65,
+      hjust       = 0.5,
+      halign      = 0.5,
+      margin      = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+# Save the plot as PNG
+ggsave(
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_45.png"), 
+  plot = p,
+  width = 10, height = 8, units = "in", dpi = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_45.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_45.png"))
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
+

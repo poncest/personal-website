@@ -1,0 +1,304 @@
+---
+title: "Monster Movies by Decade and Title Type"
+subtitle: "An exploration of 'monster' movies from 1960 onwards, categorized by type."
+author: "Steven Ponce"
+date: "2024-10-28"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_44.png"
+
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+  
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: true
+  
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.png"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![Bar mosaic chart showing the distribution of 'monster' movies by decade and title type (Movie, TV Movie, Video) from 1960 to 2020. Movies dominate in recent decades, while TV Movies and Videos were more prominent in earlier years.](tt_2024_44.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+
+## 1. LOAD PACKAGES & SETUP ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,         # Easily Install and Load the 'Tidyverse'
+    ggtext,            # Improved Text Rendering Support for 'ggplot2'
+    showtext,          # Using Fonts More Easily in R Graphs
+    janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+    scales,            # Scale Functions for Visualization
+    glue,              # Interpreted String Literals
+    here,              # A Simpler Way to Find Your Files
+    ggmosaic           # Mosaic Plots in the 'ggplot2' Framework # Mosaic Plots in the 'ggplot2' Framework
+)   
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <-tidytuesdayR::tt_load(2024, week = 44) 
+
+monster_movie_genres <- tt$monster_movie_genres |> clean_names() 
+monster_movies       <- tt$monster_movies|> clean_names() 
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(monster_movie_genres)
+glimpse(monster_movies)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+plot_data <- monster_movies |>
+    mutate(title_type = str_to_title(title_type)) |> 
+    mutate(decade = (year %/% 10) * 10) |> 
+    filter(decade >= 1960) |> 
+    drop_na(title_type, decade) |>
+    count(title_type, decade) 
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- paletteer::paletteer_d("rcartocolor::TealRose")[c(1,3,6)] 
+# show_col(col_palette)
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 44 } &bull; Source: IMDb non-commercial datasets<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("Monster Movies by Decade and Title Type")
+subtitle_text <- str_glue("An exploration of 'monster' movies from 1960 onwards, categorized by type.")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+font_add_google("Shadows Into Light", regular.wt = 400, family = "anotation")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = "plot",
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
+    panel.grid.minor      = element_blank(),
+    panel.grid.major      = element_blank()
+)  
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- initial plot ----
+
+# Mekko Chart
+
+p <- plot_data |>
+    ggplot() +
+    
+    # Geoms
+    geom_mosaic(aes(weight = n, x = product(decade), fill = title_type)) +
+    
+    # Scales
+    scale_y_continuous() +
+    scale_fill_manual(values = col_palette) +
+    coord_cartesian(clip = 'off') +
+    
+    # Labs
+    labs(
+        x = "Decade", 
+        y = "Proportion",
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text
+        ) +
+    
+    # Theme
+    theme(
+        plot.title = element_text(
+            size = rel(2.2),
+            family = "title",
+            face = "bold",
+            color = title_col,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(1),
+            family = "subtitle",
+            color = subtitle_col,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.caption = element_markdown(
+            size = rel(0.75),
+            family = "caption",
+            color = caption_col,
+            lineheight = 1.1,
+            hjust = 0.5,
+            halign = 1,
+            margin = margin(t = 15, b = 5)
+        )
+    )
+
+### |- annotated plot ----
+p <- p +
+    annotate(
+        "text",
+        x = .55, y = .5, label = "Movie",
+        color = "#fafafa", size = 7, vjust = 1, hjust = 0,
+        fontface = "bold", family = "text"
+    ) +
+    annotate(
+        "text",
+        x = .55, y = .8, label = "TV Movie",
+        color = "gray40", size = 7, vjust = 1, hjust = 0,
+        fontface = "bold", family = "text"
+    ) +
+    annotate(
+        "text",
+        x = .55, y = .95, label = "Video",
+        color = "#fafafa", size = 7, vjust = 1, hjust = 0,
+        fontface = "bold", family = "text"
+    )
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+# Save the plot as PNG
+ggsave(
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_44.png"), 
+  plot = p,
+  width = 10, height = 8, units = "in", dpi = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_44.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_44.png"))
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
+

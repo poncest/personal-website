@@ -1,0 +1,332 @@
+---
+title: "Exploring Relationships Among CIA Factbook Variables"
+subtitle: "This figure shows correlations between various CIA Factbook variables.\nLarge circles indicate strong correlations, with positive values in teal and negative values in orange."
+author: "Steven Ponce"
+date: "2024-10-21"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_43.png"
+
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+  
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: true
+  
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.png"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![Correlation heatmap of CIA Factbook variables. It shows correlations between birth rate, death rate, and life expectancy. Larger circles indicate stronger correlations, with positive correlations in teal and negative correlations in orange.](tt_2024_43.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+
+## 1. LOAD PACKAGES & SETUP ----
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,         # Easily Install and Load the 'Tidyverse'
+    ggtext,            # Improved Text Rendering Support for 'ggplot2'
+    showtext,          # Using Fonts More Easily in R Graphs
+    janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,             # Compact and Flexible Summaries of Data
+    scales,            # Scale Functions for Visualization
+    lubridate,         # Make Dealing with Dates a Little Easier
+    glue,              # Interpreted String Literals
+    patchwork,         # The Composer of Plots
+    here,              # A Simpler Way to Find Your Files
+    ggcorrplot,        # Correlogram
+    camcorder          # Record plots
+)  
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  10,
+    units  = "in",
+    dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <-tidytuesdayR::tt_load(2024, week = 06) 
+tt <-tidytuesdayR::tt_load(2024, week = 43) 
+
+cia_factbook <- tt$cia_factbook |> clean_names() 
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(cia_factbook)
+skim(cia_factbook)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+# Select numeric variables and compute correlation matrix
+cor_matrix <- cia_factbook |>
+    select(where(is.numeric)) |>
+    cor(use = "complete.obs")
+
+# Clean column names for better readability in plots
+colnames(cor_matrix) <- gsub("_", " ", colnames(cor_matrix)) |> str_to_title()
+rownames(cor_matrix) <- gsub("_", " ", rownames(cor_matrix)) |> str_to_title()
+
+# Convert correlation matrix to a long format for plotting labels
+cor_df <- as.data.frame(as.table(cor_matrix)) |>
+    rename(Var1 = Var1, Var2 = Var2, Correlation = Freq) |>
+    filter(!is.na(Correlation)) 
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- paletteer::paletteer_d("NineteenEightyR::miami1")[c(1,3,5)] 
+# show_col(col_palette)
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 43 } &bull; Source: usdatasets R package<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("Exploring Relationships Among CIA Factbook Variables")
+subtitle_text <- str_glue("This figure shows correlations between various CIA Factbook variables.\nLarge circles indicate strong correlations, with positive values in teal and negative values in orange.")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+font_add_google("Shadows Into Light", regular.wt = 400, family = "anotation")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+cor_theme <- function() {
+    theme(
+        plot.title.position   = "plot",
+        plot.caption.position = "plot",
+        plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+        panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+        plot.margin           = margin(t = 20, r = 20, b = 20, l = 20),
+        panel.grid.minor      = element_blank(),
+        panel.grid.major      = element_line(color = "gray80", size = 0.4, linetype = 'dotted'),
+        axis.title            = element_blank(),
+        axis.text.y           = element_text(color = text_col, family = "text", size = rel(1)),
+        axis.text.x           = element_text(color = text_col, family = "text", size = rel(1), angle = 30, hjust = 1),
+        axis.ticks.x          = element_line(color = text_col),
+        axis.line.x           = element_line(color = "#252525", linewidth = .2)
+    )
+}
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- initial plot ----
+
+# Create correlation heatmap with annotations
+p <- cor_matrix |>
+    
+    # Geoms
+    ggcorrplot(
+        method = "circle", type = "lower",
+        hc.order = TRUE, lab = FALSE, show.legend = TRUE,
+        colors = col_palette, outline.color = "black",
+        ggtheme = cor_theme()
+    ) +
+    
+    # Scales
+    scale_x_discrete() +
+    scale_y_discrete() +
+    scale_fill_stepsn(
+        colors = col_palette,
+        transform = "identity",
+        guide = guide_colorsteps(
+            barheight = unit(16, "lines"),
+            barwidth = unit(.5, "lines")
+        )
+    ) +
+    
+    # Labs
+    labs(
+        x = NULL,
+        y = NULL,
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text
+    ) +
+    
+    # Theme
+    theme(
+        plot.title = element_text(
+            size = rel(2),
+            family = "title",
+            face = "bold",
+            color = title_col,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(1),
+            family = "subtitle",
+            color = subtitle_col,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.caption = element_markdown(
+            size = rel(0.75),
+            family = "caption",
+            color = caption_col,
+            lineheight = 1.1,
+            hjust = 0.5,
+            halign = 1,
+            margin = margin(t = 15, b = 5)
+        )
+    )
+
+### |- Annotated plot ----
+
+# Add annotation text
+annotation_text <- str_glue(
+    "Variables like birth rate and infant mortality rate
+    show a strong positive correlation, whereas others, 
+    such as life expectancy at birth and infant mortality rate, 
+    exhibit a strong negative correlation.
+    
+    These relationships suggest that countries 
+    with higher birth rates also tend to have 
+    higher infant mortality, indicating possible 
+    healthcare challenges."
+)
+
+p <- p +
+    # text
+    annotate(
+        "text",
+        x = 1, y = 7.3, label = annotation_text,
+        family = "anotation",
+        colour = text_col,
+        size = 5,
+        lineheight = 1.2,
+        hjust = 0
+    ) 
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+# Save the plot as PNG
+ggsave(
+  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_43.png"), 
+  plot = p,
+  width = 10, height = 10, units = "in", dpi = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_43.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_43.png"))
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/personal-website/)
+:::
+

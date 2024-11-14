@@ -1,0 +1,237 @@
+/*-- scss:defaults --*/
+  
+// IMPORT FONTS
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Roboto+Serif:wght@100..900&display=swap');
+
+
+// Light theme colors
+$body-bg: #ffffff;
+$body-color: #212529;
+$link-color: #3b4252;
+$navbar-bg: #3b4252;
+$navbar-fg: #ffffff;
+$code-block-bg: #f8f9fa;
+$code-color: #3b4252;
+
+// Add smooth transitions
+* {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+/* Apply Roboto Mono to all heading tags */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Apply Roboto Serif to all paragraphs, captions, and other text */
+p, caption, body, .caption, blockquote, li, .text, div {
+  font-family: 'Roboto Serif', serif;
+}
+
+/* You can customize specific elements as needed, for example: */
+h1 {
+  font-size: 2.5em;
+}
+
+h2 {
+  font-size: 2em;
+}
+
+p {
+  font-size: 1.1em;
+}
+
+
+/* Space before title */
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+    margin-top: 40px;
+}
+
+
+// NAV
+
+/* Change the font size of the navigation links */
+nav ul li a {
+    font-size: 15px;
+    color: $navbar-fg !important; /* Adjust text color if needed */
+}
+
+/* Change the banner background color */
+nav {
+    background-color: $navbar-bg !important;
+}
+
+nav ul li:first-child a {
+    font-size: 26px;  /* Font size for "Steven Ponce" */
+    color: $navbar-fg !important;  // Using the light theme variable
+}
+
+
+/* Align the navbar items using Flexbox */
+nav ul {
+    display: flex;
+    justify-content: space-between; /* Ensure space between items */
+    align-items: center; /* Vertically align items */
+}
+
+/* Ensure spacing between navbar items */
+nav ul li {
+    margin-right: 20px;
+}
+
+/* Specific styling for 'Steven Ponce' */
+.site-owner {
+    font-size: 26px;
+    font-family: 'Roboto Mono', monospace;
+}
+
+/* Apply 'Roboto Mono' to all navbar items */
+nav ul li a, .site-owner {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px; /* Adjust font size for other navbar links */
+}
+
+/* Apply background to navbar only */
+nav, .navbar {
+    background-color: $navbar-bg !important;
+}
+
+/* Make sure all navbar links are white */
+.navbar-nav .nav-link,
+.navbar-brand,
+.nav-item a {
+    color: $navbar-fg !important;
+}
+
+/* Add hover effect for better interaction */
+.navbar-nav .nav-link:hover,
+.navbar-brand:hover,
+.nav-item a:hover {
+    color: darken($navbar-fg, 10%) !important;
+    text-decoration: none;
+}
+
+
+// FOOTER
+
+/* Footer */
+footer {
+    font-size: 12px; /* Smaller size */
+    color: #666; /* Subtle color */
+    text-align: center; /* Center-align text if needed */
+}
+
+.page-footer {
+    font-size: 12px; /* Targeting specific class if needed */
+}
+
+
+// TOC
+
+/* Target the TOC container with the specific ID and class */
+nav#TOC.toc-active {
+    background-color: transparent !important; /* Remove background color */
+    font-size: 0.9em !important; /* Adjust the font size */
+    color: #212529 !important; /* Set readable text color */
+    padding: 10px !important; /* Add padding for better spacing */
+}
+
+/* Style the links inside the TOC */
+nav#TOC.toc-active a {
+    color: #212529 !important; /* Set readable color for links */
+    font-size: 0.9em !important; /* Ensure smaller font size */
+    text-decoration: none !important; /* Remove underline from links */
+}
+
+/* Add hover effects to TOC links */
+nav#TOC.toc-active a:hover {
+    color: #000 !important; /* Set darker color for better readability on hover */
+}
+
+nav#TOC.toc-active a.active {
+    font-weight: bold; /* Make the active section bold */
+    color: #000 !important; /* Ensure visibility of the active section */
+    border-left: 3px solid #000; /* Add a left border for better visibility */
+}
+
+
+/* TOC Test*/
+nav#TOC.toc-active ul {
+    display: block; /* Ensure the TOC list is displayed in a vertical stack */
+}
+
+nav#TOC.toc-active ul li {
+    display: block; /* List items should stack vertically */
+}
+
+
+nav#TOC.toc-active ul {
+    display: block !important; /* Force TOC to stack vertically */
+    padding-left: 0; /* Adjust padding if needed */
+}
+
+nav#TOC.toc-active ul li {
+    margin-right: 0 !important; /* Remove the margin if it's causing horizontal alignment issues */
+}
+
+
+// Add styles for links
+a {
+    color: $link-color !important;
+    
+    &:hover {
+        color: darken($link-color, 15%) !important;
+    }
+}
+
+// Add styles for selection highlighting
+::selection {
+    background-color: $link-color !important;
+    color: $body-bg !important;
+}
+
+// Add styles for callouts
+.callout {
+    background-color: darken($body-bg, 5%) !important;
+    border-color: $link-color !important;
+    
+    .callout-title {
+        background-color: darken($body-bg, 8%) !important;
+    }
+}
+
+
+
+// OTHERS
+
+/* Reduce the font size of card titles */
+h5.no-anchor.card-title.listing-title {
+    font-size: 20px !important; /* Adjust the size to your preference */
+    line-height: 1.3; /* Adjust line height for better spacing */
+}
+
+
+// FONTS
+
+/* Set base font size for the entire document */
+body {
+    font-size: 1em !important; /* Adjust as necessary */
+    line-height: 1.6 !important; /* Ensure proper readability */
+    font-family: 'Roboto Mono', monospace; /* Apply Roboto Mono for consistency */
+}
+
+/* Heading adjustments */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 1.5em !important; /* Adjust heading size */
+    margin-bottom: 15px; /* Add some spacing */
+}
+
+/* Paragraph adjustments */
+p {
+    font-size: 1em !important; /* Adjust for readability */
+    margin-bottom: 20px; /* Add spacing after paragraphs */
+}
+
+

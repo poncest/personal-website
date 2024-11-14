@@ -1,0 +1,281 @@
+---
+title: "White and Black Chess Ratings: A Distribution Analysis"
+subtitle: "How ratings vary between White and Black players across competitive chess matches"
+author: "Steven Ponce"
+date: "2024-09-25"
+categories:
+  - "#TidyTuesday"
+image: "thumbnails/tt_2024_40.png"
+
+format:
+  html:
+    code-fold: true
+    code-link: true
+    df_print: kable
+  
+editor_options: 
+  chunk_output_type: console
+
+execute: 
+  error: false
+  message: false
+  warning: false
+  eval: false
+
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations.html"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![The image displays two overlapping kernel density plots representing the distribution of chess player ratings for "White" and "Black" players. Both distributions peak around 1500 on the x-axis and range from 500 to 3000. The graph title is "White and Black Chess Ratings: A Distribution Analysis."](tt_2024_40.png){#fig-1}
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+## 1. LOAD PACKAGES & SETUP ----
+pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,             # Compact and Flexible Summaries of Data
+  scales,            # Scale Functions for Visualization
+  lubridate,         # Make Dealing with Dates a Little Easier
+  glue,              # Interpreted String Literals
+  ggfx               # Pixel Filters for 'ggplot2' and 'grid' # Pixel Filters for 'ggplot2' and 'grid' 
+ )  
+
+### |- figure size ---- 
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  7.5,
+  height =  5,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+
+tt <-tidytuesdayR::tt_load(2024, week = 40) 
+
+chess <- tt$chess |> clean_names() |> glimpse()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examing the Data 
+
+```{r}
+#| label: examine
+
+glimpse(chess)
+skim(chess)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+# Tidy
+chess_data <- chess |>  
+    select(white_rating, black_rating) |>
+    pivot_longer(
+        cols = c(white_rating, black_rating), 
+        names_to = "player", 
+        values_to = "rating") |>
+    mutate(player = ifelse(player == "white_rating", "White", "Black"))
+
+# Labels 
+labels <- tibble(
+    label = c("White", "Black"),
+    player = c("White", "Black"),
+    x = c(1600, 1600), 
+    y = c(0.0001, 0.0001) 
+)
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+
+### |- plot aesthetics ----
+bkg_col      <- colorspace::lighten('#f7f5e9', 0.05)    
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- paletteer::paletteer_d("peRReo::don")[c(5,9)]
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 40 } &bull; Source: Chess Game Dataset (Lichess)<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+mn <- str_glue("<span style='font-family:fa6-brands'>&#xf4f6;</span>")
+
+# text
+title_text    <- str_glue("White and Black Chess Ratings: A Distribution Analysis")
+subtitle_text <- str_glue("How ratings vary between White and Black players across competitive chess matches")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {mn} @sponce1(graphic.social) {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+font_add("fa6-brands", "fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf")
+font_add_google("Oswald", regular.wt = 400, family = "title")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
+font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
+font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+showtext_auto(enable = TRUE)
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = 'plot',
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y          = element_blank(),  
+    axis.text.y           = element_blank(),
+    axis.text.x           = element_text(color = text_col, family = "text", size = rel(0.9)),
+    axis.ticks.x          = element_line(color = text_col),  # Show x-axis ticks
+    panel.grid            = element_blank(),
+    strip.text            = element_blank() # Remove strip text 
+)
+
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+### |-  final plot ----
+p <- ggplot(chess_data, aes(x = rating)) +
+
+  # Geoms
+  # Reference text layer
+  as_reference(
+    geom_text(
+      data = labels, aes(x = x, y = y, label = label),
+      family = "title", colour = "gray10", size = rel(35), hjust = 0.5, vjust = 0
+    ),
+    id = "text"
+  ) +
+
+  # Blending the text with the density plot
+  with_inner_glow(
+    with_blend(
+      geom_density(aes(fill = player, color = player),
+        alpha = 1, show.legend = FALSE,
+        bw = 25,
+        kernel = "epanechnikov"
+      ),
+      bg_layer = "text", blend_type = "xor"
+    ),
+    color = "gray10", sigma = 15
+  ) +
+
+  # Labs
+  labs(
+    x = "Player Rating",
+    y = NULL,
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text
+  ) +
+
+  # Scales
+  scale_x_continuous() +
+  scale_y_continuous() +
+  scale_fill_manual(values = col_palette) +
+  scale_color_manual(values = col_palette) +
+  coord_cartesian(clip = "off") +
+
+  # Facet
+  facet_wrap(~player, ncol = 1) +
+
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.55),
+      family = "title",
+      face = "bold",
+      color = title_col,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.85),
+      family = "subtitle",
+      color = subtitle_col,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.50),
+      family = "caption",
+      color = caption_col,
+      lineheight = 1.1,
+      hjust = 0.5,
+      halign = 1,
+      margin = margin(t = 5, b = 5)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+
+# Save the plot again
+ggsave(
+    filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_40.png"),
+    plot = p,
+    width  = 7.5,
+    height = 5,
+    units  = "in",
+    dpi    = 320
+)
+
+### |-  plot thumbnail----  
+magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_40.png")) |> 
+  magick::image_resize(geometry = "400") |> 
+  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_40.png"))
+```
+
+
+#### 8. Session Info
+
+```{r, eval=TRUE}
+info <- capture.output(sessioninfo::session_info())
+# Remove lines that contain "[1]" and "[2]" (the file paths)
+filtered_info <- grep("\\[1\\]|\\[2\\]", info, value = TRUE, invert = TRUE)
+cat(filtered_info, sep = "\n")
+```
