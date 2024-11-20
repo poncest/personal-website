@@ -95,19 +95,83 @@ nav, .navbar {
 }
 
 
+// banner
+.quarto-title-banner {
+  background-color: $navbar-bg !important;  // Using your dark theme navbar color
+  color: $navbar-fg !important;  // Using your dark theme font color
+  padding: 0.5rem 1rem;
+  
+  .quarto-title {
+    color: $navbar-fg !important;
+  }
+}
+
+// For any text in the header/banner
+.header-section-number {
+  color: $navbar-fg !important;
+}
+
+
+
 
 // FOOTER
+/* Footer styling */
+.footer-items {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
 
-/* Footer */
-footer {
-    font-size: 12px; /* Smaller size */
-    color: $body-color; /* Subtle color */
-    text-align: center; /* Center-align text if needed */
+.footer-link {
+  color: var(--bs-light);
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  
+  &:hover {
+    opacity: 1;
+    text-decoration: none;
+    color: var(--bs-light);
+  }
+  
+  i, svg {
+    margin-right: 0.5rem;
+  }
 }
 
 .page-footer {
-    font-size: 12px; /* Targeting specific class if needed */
-    color: $body-color;
+  padding: 0.5rem 1rem;
+  background-color: $navbar-bg;
+  color: $navbar-fg; 
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  
+  
+  .link-secondary {
+    color: var(--bs-light);
+    text-decoration: none;
+    opacity: 0.8;
+    
+    &:hover {
+      opacity: 1;
+      color: var(--bs-light);
+    }
+  }
+  
+  span {
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+}
+
+/* Add some space between footer elements on mobile */
+@media (max-width: 768px) {
+  .footer-items {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 
 
