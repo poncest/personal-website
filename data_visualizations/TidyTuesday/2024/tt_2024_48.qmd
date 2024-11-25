@@ -18,12 +18,15 @@ format:
 editor_options: 
   
   chunk_output_type: inline
+
 execute: 
-  
+  freeze: true                                                  
+  cache: true                                                   
   error: false
   message: false
   warning: false
   eval: true
+
 share:
   permalink: "https://stevenponce.netlify.app/data_visualizations.png"
   linkedin: true
@@ -49,13 +52,14 @@ pacman::p_load(
     ggtext,            # Improved Text Rendering Support for 'ggplot2'
     showtext,          # Using Fonts More Easily in R Graphs
     janitor,           # Simple Tools for Examining and Cleaning Dirty Data
-    skimr,             # Compact and Flexible Summaries of Data
     scales,            # Scale Functions for Visualization
     glue,              # Interpreted String Literals
     here,              # A Simpler Way to Find Your Files
     patchwork,         # The Composer of Plots
     usmap              # US Maps Including Alaska and Hawaii
 )   
+
+source(here::here("_setup.R"))
 
 ### |- figure size ----
 camcorder::gg_record(
@@ -152,7 +156,7 @@ top_10_citizenship <- cbp_resp |>
     pull(citizenship)
 
 # Get top 5 countries instead of 10 to reduce visual complexity
-top_5_citizenship <- head(top_10_citizenship, 5)
+top_5_citizenship_df <- head(top_10_citizenship, 5)
 
 seasonal_citizenship_df <- cbp_resp |>
     filter(citizenship %in% top_10_citizenship) |>
@@ -194,12 +198,7 @@ subtitle_text <- "Evolution, Geographic Distribution, Processing Types, and Seas
 caption_text  <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
 
 ### |-  fonts ----
-font_add("fa6-brands", here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
-font_add_google("Oswald", regular.wt = 400, family = "title")
-font_add_google("Source Sans Pro", family = "text")  
-font_add_google("Roboto Mono", family = "numbers")   
-font_add_google("Noto Sans", regular.wt = 400, family = "caption")
-showtext_auto(enable = TRUE)
+setup_fonts()
 
 ### |-  plot theme ----
 theme_set(theme_minimal(base_size = 14, base_family = "text"))     
@@ -436,7 +435,7 @@ demographic_authority_plot <- ggplot(demographic_authority_df) +
 
 ### |-  plot 4 ----
 seasonal_citizenship_plot <- seasonal_citizenship_df |>
-  filter(citizenship %in% top_5_citizenship) |>
+  filter(citizenship %in% top_5_citizenship_df) |>
   mutate(
     month_abbv = factor(month_abbv, levels = month_order),
     citizenship = fct_reorder(citizenship, -avg_encounters, sum)
@@ -530,45 +529,8 @@ combined_plot <- combined_plot +
 
 ### |-  plot image ----  
 
-# There was some issues between patchwork and ggsave
-
-# Make sure these pkgs are installed
-if (!require("ggplotify")) install.packages("ggplotify")
-if (!require("grid")) install.packages("grid")
-
-# Use Arial (Windows system font)
-windowsFonts(Arial = windowsFont("Arial"))
-
-font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
-
-# Convert patchwork plot to grob
-plot_grob <- as.grob(combined_plot)
-
-# Set up the PNG device with proper font handling
-png(
-  filename = here::here("data_visualizations/TidyTuesday/2024/tt_2024_48.png"),
-  width = 16, 
-  height = 10, 
-  units = "in", 
-  res = 320,
-  type = "cairo" 
-)
-
-# Enable showtext with specific settings
-showtext::showtext_begin()
-showtext::showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
-
-# Draw the plot
-grid::grid.draw(plot_grob)
-
-# Clean up
-showtext::showtext_end()
-invisible(dev.off())
-
-# Create thumbnail
-magick::image_read(here::here("data_visualizations/TidyTuesday/2024/tt_2024_48.png")) |> 
-  magick::image_resize(geometry = "400") |> 
-  magick::image_write(here::here("data_visualizations/TidyTuesday/2024/thumbnails/tt_2024_48.png"))
+source(here::here("R/image_utils.R"))
+save_plot_patchwork(combined_plot, type = "tidytuesday", year = 2024, week = 48, height = 10, width = 16)
 ```
 
 
