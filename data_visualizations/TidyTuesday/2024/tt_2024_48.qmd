@@ -44,10 +44,13 @@ share:
 ```{r}
 #| label: load
 #| warning: false
+#| message: false      
+#| results: "hide"     
 
 ## 1. LOAD PACKAGES & SETUP ----
-if (!require("pacman")) install.packages("pacman")
-pacman::p_load(
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
     tidyverse,         # Easily Install and Load the 'Tidyverse'
     ggtext,            # Improved Text Rendering Support for 'ggplot2'
     showtext,          # Using Fonts More Easily in R Graphs
@@ -57,9 +60,10 @@ pacman::p_load(
     here,              # A Simpler Way to Find Your Files
     patchwork,         # The Composer of Plots
     usmap              # US Maps Including Alaska and Hawaii
-)   
+  )   
+})
 
-source(here::here("_setup.R"))
+suppressMessages(source(here::here("_setup.R")))
 
 ### |- figure size ----
 camcorder::gg_record(

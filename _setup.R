@@ -1,3 +1,7 @@
+
+options(renv.verbose = FALSE)
+
+
 library(showtext)
 library(here)
 
@@ -10,5 +14,3 @@ setup_fonts <- function() {
   showtext_auto(enable = TRUE)
 }
 
-renv::status()
-renv::snapshot()
