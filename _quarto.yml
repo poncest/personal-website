@@ -1,5 +1,6 @@
 project:
   type: website
+  output-dir: _site    # Add this line
   preview:
     port: 3434
     browser: true
@@ -12,15 +13,19 @@ execute:
 website:
   title: "Steven Ponce"
   description: "Data Visualizations and R Code"
+  image: "assets/img/SP_avatar.png"     
   site-url: https://stevenponce.netlify.app/
+  site-path: "/" 
+  favicon: assets/img/SP_avatar.png  
+  open-graph: true
+  twitter-card:                     
+    creator: "@sponce1"
+    card-style: summary_large_image
+  search: true 
   repo-url: https://github.com/poncest/personal-website
   repo-branch: master   
   repo-subdir: data_visualizations
- 
-  favicon: assets/img/SP_avatar.png  
-  open-graph: true
   back-to-top-navigation: true
-  search: true
   page-navigation: true
 
   navbar:
@@ -66,9 +71,6 @@ website:
       right: |
         <a class="link-dark me-1" href="https://github.com/poncest/personal-website">{{< fa code >}} Source</a>
         <a class="link-dark me-1" href="https://github.com/poncest/personal-website/issues">{{< fa bug >}} Issues</a>
-  
-twitter-card: 
-  creator: "@sponce1"
 
 format:
   html:
@@ -86,4 +88,3 @@ format:
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
           </script>
-    
