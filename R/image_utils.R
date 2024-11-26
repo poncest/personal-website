@@ -1,5 +1,5 @@
 
-# Saving normal images (no patchwoprk)
+# Saving normal images (no patchwork)
 save_plot <- function(plot, type = "tidytuesday", year = 2024, week = NULL, name = NULL, height = 8, width = 10) {
   # Base paths setup
   base_paths <- list(
