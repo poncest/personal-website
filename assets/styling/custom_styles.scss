@@ -5,13 +5,14 @@
 
 
 // Light theme colors
-$body-bg: #ffffff;
+$body-bg: #fafafa;
 $body-color: #212529;
 $link-color: #3b4252;
 $navbar-bg: #3b4252;
-$navbar-fg: #ffffff;
+$navbar-fg: #fafafa;
 $code-block-bg: #f8f9fa;
 $code-color: #3b4252;
+$caption-color: #3b4252;
 
 // Add smooth transitions
 * {
@@ -300,3 +301,21 @@ p {
 }
 
 
+// CAPTION
+/* Target Quarto figure captions specifically */
+.quarto-float-caption, 
+.figcaption,
+figure figcaption,
+.figure-caption {
+  color: $caption-color !important;  
+}
+
+/* Additional specificity if needed */
+div.quarto-figure .quarto-float-caption {
+  color: $caption-color !important; 
+}
+
+/* Target the specific ID if the above selectors don't work */
+#fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca {
+  color: $caption-color !important; 
+}
