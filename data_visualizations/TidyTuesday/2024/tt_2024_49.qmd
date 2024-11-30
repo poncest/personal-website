@@ -1,0 +1,633 @@
+---
+title: "Traffic Flow Analysis: A64 Road, May 2021"
+subtitle: "Analysis of traffic patterns across multiple dimensions"
+description: "A comprehensive analysis of traffic patterns on the A64 road during May 2021, examining hourly volumes, daily trends, weekday-weekend differences, and speed variations across multiple sensor locations. The visualization reveals distinct rush hour patterns, daily volume fluctuations with confidence intervals, and systematic differences between weekday and weekend traffic behaviors."
+author: "Steven Ponce"
+date: "2024-11-30"
+categories: [TidyTuesday, Data Visualization, R Programming]  
+tags: [traffic analysis, time series, data visualization, ggplot2, patchwork, transportation, peak hours, traffic patterns, sensor data, traffic flow]
+image: "thumbnails/tt_2024_49.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/tt_2024_49.png"
+  description: "Visualization of U.S. Border Encounters showing demographic trends, geographic patterns, and processing types"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![A four-panel visualization of A64 Road Traffic Flow (May 2021). The top left shows hourly traffic volume with highlighted rush hours (7-9 AM, 4-6 PM). The top right displays daily traffic volume trends with a scatter plot and confidence interval. The bottom left compares weekday vs weekend traffic patterns, showing average speed and volume throughout the day. The bottom right visualizes average speed trends by sensor location.](tt_2024_49.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  pacman::p_load(
+    tidyverse,         # Easily Install and Load the 'Tidyverse'
+    ggtext,            # Improved Text Rendering Support for 'ggplot2'
+    showtext,          # Using Fonts More Easily in R Graphs
+    janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,             # Compact and Flexible Summaries of Data
+    scales,            # Scale Functions for Visualization
+    glue,              # Interpreted String Literals
+    here,              # A Simpler Way to Find Your Files
+    patchwork,         # The Composer of Plots
+    paletteer,         # Comprehensive Collection of Color Palettes
+    gghighlight,       # Highlight Lines and Points in 'ggplot2'
+    lubridate          # Working with Dates and Times
+)   
+})
+
+suppressMessages(source(here::here("_setup.R")))
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  16,
+  height =  10,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# tt <- tidytuesdayR::tt_load(2024, week = 49) 
+
+# A64_traffic  <- tt$A64_traffic |> clean_names()
+ 
+# tidytuesdayR::readme(tt)
+# rm(tt)
+
+# Option 2: Read directly from GitHub
+A64_traffic <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-12-03/A64_traffic.csv')
+A64_traffic <-  A64_traffic |> clean_names() 
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(A64_traffic)
+skim(A64_traffic)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+
+# Hourly Volume Patterns (plot 1) ----
+hourly_volume_clean <- A64_traffic |>
+    group_by(report_date, hour = lubridate::hour(time_period_ending)) |>
+    summarise(
+        hourly_volume = sum(total_volume, na.rm = TRUE),
+        .groups = 'drop'
+    ) |>
+    mutate(
+        month_day = format(report_date, "%b %d"),
+        hour_label = sprintf("%02d:00", hour),
+        hour_f = factor(hour, levels = c(7, 8, 9, 16, 17, 18), ordered = TRUE),
+        is_peak = hour %in% c(7:9, 16:18)
+    )
+
+# Daily Volume Trends (plot 2) ----
+daily_volume_clean <- A64_traffic |>
+    group_by(date = as.Date(report_date)) |>
+    summarise(
+        daily_volume = sum(total_volume, na.rm = TRUE),
+        .groups = 'drop'
+    ) |>
+    mutate(
+        week_num = week(date),
+        month_day = format(date, "%b %d")
+    )
+
+# Weekend Patterns (plot 3) ----
+weekend_patterns_clean <- A64_traffic |>
+    mutate(
+        hour = lubridate::hour(time_period_ending),
+        is_weekend = ifelse(lubridate::wday(report_date) %in% c(1, 7), "Weekend", "Weekday"),
+        hour_label = sprintf("%02d:00", hour)
+    ) |>
+    group_by(hour, hour_label, is_weekend) |>
+    summarise(
+        avg_volume = mean(total_volume, na.rm = TRUE),
+        avg_speed = mean(avg_mph, na.rm = TRUE),
+        .groups = 'drop'
+    ) |>
+    pivot_longer(
+        cols = c(avg_speed, avg_volume),
+        names_to = "metric",
+        values_to = "value"
+    ) |>
+    mutate(
+        metric = factor(metric,
+                        levels = c("avg_speed", "avg_volume"),
+                        labels = c("Average Speed (mph)", "Average Volume (count)"))
+    ) |>
+    group_by(hour, metric) |>
+    summarise(
+        weekday = value[is_weekend == "Weekday"],
+        weekend = value[is_weekend == "Weekend"],
+        .groups = 'drop'
+    )
+
+# Sensor Speed Patterns (plot 4) ----
+sensor_speed_clean <- A64_traffic |>
+    group_by(
+        date = as.Date(report_date), 
+        site_id,
+        site_name
+    ) |>
+    summarise(
+        avg_speed = mean(avg_mph, na.rm = TRUE),
+        .groups = 'drop'
+    ) |>
+    mutate(
+        month_day = format(date, "%b %d"),
+        site_id = factor(site_id) 
+    )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+bkg_col      <- "#f5f5f2"  
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray30"  
+
+viz_colors <- list(
+    morning = "#83c5be",    
+    evening = "#7B7FD4",     
+    orange  = "#EE6100FF",   
+    gray_light = "gray90",   
+    gray_dark  = "gray30"    
+)
+
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 49 } &bull; Source: WebTRIS Traffic Flow API<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
+
+# text
+title_text    <- str_glue("Traffic Flow Analysis: A64 Road, May 2021")
+subtitle_text <-  str_glue("Analysis of traffic patterns across multiple dimensions")
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+setup_fonts()
+
+### |-  plot theme ----
+theme_traffic <- function() {
+    theme_minimal(base_size = 14, base_family = "text") +
+        theme(
+            # Background
+            plot.background  = element_rect(fill = bkg_col, color = bkg_col),
+            panel.background = element_rect(fill = bkg_col, color = bkg_col),
+            plot.margin      = margin(t = 10, r = 20, b = 10, l = 20),
+            
+            # Title, subtitle, caption
+            plot.title = element_markdown(
+                family = "title",
+                size = rel(1.4),
+                face = "bold",
+                color = title_col,
+                hjust = 0.5,
+                margin = margin(t = 10, b = 5)
+            ),
+            plot.subtitle = element_markdown(
+                family = "text",
+                size = rel(1),
+                color = subtitle_col,
+                hjust = 0.5,
+                margin = margin(b = 10)
+            ),
+            plot.caption = element_markdown(
+                family = "caption",
+                size = rel(0.7),
+                color = caption_col
+            ),
+            
+            # Axis formatting
+            axis.title = element_text(
+                family = "text",
+                size = rel(0.93),
+                face = "bold",
+                color = text_col
+            ),
+            axis.text = element_text(
+                family = "text",
+                size = rel(0.79),
+                color = text_col
+            ),
+            axis.line.x = element_line(
+                color = "#252525",
+                linewidth = 0.2
+            ),
+            
+            # Grid lines
+            panel.grid.major.y = element_line(
+                color = "gray90",
+                linewidth = 0.2
+            ),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor = element_blank(),
+            
+            # Legend
+            legend.position = "top",
+            legend.title = element_text(
+                size = rel(0.8),
+                face = "bold"
+            ),
+            legend.text = element_text(
+                size = rel(0.71)
+            ),
+            legend.key.width = unit(1.5, "cm"),
+            legend.spacing.x = unit(0.2, 'cm')
+        )
+}
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  plot 1 ----
+p1 <- hourly_volume_clean |>
+    ggplot(aes(x = report_date, 
+               y = hourly_volume, 
+               group = hour)) +
+    # Add non-peak hours with gray color
+    geom_line(
+        data = hourly_volume_clean |> filter(!hour %in% c(7:9, 16:18)),
+        color = viz_colors$gray_dark,
+        alpha = 0.2,
+        linewidth = 0.5
+    ) +
+    # Add peak hours with colors
+    geom_line(
+        data = hourly_volume_clean |> filter(hour %in% c(7:9, 16:18)),
+        aes(color = hour_f),
+        alpha = 0.9,
+        linewidth = 0.7
+    ) +
+    scale_color_manual(
+        values = c(
+            "7" = viz_colors$orange,
+            "8" = viz_colors$orange,
+            "9" = viz_colors$orange,
+            "16" = viz_colors$evening,
+            "17" = viz_colors$evening,
+            "18" = viz_colors$evening
+        ),
+        name = "Hour of Day"
+    ) +
+    scale_y_continuous(
+        labels = scales::comma_format(),
+        breaks = scales::breaks_pretty(n = 6),
+        expand = c(0.02, 0.02)
+    ) +
+    scale_x_datetime(
+        date_breaks = "1 week",
+        date_labels = "%b %d",
+        expand = c(0.02, 0.02)
+    ) +
+    labs(
+        title = "Hourly Traffic Volume Throughout May",
+        subtitle = "Highlighting rush hour periods (7-9 AM, 4-6 PM)",
+        x = "Date",
+        y = "Hourly Volume"
+    ) +
+    theme_traffic() +
+    theme(
+        legend.key.width = unit(2, "cm"),
+        legend.key.height = unit(0.3, "cm"),
+        legend.title = element_text(
+            size = rel(0.8),
+            face = "bold",
+            margin = margin(b = 5)
+        ),
+        legend.box.spacing = unit(0.5, "cm")
+    ) +
+    guides(
+        color = guide_legend(
+            nrow = 2,
+            byrow = TRUE
+        )
+    )
+
+### |-  plot 2 ----
+p2 <- daily_volume_clean |>
+    ggplot(aes(x = date, y = daily_volume)) +
+    # Add confidence band and line
+    geom_smooth(
+        method = "loess",
+        span = 0.4,
+        color = viz_colors$evening,        
+        fill = alpha(viz_colors$evening, 0.25),
+        linewidth = 1.0,
+        se = TRUE
+    ) +
+    # Add values as points
+    geom_point(
+        color = viz_colors$orange,
+        alpha = 0.6,
+        size = 1.8
+    ) +
+    # Scales
+    scale_y_continuous(
+        labels = scales::comma_format(),
+        breaks = seq(0, 50000, by = 10000),
+        limits = c(0, 50000),
+        expand = c(0, 0)  # Remove padding
+    ) +
+    scale_x_date(
+        date_breaks = "1 week",
+        date_labels = "%b %d",
+        expand = c(0.02, 0.02)
+    ) +
+    # Labs
+    labs(
+        title = "Daily Traffic Volume Patterns Throughout May",
+        subtitle = "Showing daily total volume with 95% confidence interval",
+        x = "Date",
+        y = "Daily Volume"
+    ) +
+    # Theme 
+    theme_traffic() +
+    theme(
+        panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+        panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+        plot.margin = margin(t = 20, r = 20, b = 20, l = 20)
+    )
+
+### |-  plot 3 ----
+p3 <- ggplot(weekend_patterns_clean, aes(x = hour)) +
+    # Add ribbons (weekday vs weekend)
+    geom_ribbon(
+        aes(
+            ymin = pmin(weekday, weekend),
+            ymax = weekend,
+            fill = "Weekend"
+        ),
+        alpha = 0.15
+    ) +
+    geom_ribbon(
+        aes(
+            ymin = pmin(weekday, weekend),
+            ymax = weekday,
+            fill = "Weekday"
+        ),
+        alpha = 0.15
+    ) +
+    # Add lines 
+    geom_line(
+        aes(y = weekday, color = "Weekday"), 
+        linewidth = 1.0
+    ) +
+    geom_line(
+        aes(y = weekend, color = "Weekend"), 
+        linewidth = 1.0
+    ) +
+    # Scales
+    scale_x_continuous(
+        breaks = seq(0, 23, by = 4),
+        labels = function(x) sprintf("%02d:00", x),
+        expand = c(0.02, 0.02)
+    ) +
+    # Add legend 
+    scale_color_manual(
+        name = "Day Type",
+        values = c(
+            "Weekday" = viz_colors$evening,
+            "Weekend" = viz_colors$orange
+        )
+    ) +
+    scale_fill_manual(
+        name = "Day Type",
+        values = c(
+            "Weekday" = viz_colors$evening,
+            "Weekend" = viz_colors$orange
+        )
+    ) +
+    # Labs
+    labs(
+        title = "Traffic Patterns: Weekday vs Weekend",
+        subtitle = "Comparing average speed and volume throughout the day",
+        x = "Hour of Day",
+        y = NULL
+    ) +
+    # Facet
+    facet_wrap(~metric, scales = "free_y", nrow = 1) +
+    # Theme
+    theme_traffic() +
+    theme(
+        strip.text = element_text(size = rel(1), face = "bold"),
+        panel.grid.major.y = element_line(
+            color = viz_colors$gray_light, 
+            linewidth = 0.3
+        ),
+        legend.key.width = unit(2, "cm")
+    ) 
+    
+
+### |-  plot 4 ----
+p4 <- sensor_speed_clean |>
+    ggplot(aes(x = date, y = avg_speed, color = site_id, group = site_id)) +
+    # Add lines
+    geom_line(linewidth = 1.0, alpha = 0.9) +
+
+    # Scales 
+    scale_y_continuous(
+        breaks = seq(30, 50, by = 5),
+        limits = c(25, 55),
+        expand = c(0, 0)
+    ) +
+    scale_x_date(
+        date_breaks = "1 week",
+        date_labels = "%b %d",
+        expand = c(0.02, 0)
+    ) +
+    scale_color_manual(
+        values = c(
+            "6867" = viz_colors$evening,    
+            "7035" = viz_colors$orange,    
+            "7042" = viz_colors$evening,   
+            "7058" = viz_colors$orange  
+        ),
+        name = "Sensor ID"
+    ) +
+    # Customize legend
+    guides(
+        color = guide_legend(
+            nrow = 1,
+            byrow = TRUE
+        )
+    ) +
+    # Labs
+    labs(
+        title = "Average Speed Trends by Sensor Location",
+        subtitle = "Comparing speed patterns across different monitoring points",
+        x = "Date",
+        y = "Average Speed (mph)"
+    ) +
+    # Theme
+    theme_traffic() +
+    theme(
+        panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+        legend.key.width = unit(2, "cm"),
+        legend.text = element_text(size = rel(0.9))
+    ) 
+   
+### |-  combined plots ----
+combined_plot <- (
+    p1 + p2 + 
+        plot_layout(widths = c(1, 1))
+) / (
+    p3 + p4
+)
+
+combined_plot <- combined_plot +
+    plot_annotation(
+        title = title_text,
+        subtitle = subtitle_text  ,
+        caption = caption_text,
+        theme = theme(
+            plot.title = element_text(
+                family = "title", 
+                size = rel(2.5), 
+                face = "bold",
+                hjust = 0.5,
+                color = title_col,
+                margin = margin(b = 10)
+            ),
+            plot.subtitle = element_text(
+                family = "text",
+                size = rel(1.3),
+                hjust = 0.5,
+                color = subtitle_col,
+                margin = margin(b = 20)
+            ),
+            plot.caption = element_markdown(
+                family = "caption",
+                size = rel(0.75),
+                color = caption_col,
+                hjust = 0.5,
+                margin = margin(t = 20)
+            ),
+            plot.margin = margin(10, 10, 10, 10),
+            plot.background = element_rect(fill = bkg_col, color = bkg_col),
+            panel.background = element_rect(fill = bkg_col, color = bkg_col)
+        )
+    ) &
+    theme(
+        legend.position = "top",
+        legend.box = "vertical",
+        legend.margin = margin(t = 10),
+        legend.spacing = unit(1, "cm"),
+        legend.key.width = unit(2, "cm"),
+        legend.key.height = unit(0.3, "cm")
+    )
+
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+source(here::here("R/image_utils.R"))
+save_plot_patchwork(combined_plot, type = "tidytuesday", year = 2024, week = 49, height = 10, width = 16)
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+The complete code for this analysis is available in [`tt_2024_49.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2024/tt_2024_49.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
