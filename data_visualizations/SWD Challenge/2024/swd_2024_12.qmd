@@ -1,0 +1,342 @@
+---
+title: "Progress in Reducing Working Poverty Rates in Africa (2000-2019)"
+subtitle: "Poverty rates for both women and men have steadily declined across all age groups in Africa's lower-middle-income countries. Adults and youth have shown different paces of reduction in poverty, with all populations living below $2.15/day PPP."
+description: "A visualization examining two decades of working poverty trends in Africa (2000-2019), highlighting the decline in poverty rates across gender and age groups. The analysis reveals distinct patterns between youth (15-24) and adult (25+) populations, showcasing overall improvement but persistent gender disparities in working poverty rates."
+author: "Steven Ponce"
+date: "2024-12-02"
+categories: [SWDchallenge, Data Visualization, R Programming]  
+tags: [poverty, africa, gender-equality, economic-development, time-series, visualization, working-poverty, youth-employment, demographic-analysis]
+image: "thumbnails/swd_2024_12.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/swd_2024_12.png"
+  description: "Exploring 20 years of working poverty reduction in Africa: A data visualization showing how poverty rates have declined differently for women and men across age groups, with particular focus on youth (15-24) versus adult (25+) populations. The analysis reveals sustained progress in reducing working poverty while highlighting persistent gender gaps. #DataVisualization #Africa #PovertyReduction #GenderEquality #EconomicDevelopment"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![Line chart showing progress in reducing working poverty rates in Africa's lower-middle-income countries from 2000 to 2019. The chart compares trends among women and men and the overall total across three age groups: Age 15 and older, youth age 15-24, and adults age 25 and older. Poverty rates declined for both men and women, with notable differences between adults and youth.](swd_2024_12.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  scales,            # Scale Functions for Visualization
+  glue,              # Interpreted String Literals
+  here,              # A Simpler Way to Find Your Files
+  paletteer,         # Comprehensive Collection of Color Palettes
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,             # Compact and Flexible Summaries of Data
+  camcorder          # Record Your Plot History
+)  
+})
+
+suppressMessages(source(here::here("_setup.R")))
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  10,
+  height =  08,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+## Data:      International Labour Organization 
+##            Africa: Lower-middle income - Annual
+## Link:      https://rshiny.ilo.org/dataexplorer5/?lang=en&id=X08_A
+
+## Citation:
+#' International Labour Organization. Africa: Lower-middle income - Annual
+#' [ILOSTAT explorer. Africa: Lower-middle income - Annual (1990 - 2024)]. 
+#' Accessed [2024-12-02].
+
+poverty_rate_data_raw <- read_csv(
+ here::here("data/ILO_X08_A-full-2024-12-02.csv")) |>
+ filter(
+    indicator.label == "SDG indicator 1.1.1 - Working poverty rate (percentage of employed living below US$2.15 PPP) (%)"
+  ) |> 
+  clean_names() 
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(poverty_rate_data_raw)
+skim(poverty_rate_data_raw)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+
+poverty_rate_clean <- poverty_rate_data_raw |> 
+  select(-obs_status_label, -note_classif_label, -note_indicator_label, -note_source_label, -classif2_label) |> 
+  rename(
+    year = time,
+    pct = obs_value
+  ) |> 
+  mutate(
+    sex_label = str_remove(sex_label, pattern = "Sex: "),
+    pct = pct / 100,
+    age_bin = case_when(
+      classif1_label == "Age (Youth, adults): 15+" ~ "Ages 15 and Older",
+      classif1_label == "Age (Youth, adults): 15-24" ~ "Youth: Ages 15-24",
+      classif1_label == "Age (Youth, adults): 25+" ~ "Adults: Ages 25 and Older",
+      TRUE ~ classif1_label
+    ),
+    age_bin = factor(age_bin, levels = c("Ages 15 and Older", "Youth: Ages 15-24", "Adults: Ages 25 and Older"))
+  ) |> 
+  filter(year <= 2019) |> 
+  pivot_wider(names_from = sex_label, values_from = pct)
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+bkg_col      <- "#f5f5f2"  
+title_col    <- "gray20"           
+subtitle_col <- "gray20"     
+caption_col  <- "gray30"   
+text_col     <- "gray20"    
+col_palette  <- paletteer::paletteer_d("nbapalettes::mavericks_retro")
+
+### |-  titles and caption ----
+# icons
+tt <- str_glue("#SWDchallenge: Dec 2024 &bull; Source: Source: Source: ILOSTAT<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
+
+# text
+women  <- str_glue("<span style='font-size:16pt; color:{ col_palette[1] }'>**Women**</span>")
+men    <- str_glue("<span style='font-size:16pt; color:{ col_palette[2] }'>**Men**</span>")
+total  <- str_glue("<span style='font-size:16pt; color:{ col_palette[3] }'>**Total**</span>")
+
+title_text   <- str_glue("Progress in Reducing Working Poverty Rates in Africa (2000-2019)") 
+
+subtitle_text <- str_glue("Poverty rates for both {women} and {men} have steadily declined across all age groups in Africa\\'s<br>
+                           lower-middle-income countries. Adults and youth have shown different paces of reduction in poverty,<br>
+                           with all populations living below $2.15/day PPP. The dashed line represents the { total } (combined average)<br><br>
+                          <span style='font-size:15.4pt;'><strong>Percentage of Workers in Poverty</strong></span>")
+
+caption_text  <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+setup_fonts()
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+
+theme_update(
+  plot.title.position   = "plot",
+  plot.caption.position = "plot",
+  legend.position       = "plot",
+  plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+  panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+  plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+  axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
+  axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
+  axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
+  axis.line.x           = element_line(color = "#252525", linewidth = .3),
+  axis.ticks.x          = element_line(color = text_col),  
+  axis.title            = element_text(face = "bold"),
+  panel.grid.minor      = element_blank(),
+  panel.grid.major      = element_blank(),
+  panel.grid.major.y    = element_line(color = "grey85", linewidth = .4),
+  strip.background      = element_rect(fill = "#f0f0f0", color = NA),
+  strip.text            = element_textbox(size = rel(1),  
+                                          face = 'bold',
+                                          color = text_col,
+                                          hjust = 0.5,
+                                          halign = 0.5,
+                                          r = unit(5, "pt"),
+                                          width = unit(5.5, "npc"),
+                                          padding = margin(3, 0, 3, 0),
+                                          margin = margin(3, 3, 3, 3),
+                                          fill = "transparent"
+  ),
+  panel.spacing         = unit(1.5, 'lines'),
+)   
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  plot ----
+p <- poverty_rate_clean |>
+  ggplot(aes(x = year)) +
+  # Fill the gap between Male and Female
+  geom_ribbon(aes(ymin = Male, ymax = Female), fill = "gray75", alpha = 0.3) +
+  # Geoms for Male and Female
+  geom_line(aes(y = Female, color = "Female"), linewidth = 1) +
+  geom_line(aes(y = Male, color = "Male"), linewidth = 1) +
+  # Geom for Total (dashed line)
+  geom_line(aes(y = Total, linetype = "Total"), color = col_palette[3], linewidth = 0.55, alpha = 0.6) +
+  
+  # Scales
+  scale_x_continuous(
+    breaks = seq(2000, 2020, by = 10),
+    limits = c(2000, 2020)
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, .5, by = .1),
+    limits = c(.1, .50),
+    label = percent_format()
+  ) +
+  coord_cartesian(clip = "off") +
+  scale_color_manual(values = col_palette) +
+  scale_linetype_manual(values = c("dashed")) +
+  
+  # Labs
+  labs(
+    x = "Year",
+    y = NULL,
+    color = "Gender",
+    linetype = "Total",
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+  ) +
+  
+  # Facet
+  facet_wrap(~ age_bin, nrow = 1) +
+  
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(1.7),
+      family = "title",
+      face = "bold",
+      color = title_col,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.95),
+      family = "subtitle",
+      color = caption_col,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.65),
+      family = "caption",
+      color = caption_col,
+      lineheight = 1.1,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 15, b = 5)
+    )
+  )
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+source(here::here("R/image_utils.R"))
+save_plot(p, type = 'swd', year = 2024, month = 12, width = 10, height = 08)
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+The complete code for this analysis is available in [`swd_2024_12.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2024/swd_2024_12.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
