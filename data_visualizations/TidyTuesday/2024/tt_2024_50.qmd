@@ -1,0 +1,392 @@
+---
+title: "Top 20 Perfume Brands Ranked by Average Rating and Portfolio Size"
+subtitle: "This chart displays the leading perfume brands based on their average customer ratings. The length of each bar represents the brand's average rating, while the height indicates the number of fragrances in their portfolio."
+description: "Analysis of top perfume brands using TidyTuesday data. Creating a Mekko chart visualization to showcase ratings and portfolio sizes using R and ggplot2."
+author: "Steven Ponce"
+date: "2024-12-07"
+categories: [TidyTuesday, Data Visualization, R Programming]  
+tags: [TidyTuesday, ggplot2, R, Data Analysis, Visualization, Perfume Brands]
+image: "thumbnails/tt_2024_50.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+
+editor_options: 
+  chunk_output_type: inline
+
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/tt_2024_50.png"
+  description: "Exploring perfume brand ratings and portfolio sizes through data visualization using TidyTuesday's Parfumo dataset. #rstats #TidyTuesday #DataViz"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![Mekko chart displaying the top 20 perfume brands ranked by average rating and portfolio size. The length of each bar represents the brand's average rating, and the height represents the number of fragrances. Notable brands include Ensar Oud, Guerlain, and Sunnamusk, with annotations highlighting their portfolio sizes.](tt_2024_50.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+    pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here            # A Simpler Way to Find Your Files
+    )   
+})
+
+suppressMessages(source(here::here("_setup.R")))
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  8,
+  height =  16,
+  units  = "in",
+  dpi    = 320
+)
+
+### |- resolution ----
+showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# tt <- tidytuesdayR::tt_load(2024, week = 50)
+#
+# parfumo_data_raw  <- tt$parfumo_data |> clean_names()
+#
+# tidytuesdayR::readme(tt)
+# rm(tt)
+
+# Option 2: Read directly from GitHub
+parfumo_data_raw <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-12-10/parfumo_data_clean.csv")
+parfumo_data_raw <- parfumo_data_raw |> clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(parfumo_data_raw)
+skim(parfumo_data_raw)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- tidy data ----
+
+parfumo_brand_stats <- parfumo_data_raw |>
+    group_by(brand) |>
+    summarise(
+        n_fragrances = n(),
+        avg_rating = mean(rating_value, na.rm = TRUE),
+        .groups = "drop"
+    ) |>
+    filter(n_fragrances >= 50) |> # Filter for brands with at least 50 fragrances
+    arrange(desc(avg_rating)) |>
+    head(20) |> # Select the top 20 brands based on average rating
+    # Create y-coordinates for rectangles
+    mutate(
+        ymax = cumsum(n_fragrances),
+        ymin = lag(ymax, default = 0),
+        font_size = ifelse(n_fragrances > 200, 7.5, 4.5), # Larger bars get a bigger font size
+        brand = case_when(
+            brand == "Abdul Samad Al Qurashi / عبدالصمد القرشي" ~ "Abdul Samad Al Qurashi", # Arabic characters were not rendering properly
+            brand == "Teone Reinthal Natural Perfume" ~ "Teone Reinthal\nNatural Perfume",
+            TRUE ~ as.character(brand)
+        )
+    )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+bkg_col      <- "#f5f5f2"
+title_col    <- "gray20"
+subtitle_col <- "gray20"
+caption_col  <- "gray30"
+text_col     <- "gray30"
+note_col     <- "gray40" 
+bar_col      <- "#1B2B48"
+
+# icons
+tt <- str_glue("#TidyTuesday: { 2024 } Week { 50 } &bull; Source: Parfumo Fragrance Dataset<br>")
+li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
+gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
+bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
+
+# text
+title_text    <- str_glue("Top 20 Perfume Brands Ranked by Average Rating<br>
+                          and Portfolio Size")
+subtitle_text <- str_glue("This chart displays the leading perfume brands based on their average<br>
+                          customer ratings. The length of each bar represents the brand\\'s average<br>
+                          rating, while the height indicates the number of fragrances in their portfolio.")
+caption_text <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+
+### |-  fonts ----
+setup_fonts()
+
+### |-  plot theme ----
+theme_set(theme_minimal(base_size = 14, base_family = "text"))
+
+theme_update(
+    plot.title.position   = "plot",
+    plot.caption.position = "plot",
+    legend.position       = "plot",
+    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
+    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
+    plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
+    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1),
+                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
+    axis.title.y.right    = element_text(margin = margin(0, 20, 0, 10), size = rel(1.1),
+                                         color = text_col, family = "text", face = "bold",
+                                         angle = 0, vjust = 1.0, hjust = 1),
+    axis.line.x           = element_line(color = "#252525", linewidth = .2),
+    axis.title            = element_text(size = rel(0.93), face = "bold", color = text_col),
+    axis.text             = element_text(size = rel(0.79), color = text_col),
+    legend.title          = element_blank(),
+    legend.text           = element_text(size = rel(0.71), color = text_col),
+    panel.grid.major.x    = element_blank(),
+    panel.grid.major.y    = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.minor      = element_blank()
+)
+```
+
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  initial plot ----
+
+p <- ggplot(parfumo_brand_stats) +
+    # Horizontal bar chart with variable width
+    geom_rect(
+        aes(
+            xmin = 0,
+            xmax = avg_rating,
+            ymin = ymin,
+            ymax = ymax
+        ),
+        color = "#e0e0e0",
+        fill = bar_col,
+        linewidth = ifelse(parfumo_brand_stats$n_fragrances > 200, 1, 0.3)
+    ) +
+    # Add brand names to bars
+    geom_text(
+        aes(
+            x = 0.2,
+            y = ymin + ((ymax - ymin) / 2),
+            label = ifelse(n_fragrances >= 80, brand, ""),
+        ),
+        color = ifelse(parfumo_brand_stats$n_fragrances < 200, "#e0e0e0", "white"),
+        hjust = 0,
+        size = parfumo_brand_stats$font_size
+    ) +
+    # Add ratings to bars
+    geom_text(
+        aes(
+            x = avg_rating - 0.3,
+            y = ymin + ((ymax - ymin) / 2),
+            label = ifelse(n_fragrances >= 80,
+                           paste(sprintf("(%.1f)", avg_rating)),
+                           ""
+            ),
+        ),
+        color = ifelse(parfumo_brand_stats$n_fragrances < 200, "#e0e0e0", "white"),
+        hjust = 1,
+        size = 3.2
+    ) +
+    # Scales
+    scale_x_continuous(
+        limits = c(0, 11),
+        breaks = seq(0, 11, 2),
+        expand = c(0, 0, 0.05, 0)
+    ) +
+    scale_y_continuous(
+        expand = c(0, 0, 0.01, 0),
+        position = "right",
+        labels = scales::comma,
+        breaks = seq(0, max(parfumo_brand_stats$ymax), 1000)
+    ) +
+    # Labs
+    labs(
+        x = "Average Rating",
+        y = "Number of\nFragrances",
+        title    = title_text,
+        subtitle = subtitle_text,
+        caption  = caption_text
+    ) +
+    # Theme
+    theme(
+        plot.title      = element_markdown(
+            size        = rel(1.8),
+            family      = "title",
+            face        = "bold",
+            color       = title_col,
+            lineheight  = 1.1,
+            margin      = margin(t = 5, b = 5)
+        ),
+        plot.subtitle   = element_markdown(
+            size        = rel(1.06),
+            family      = "subtitle",
+            color       = text_col,
+            lineheight  = 1.1,
+            margin      = margin(t = 5, b = 20)
+        ),
+        plot.caption    = element_markdown(
+            size        = rel(.65),
+            family      = "caption",
+            color       = caption_col,
+            lineheight  = 0.65,
+            hjust       = 0.5,
+            halign      = 0.5,
+            margin      = margin(t = 10, b = 5)
+        ),
+    )
+
+annotation_data <- tibble(
+    x = c(9, 9, 9),
+    y = c(parfumo_brand_stats$ymin[3] + ((parfumo_brand_stats$ymax[3] - parfumo_brand_stats$ymin[3]) / 2),
+          parfumo_brand_stats$ymin[18] + ((parfumo_brand_stats$ymax[18] - parfumo_brand_stats$ymin[18]) / 2),
+          parfumo_brand_stats$ymin[8] + ((parfumo_brand_stats$ymax[8] - parfumo_brand_stats$ymin[8]) / 2)),
+    xend = c(parfumo_brand_stats$avg_rating[3], parfumo_brand_stats$avg_rating[18], parfumo_brand_stats$avg_rating[8]),
+    yend = c((parfumo_brand_stats$ymin[3] + parfumo_brand_stats$ymax[3]) / 2,
+             (parfumo_brand_stats$ymin[18] + parfumo_brand_stats$ymax[18]) / 2,
+             (parfumo_brand_stats$ymin[8] + parfumo_brand_stats$ymax[8]) / 2),
+    label = c("Ensar Oud / Oriscent has\n534 fragrances in its portfolio",
+              "Guerlain has 586 fragrances\nin its portfolio",
+              "Sunnamusk has 57 fragrances\nin its portfolio")
+)
+
+p <- p +
+    # Add annotation outside the grid
+    coord_cartesian(
+        expand = FALSE,
+        clip = "off",
+        xlim = c(0, 11)
+    ) +
+    
+    # Add labels and curves programmatically
+    geom_label(
+        data = annotation_data,
+        aes(
+            x = x + 0.2,
+            y = y,
+            label = label
+        ),
+        size = 4,
+        color = note_col,
+        hjust = 0,
+        lineheight = 1,
+        label.size = NA,
+        label.padding = unit(0, "lines"),
+        fill = "transparent"
+    ) +
+    geom_curve(
+        data = annotation_data,
+        aes(
+            x = x,
+            y = y,
+            xend = xend,
+            yend = yend
+        ),
+        curvature = 0,
+        color = note_col,
+        arrow = arrow(type = "closed", length = unit(0.1, "inches"))
+    )  
+```
+
+
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+source(here::here("R/image_utils.R"))
+save_plot(p, type = "tidytuesday", year = 2024, week = 50, height = 16, width = 8)
+```
+
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+The complete code for this analysis is available in [`tt_2024_50.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2024/tt_2024_50.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
