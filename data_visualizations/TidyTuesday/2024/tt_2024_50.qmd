@@ -7,6 +7,7 @@ date: "2024-12-07"
 categories: [TidyTuesday, Data Visualization, R Programming]  
 tags: [TidyTuesday, ggplot2, R, Data Analysis, Visualization, Perfume Brands]
 image: "thumbnails/tt_2024_50.png"
+
 format:
   html:
     toc: true
@@ -16,6 +17,9 @@ format:
     code-tools: true
     code-summary: "Show code"
     self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
 
 editor_options: 
   chunk_output_type: inline
@@ -28,12 +32,20 @@ execute:
   warning: false
   eval: true
 
+filters:
+  - social-share
 share:
   permalink: "https://stevenponce.netlify.app/data_visualizations/tt_2024_50.png"
   description: "Exploring perfume brand ratings and portfolio sizes through data visualization using TidyTuesday's Parfumo dataset. #rstats #TidyTuesday #DataViz"
-  linkedin: true
   twitter: true
+  linkedin: true
   email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
 ---
 
 ![Mekko chart displaying the top 20 perfume brands ranked by average rating and portfolio size. The length of each bar represents the brand's average rating, and the height represents the number of fragrances. Notable brands include Ensar Oud, Guerlain, and Sunnamusk, with annotations highlighting their portfolio sizes.](tt_2024_50.png){#fig-1}
