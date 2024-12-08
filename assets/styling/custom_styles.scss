@@ -319,3 +319,39 @@ div.quarto-figure .quarto-float-caption {
 #fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca {
   color: $caption-color !important; 
 }
+
+
+// SOCIAL SHARE
+.page-layout-article {
+    .social-share {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        gap: 1rem;
+        width: 847px;  // Set specific width based on the inspect element
+        margin: 2rem auto;
+        padding: 0;
+        
+        // Container to enforce centering
+        &::after {
+            content: '';
+            display: block;
+            width: 847px;  // Match container width
+            margin: 0 auto;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 37.88px;  // Set specific width from inspect
+            height: 37.88px; // Make it square
+            margin: 0;
+            padding: 0;
+        }
+    }
+}
+
