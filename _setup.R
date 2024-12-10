@@ -2,8 +2,9 @@
 options(renv.verbose = FALSE)
 
 
-library(showtext)
-library(here)
+library(showtext) # Using Fonts More Easily in R Graphs
+library(here)     # A Simpler Way to Find Your Files
+
 
 setup_fonts <- function() {
   font_add("fa6-brands", here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
