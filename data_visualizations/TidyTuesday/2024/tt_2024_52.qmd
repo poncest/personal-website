@@ -50,10 +50,9 @@ share:
 
 ![Scatter plot panels show the relationship between average monthly holidays and air traffic volatility (CV) across different market sizes (Small, Medium, Large, Very Large). Larger markets show lower volatility (CV) with more holidays. Data points are sized by annual passenger traffic, with industry median volatility and trend lines highlighted. Source: WorldPop Hub.](tt_2024_52.png){#fig-1}
 
+### <mark> **Steps to Create this Graphic** </mark>
 
-### <mark> __Steps to Create this Graphic__ </mark>
-
-#### 1. Load Packages & Setup 
+#### 1. Load Packages & Setup
 
 ```{r}
 #| label: load
@@ -71,28 +70,18 @@ pacman::p_load(
     skimr,          # Compact and Flexible Summaries of Data
     scales,         # Scale Functions for Visualization
     glue,           # Interpreted String Literals
-    here,           # A Simpler Way to Find Your Files
-    camcorder       # Record Your Plot History
+    here            # A Simpler Way to Find Your Files
 )
 })
 
-suppressMessages(source(here::here("_setup.R")))
-
-### |- figure size ----
-camcorder::gg_record(
-  dir    = here::here("temp_plots"),
-  device = "png",
-  width  =  10,
-  height =  10,
-  units  = "in",
-  dpi    = 320
-)
-
-### |- resolution ----
-showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
 ```
 
-#### 2. Read in the Data 
+#### 2. Read in the Data
 
 ```{r}
 #| label: read
@@ -133,7 +122,7 @@ glimpse(monthly_passengers_raw)
 skim(monthly_passengers_raw)
 ```
 
-#### 4. Tidy Data 
+#### 4. Tidy Data
 
 ```{r}
 #| label: tidy
@@ -198,8 +187,7 @@ volatility_df <- combined_data |>
     )
 ```
 
-
-#### 5. Visualization Parameters 
+#### 5. Visualization Parameters
 
 ```{r}
 #| label: params
@@ -207,80 +195,71 @@ volatility_df <- combined_data |>
 #| warning: false
 
 ### |-  plot aesthetics ----
-bkg_col      <- "#f5f5f2"
-title_col    <- "gray20"
-subtitle_col <- "gray30"
-text_col     <- "gray30"
-caption_col  <- "gray40"
-col_palette  <- c("#4B79B7", "#F8F9FA", "#2C3E50", "#34495E", "#7F8C8D")      
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c("#4B79B7", "#F8F9FA", "#2C3E50", "#34495E", "#7F8C8D"))
 
 ### |-  titles and caption ----
-# icons
-tt <- str_glue("#TidyTuesday: { 2024 } Week { 52 } &bull; Source: WorldPop Hub<br>")
-li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
-gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
-bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
-
-# text
 title_text    <- str_glue("More Holidays Associated with Lower Air Traffic Volatility\nin Larger Markets")
 subtitle_text <- str_glue("Higher holiday frequency correlates with reduced traffic volatility, especially in larger markets<br>
                           Lower CV values indicate more stable traffic patterns<br><br>
                           **Coefficient of Variation in Traffic**")
-caption_text <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+
+# Create caption
+caption_text <- create_social_caption(
+    tt_year = 2024,
+    tt_week = 52,
+    source_text = "WorldPop Hub"
+)
 
 ### |-  fonts ----
-font_add("fa6-brands", here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
-font_add_google("Oswald", regular.wt = 400, family = "title")
-font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
-font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
-font_add_google("Noto Sans", regular.wt = 400, family = "caption")
-showtext_auto(enable = TRUE)
+setup_fonts()
+fonts <- get_font_families()
 
 ### |-  plot theme ----
-theme_set(theme_minimal(base_size = 14, base_family = "text"))
 
-theme_update(
-    plot.title.position   = "plot",
-    plot.caption.position = "plot",
-    plot.background       = element_rect(fill = bkg_col, color = bkg_col),
-    panel.background      = element_rect(fill = bkg_col, color = bkg_col),
-    plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
-    axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.05),
-                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
-    axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.05),
-                                         color = text_col, family = "text", face = "bold", hjust = 0.5),
-    axis.line.x           = element_line(color = "#252525", linewidth = .2),
-    axis.title            = element_text(size = rel(0.93), face = "bold", color = text_col),
-    axis.text             = element_text(size = rel(0.79), color = text_col),
-    panel.grid.major.x    = element_blank(),
-    panel.grid.major.y    = element_line(color = alpha(col_palette[5], 0.2), linewidth = 0.2),
-    panel.grid.minor      = element_blank(),
-    strip.text            = element_textbox(
-        size              = rel(0.9),
-        face              = 'bold',
-        color             = col_palette[3],
-        fill              = alpha(col_palette[1], 0.1),
-        box.color         = alpha(col_palette[1], 0.5),
-        halign            = 0.5,
-        linetype          = 1,
-        r                 = unit(3, "pt"),
-        width             = unit(1, "npc"),
-        padding           = margin(5, 10, 5, 10),
-        margin            = margin(b = 10)
-    ),
-    panel.spacing.x       = unit(2, 'lines'),
-    panel.spacing.y       = unit(1, 'lines'),
-    legend.margin         = margin(-25, 5, 0, 0), # align the legend with the y-axis label
-    legend.justification.top = "right",
-    legend.position       = "top",
-    legend.title          = element_text(size = rel(0.7)),
-    legend.text           = element_text(size = rel(0.6)),
-    
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Weekly-specific modifications
+        axis.line.x           = element_line(color = "#252525", linewidth = .2),
+        
+        panel.spacing.x       = unit(2, 'lines'),
+        panel.spacing.y       = unit(1, 'lines'),
+        panel.grid.major.x    = element_blank(),
+        panel.grid.major.y    = element_line(color = alpha(colors$palette[5], 0.2), linewidth = 0.2),
+        panel.grid.minor      = element_blank(),
+        
+        strip.text            = element_textbox(
+            size              = rel(0.9),
+            face              = 'bold',
+            color             = colors$palette[3],
+            fill              = alpha(colors$palette[1], 0.1),
+            box.color         = alpha(colors$palette[1], 0.5),
+            halign            = 0.5,
+            linetype          = 1,
+            r                 = unit(3, "pt"),
+            width             = unit(1, "npc"),
+            padding           = margin(5, 10, 5, 10),
+            margin            = margin(b = 10)
+        ),
+        
+        legend.margin         = margin(-25, 5, 0, 0), # align the legend with the y-axis label
+        legend.position       = "top",
+        legend.title          = element_text(size = rel(0.7)),
+        legend.text           = element_text(size = rel(0.6)),
+        legend.justification.top = "right",
+    )
 )
+
+# Set theme
+theme_set(weekly_theme)
 ```
 
-
-#### 6. Plot 
+#### 6. Plot
 
 ```{r}
 #| label: plot
@@ -301,11 +280,11 @@ p <- ggplot(volatility_df, aes(x = avg_holidays, y = cv)) +
             size = traffic_size,
             alpha = cv  # Vary transparency by CV
         ),
-        color = col_palette[1]
+        color = colors$palette[1]
     ) +
     # Add trend line
     geom_smooth(
-        color = col_palette[3],
+        color = colors$palette[3],
         method = "loess",
         linewidth = 1,
         se = TRUE
@@ -317,10 +296,10 @@ p <- ggplot(volatility_df, aes(x = avg_holidays, y = cv)) +
             filter(cv == max(cv) | cv == min(cv)),
         aes(label = iso3),
         size = 3,
-        color = col_palette[4],
+        color = colors$palette[4],
         max.overlaps = 2,
         box.padding = 0.5,
-        segment.color = col_palette[5],
+        segment.color = colors$palette[5],
         segment.alpha = 0.5
     ) +
     # Add single annotation for the median line
@@ -387,30 +366,28 @@ p <- ggplot(volatility_df, aes(x = avg_holidays, y = cv)) +
     theme(
         plot.title = element_text(
             size   = rel(2),
-            family = "title",
+            family = fonts$title,
             face   = "bold",
-            color  = title_col,
+            color  = colors$title,
             lineheight = 1.1,
             margin = margin(t = 5, b = 5)
         ),
         plot.subtitle = element_markdown(
             size   = rel(1),
-            family = "subtitle",
-            color  = subtitle_col,
+            family = fonts$subtitle,
+            color  = colors$subtitle,
             lineheight = 1.1,
             margin = margin(t = 5, b = 5)
         ),
         plot.caption = element_markdown(
-            family = "caption",
+            family = fonts$caption,
             size   = rel(0.65),
-            color  = caption_col,
+            color  = colors$caption,
             hjust  = 0.5,
             margin = margin(t = 10)
         )
     )   
 ```
-
-
 
 #### 7. Save
 
@@ -420,11 +397,9 @@ p <- ggplot(volatility_df, aes(x = avg_holidays, y = cv)) +
 
 ### |-  plot image ----  
 
-source(here::here("R/image_utils.R"))
-save_plot(p, type = "tidytuesday", year = 2024, week = 52, width = 10, height = 10)
+save_plot(p, type = "tidytuesday", 
+          year = 2024, week = 52, width = 10, height = 10)
 ```
-
-
 
 #### 8. Session Info
 
@@ -439,13 +414,11 @@ sessionInfo()
 ```
 :::
 
-
-
 #### 9. GitHub Repository
 
 ::: {.callout-tip collapse="true"}
 ##### Expand for GitHub Repo
- 
+
 The complete code for this analysis is available in [`tt_2024_52.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2024/tt_2024_52.qmd).
 
 For the full repository, [click here](https://github.com/poncest/personal-website/).
