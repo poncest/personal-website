@@ -10,7 +10,7 @@ get_social_icons <- function() {
     )
 }
 
-# Create social media caption
+# Create social media caption (tidytuesday)
 create_social_caption <- function(tt_year, tt_week, source_text) {
     icons <- get_social_icons()
     
@@ -19,3 +19,26 @@ create_social_caption <- function(tt_year, tt_week, source_text) {
     
     str_glue("{tt_text} {social_text}")
 }
+
+
+# Create SWD social media caption
+create_swd_caption <- function(year, month, source_text) {
+  # Get icons from existing function
+  icons <- get_social_icons()
+  
+  # Create SWD challenge header
+  swd_text <- str_glue("#SWDchallenge: {month} {year} &bull; Source: {source_text}<br>")
+  
+  # Create social media handles
+  social_text <- str_glue("{icons$linkedin} stevenponce &bull; {icons$bluesky} sponce1 &bull; {icons$github} poncest &bull; #rstats #ggplot2")
+  
+  # Combine texts
+  str_glue("{swd_text} {social_text}")
+}
+
+# # Example usage:
+# caption_text <- create_swd_caption(
+#   year = 2025,
+#   month = "Jan",
+#   source_text = "Source: Scrapped from goodreads & librarthing"
+# )

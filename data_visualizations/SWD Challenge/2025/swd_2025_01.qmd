@@ -4,6 +4,8 @@ subtitle: "How readers experience the novel: A deep dive into emotional response
 description: "A comprehensive analysis of reader reviews for 'One Hundred Years of Solitude', examining emotional patterns, writing complexity, and common themes through data visualization of Goodreads and LibraryThing reviews."
 author: "Steven Ponce"
 date: "2025-01-05"
+date-modified: last-modified
+
 categories: [SWDchallenge, Data Visualization, R Programming]  
 tags: [ggplot2, text-analysis, sentiment-analysis, patchwork, tidytext, web-scraping, book-reviews, literary-analysis, Gabriel-García-Márquez]
 image: "thumbnails/swd_2025_01.png"
@@ -35,6 +37,11 @@ share:
 
 ![Data visualization analyzing reviews of One Hundred Years of Solitude with four plots: (1) Distribution of emotional content by rating category, showing positive emotions dominating higher ratings; (2) Emotional flow through reviews, illustrating a mix of joy, trust, and sadness across the text; (3) Review complexity by rating, indicating longer sentences in positive reviews; (4) Common word pairs in reviews, highlighting frequent terms such as 'family', 'buendía', and 'realism'.](swd_2025_01.png){#fig-1}
 
+
+**Update**: This post has been updated based on feedback from the #SWDchallenge community. The changes include:
+- Fixed the chart legends that were inadvertently left out during one iteration.
+
+
 ### <mark> __Steps to Create this Graphic__ </mark>
 
 #### 1. Load Packages & Setup 
@@ -59,17 +66,11 @@ pacman::p_load(
   patchwork          # The Composer of Plots # The Composer of Plots # The Composer of Plots
 ) 
 
-### |- figure size ---- 
-camcorder::gg_record( 
-  dir    = here::here("temp_plots"), 
-  device = "png",
-  width  = 12,
-  height = 12,
-  units  = "in",
-  dpi    = 320)
-
-### |- resolution ---- 
-showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
 ```
 
 #### 2. Read in the Data 
@@ -132,7 +133,7 @@ combined_reviews_clean <- combined_reviews |>
     language = textcat(text),             # Add detected language as a new column
     word_count = str_count(text, "\\S+")  # Count words in text
     ) |>  
-  filter(language == "english") # Keep only English reviews
+  filter(language == "english")           # Keep only English reviews
 
 
 # Housekeeping
@@ -209,25 +210,11 @@ bigram_graph <- combined_reviews_clean |>
 ```{r}
 #| label: params
 
-### |- plot aesthetics ----
-bkg_col      <- "#f5f5f2"  
-title_col    <- "gray20"           
-subtitle_col <- "gray20"     
-caption_col  <- "gray30"   
-text_col     <- "gray20"    
-col_palette  <-  c(
-    "negative" = "#E69B95", 
-    "neutral" = "#709BB0",  
-    "positive" = "#86B8B1"  
-  )
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c("negative" = "#E69B95", "neutral"  = "#709BB0", "positive" = "#86B8B1"))
 
 ### |-  titles and caption ----
-# icons
-tt <- str_glue("#SWDchallenge: Jan 2025 &bull; Source: Source: Scrapped from goodreads & librarthing<br>")
-li <- str_glue("<span style='font-family:fa6-brands'>&#xf08c;</span>")
-gh <- str_glue("<span style='font-family:fa6-brands'>&#xf09b;</span>")
-bs <- str_glue("<span style='font-family:fa6-brands'>&#xe671; </span>")
-
 title_text   <- str_glue("From Magic to Mixed Feelings: Analyzing 'One Hundred Years of Solitude' Reviews") 
 
 subtitle_text <- str_glue(
@@ -237,38 +224,45 @@ connections across different rating categories",
   "\n\n**Note**: This analysis is based on a small sample of 42 reviews, collected from Goodreads and LibraryThing\n
 as of January 3, 2025.")
 
-caption_text  <- str_glue("{tt} {li} stevenponce &bull; {bs} sponce1 &bull; {gh} poncest &bull; #rstats #ggplot2")
+# Create caption
+caption_text <- create_swd_caption(
+  year = 2025,
+  month = "Jan",
+  source_text = "Source: Scrapped from goodreads & librarthing"
+)
+
 
 # |- fonts ----
-font_add('fa6-brands', here::here('fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf'))
-font_add_google("Oswald", regular.wt = 400, family = "title")
-font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
-font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
-font_add_google("Noto Sans", regular.wt = 400, family = "caption")
-showtext_auto(enable = TRUE) 
+setup_fonts()
+fonts <- get_font_families()
 
 ### |-  plot theme ----
-theme_set(theme_minimal(base_size = 14, base_family = "text"))                
+# Start with base theme
+base_theme <- create_base_theme(colors)
+            
 
-theme_update(
-  plot.title.position   = "plot",
-  plot.caption.position = "plot",
-  legend.position       = "plot",
-  plot.background       = element_rect(fill = bkg_col, color = bkg_col),
-  panel.background      = element_rect(fill = bkg_col, color = bkg_col),
-  plot.margin           = margin(t = 10, r = 20, b = 10, l = 20),
-  axis.title.x          = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
-                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
-  axis.title.y          = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
-                                       color = text_col, family = "text", face = "bold", hjust = 0.5),
-  axis.text             = element_text(size = rel(0.8), color = text_col, family = "text"),
-  axis.line.x           = element_line(color = "#252525", linewidth = .3),
-  axis.ticks.x          = element_line(color = text_col),  
-  axis.title            = element_text(face = "bold"),
-  panel.grid.minor      = element_blank(),
-  panel.grid.major      = element_blank(),
-  panel.grid.major.y    = element_line(color = "grey85", linewidth = .4),
-)  
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+      plot.margin         = margin(t = 10, r = 20, b = 10, l = 20),
+      axis.title.x        = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                         color = colors$text, family = fonts$text, face = "bold", hjust = 0.5),
+      axis.title.y        = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                         color = colors$text, family = fonts$text, face = "bold", hjust = 0.5),
+      axis.text           = element_text(size = rel(0.8), color = colors$text),
+      axis.line.x         = element_line(color = "#252525", linewidth = .3),
+      axis.ticks.x        = element_line(color = colors$text),  
+      axis.title          = element_text(face = "bold"),
+      panel.grid.minor    = element_blank(),
+      panel.grid.major    = element_blank(),
+      panel.grid.major.y  = element_line(color = "grey85", linewidth = .4)
+      )
+)
+      
+
+# Set theme
+theme_set(weekly_theme)
 ```
 
 
@@ -281,15 +275,18 @@ theme_update(
 p1 <- sentiment_flow |>  
   ggplot(aes(x = rating_category, y = prop, fill = theme)) +
   geom_col(position = "fill", alpha = 0.9) +
-  scale_fill_manual(values = col_palette) +
+  scale_fill_manual(values = colors$palette) +
   scale_y_continuous(labels = scales::percent) +
   labs(
     title = "<b>Distribution of Emotional Content by Rating</b>",
-    fill = "Emotional Theme"
+    fill = "Emotional Theme",
+    x = "Rating Category",
+    y = "Proportion of Emotions",
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_markdown(size = 12),
+    plot.title = element_markdown(size = rel(1)),
+    legend.position = "right",
     plot.margin = margin(t = 10, r = 10, b = 20, l = 10)
   )
 
@@ -315,7 +312,7 @@ p2 <- temporal_pattern |>
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_markdown(size = 12),
+   plot.title = element_markdown(size = rel(1)),
     legend.position = "right",
     panel.grid.minor = element_blank(),
     plot.margin = margin(t = 10, r = 10, b = 20, l = 10)
@@ -325,7 +322,7 @@ p2 <- temporal_pattern |>
 p3 <- complexity_analysis |> 
   ggplot(aes(x = words_per_sentence, y = rating_category, fill = rating_category)) +
   stat_gradientinterval(
-    aes(color = rating_category),
+    aes(color = after_scale(fill)), 
     point_size = 1.2,
     alpha = 0.3,
     point_alpha = 0.7
@@ -337,22 +334,16 @@ p3 <- complexity_analysis |>
       "Positive (4-5)" = "#86B8B1"
     )
   ) +
-  scale_color_manual(
-    values = c(
-      "Negative (1-2)" = "#E69B95",
-      "Neutral (3)"    = "#709BB0",
-      "Positive (4-5)" = "#86B8B1"
-    )
-  ) +
   labs(
     title = "<b>Review Complexity by Rating</b>",
     x = "Words per Sentence",
-    y = NULL
+    y = NULL,
+    fill = "Rating Category"
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_markdown(size = 12),
-    legend.position = "none",
+    plot.title = element_markdown(size = rel(1)),
+    legend.position = "right",
     panel.grid.major.y = element_blank(),
     plot.margin = margin(t = 10, r = 10, b = 20, l = 10)
   )
@@ -360,7 +351,7 @@ p3 <- complexity_analysis |>
 # 4. Bigram Network Plot
 p4 <- bigram_graph |> 
   ggplot(aes(x = word1, y = word2)) +
-  geom_point(aes(size = n), color = col_palette["neutral"], alpha = 0.7) +
+  geom_point(aes(size = n), color = colors$palette["neutral"], alpha = 0.7) +
   scale_size_continuous(range = c(2, 6)) +
   labs(
     title = "<b>Common Word Pairs in Reviews</b>",
@@ -368,8 +359,9 @@ p4 <- bigram_graph |>
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_markdown(size = 12),
-    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_markdown(size = rel(1)),
+    legend.position = "right",
+    axis.text.x = element_text(hjust = 1),
     panel.grid = element_line(color = "grey90"),
     plot.margin = margin(t = 10, r = 10, b = 20, l = 10)
   )
@@ -386,27 +378,27 @@ combined_plots <- (p1 + p2) /
         family = "title",
         face = "bold", 
         size = rel(1.7),
-        color = title_col,
+        color = colors$title,
         margin = margin(b = 10)
       ),
       plot.subtitle = element_markdown(
         family = "subtitle",
         size = rel(1.1),
-        color = subtitle_col, 
+        color = colors$subtitle, 
         margin = margin(b = 20),
         lineheight = 1.1
       ),
       plot.caption = element_markdown(
         family = "caption",
         size = 10, 
-        color = caption_col,
+        color = colors$caption,
         margin = margin(t = 20),
         hjust = 0.5,
         lineheight = 1.2
       )
     )
   ) &
-  theme(plot.background = element_rect(fill = bkg_col, color = NA))
+  theme(plot.background = element_rect(fill =colors$background, color = NA))
 ```
 
 #### 7. Save
