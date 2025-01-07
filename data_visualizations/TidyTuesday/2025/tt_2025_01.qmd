@@ -1,0 +1,357 @@
+---
+title: "Aid Worker Security: A Global Analysis of Risks and Incidents"
+subtitle: "Analysis of attack patterns and their impact on humanitarian organizations worldwide"
+description: "Exploring the complexities of humanitarian aid worker security through data visualization. This analysis reveals critical patterns in attack incidents and risk levels across global conflict zones, demonstrating how different humanitarian organizations face varying security challenges. The visualization combines risk score analysis with incident frequency data, offering insights into the disconnect between severity and frequency of security events in different regions"
+author: "Steven Ponce"
+date: "2025-01-07" 
+categories: [TidyTuesday, Data Visualization, R Programming]  
+tags: [tidytuesday, rstats, dataviz, ggplot2, patchwork, humanitarian, security, data-analysis, tidyverse, risk-analysis, aid-workers, conflict-zones, visualization, heatmap, bar-chart, dual-panel]
+image: "thumbnails/tt_2025_01.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2024/tt_2025_01.html"
+  description: "A data visualization exploring global aid worker security patterns, revealing how risk severity and incident frequency vary across regions and humanitarian organizations. #TidyTuesday 2025 Week 1"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![This visualization examines aid worker security from 2017 to 2024. The top section features a dual bar chart comparing the risk scores and number of incidents across 10 countries. The Occupied Palestinian Territories have the highest risk score, while Afghanistan and South Sudan have the most incidents, highlighting differences in the severity versus frequency of attacks. The bottom section displays a heatmap showing attack impacts on different organization types (ICRC, INGO, NNGO, NRCS/IFRC, UN). The heatmap reveals that INGOs are most affected by shootings and kidnappings, while UN organizations experience a broader distribution of attack types. Color intensity indicates the number of aid workers impacted..](tt_2025_01.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    patchwork,      # The Composer of Plots
+    camcorder,      # Record Your Plot History 
+    readxl          # Read Excel Files
+)
+})
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+aid_raw <- read_excel(
+  here::here("data/Aid Worker Incidents.xlsx")) |> 
+    clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(aid_raw)
+skim(aid_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# data plot ---
+# data for both risk score and incidents
+country_analysis <- aid_raw |>
+    group_by(country) |>  
+    mutate(risk_score = total_killed * 3 + total_wounded * 2 + total_kidnapped) |>
+    summarise(
+        avg_risk = mean(risk_score),
+        incidents = n(),
+        total_affected = sum(total_affected),
+        .groups = 'drop'
+    ) |>
+    arrange(desc(incidents)) |>
+    slice_head(n = 10)
+
+# Vulnerability Heatmap
+vulnerability_matrix <- aid_raw |>
+    select(un, ingo, icrc, nrcs_and_ifrc, nngo, means_of_attack) |>
+    pivot_longer(-means_of_attack, 
+                 names_to = "org_type", 
+                 values_to = "count") |>
+    group_by(means_of_attack, org_type) |>
+    summarise(total_affected = sum(count), .groups = 'drop') |>
+    mutate(
+        org_type = case_when(
+            org_type == "un" ~ "UN",
+            org_type == "ingo" ~ "INGO",
+            org_type == "icrc" ~ "ICRC",
+            org_type == "nrcs_and_ifrc" ~ "NRCS/IFRC",
+            org_type == "nngo" ~ "NNGO"
+        ),
+        means_of_attack = str_to_title(means_of_attack)
+    )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c("#f7fbff", "#9ecae1", "#2171b5", "#084594"))
+
+### |-  titles and caption ----
+title_text    <- str_glue("Aid Worker Security: A Global Analysis of Risks and Incidents")
+subtitle_text <- str_glue("Analysis of attack patterns and their impact on humanitarian organizations worldwide")
+
+# Create caption
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 01,
+    source_text = "Aid Worker Security Database via Makeover Monday"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Weekly-specific modifications
+        axis.line.x           = element_line(color = "#252525", linewidth = .2),
+        
+        panel.spacing.x       = unit(2, 'lines'),
+        panel.spacing.y       = unit(1, 'lines'),
+        panel.grid.major.x    = element_blank(),
+        panel.grid.major.y    = element_line(color = alpha(colors[5], 0.2), linewidth = 0.2),
+        panel.grid.minor      = element_blank(),
+    )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+# 1. Risk Score Plot
+p1 <- ggplot(country_analysis, 
+             aes(x = reorder(country, avg_risk), 
+                 y = avg_risk)) +
+    geom_col(fill = colors$palette[4]) +
+    coord_flip() +
+    labs(
+        title = "Risk Score by Country",
+        subtitle = "Risk Score = (Deaths × 3) + (Injuries × 2) + Kidnappings",  
+        x = NULL,
+        y = "Risk Score"
+    ) +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(face = "bold", size = rel(1)),
+        plot.subtitle = element_text(size = 10, color = colors$text),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.y = element_blank()
+    )
+
+# 2. Incidents Count Plot
+p2 <- ggplot(country_analysis, 
+             aes(x = reorder(country, avg_risk), 
+                 y = incidents)) +
+    geom_col(fill = colors$palette[2]) +
+    coord_flip() +
+    labs(
+        title = "Number of Incidents",
+        x = NULL,
+        y = "Number of Incidents"
+    ) +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(face = "bold", size = rel(1)),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()
+    )
+
+# 3. Vulnerability Heatmap
+p3 <- ggplot(vulnerability_matrix, 
+                             aes(x = org_type, 
+                                 y = means_of_attack, 
+                                 fill = total_affected)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    scale_fill_gradientn(
+        colors = colors$palette,
+        na.value = "#f0f0f0",
+        name = "Total\nAffected"
+    ) +
+    labs(
+        title = "Attack Impact by Organization Type and Method",
+        subtitle = "Total number of aid workers affected by each type of attack",
+        x = "Organization Type",
+        y = NULL
+    ) +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(face = "bold", size = 14),
+        plot.subtitle = element_text(size = 12, color = "gray30"),
+        plot.caption = element_text(size = 8, color = "gray50"),
+        panel.grid = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "right"
+    )
+
+# Final combined plot 
+combined_plot <- (p1 + p2) / p3 +
+    plot_layout(heights = c(1,1)) 
+
+combined_plot <- combined_plot +
+    plot_annotation(
+        title    = title_text,
+        subtitle = subtitle_text,
+        caption  = caption_text,
+        theme = theme(
+            plot.title = element_text(
+                family = fonts$title, 
+                size   = rel(1.9), 
+                face   = "bold",
+                color  = colors$title,
+                margin = margin(b = 10)
+            ),
+            plot.subtitle = element_text(
+                family = fonts$text,
+                lineheight = 1.1,
+                size   = rel(1.1),
+                color  = colors$subtitle,
+                margin = margin(b = 15)
+            ),
+            plot.caption = element_markdown(
+                family = fonts$caption,
+                size   = rel(0.65),
+                color  = colors$caption,
+                hjust  = 0.5,
+                margin = margin(t = 5)
+            ),
+            plot.margin = margin(10, 10, 10, 10),
+        )
+    )   
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot_patchwork (combined_plot, type = "tidytuesday", 
+          year = 2025, week = 01, width = 10, height = 12)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_01.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_01.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - Aid Worker Security Database (AWSD): [Search Incidents](https://www.aidworkersecurity.org/incidents/search)
+   - Makeover Monday 2024 Week 46: [Aid Worker Security Incidents](https://data.world/makeovermonday/2024w46-aid-worker-security-incidents)
+
+2. Reports:
+   - Humanitarian Outcomes. (2024). [Aid Worker Security Report: Figures at a Glance 2024](https://humanitarianoutcomes.org/sites/default/files/publications/figures_at_a_glance_2024.pdf)
+   
+ 
+:::
