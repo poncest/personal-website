@@ -1,0 +1,459 @@
+---
+title: "Track Connections at posit::conf (2023-2024)"
+subtitle: "Kamada–Kawai Forced-Directed Network analysis showing how conference tracks are related through shared words in talk titles."
+description: "Exploring the interconnected topics at posit::conf through network analysis. This visualization reveals how different conference tracks are linked through common terminology in talk titles, highlighting the relationships between various R programming and data science themes across 2023-2024 conferences."
+author: "Steven Ponce"
+date: "2025-01-13" 
+categories: [TidyTuesday, Data Visualization, R Programming]  
+tags: [
+    "network-analysis", 
+    "ggraph", 
+    "tidygraph", 
+    "text-analysis", 
+    "conference-data", 
+    "posit-conf", 
+    "R-conference", 
+    "data-visualization",
+    "tidyverse",
+    "data-science"
+]
+image: "thumbnails/tt_2025_02.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2024/tt_2025_02.html"
+  description: "Discover how posit::conf tracks are interconnected! This network visualization reveals the relationships between different conference topics through shared terminology, showcasing the diverse yet interrelated nature of R programming and data science talks at posit::conf 2023-2024."
+
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A Kamada-Kawai network visualization of posit::conf tracks (2023-2024), where tracks are nodes connected by gray edges. Thicker edges indicate more shared words between track titles, and larger blue nodes show tracks with more connections. The network reveals clusters of related topics and central tracks that bridge different conference themes.](tt_2025_02.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    tidytext,       # Text Mining using 'dplyr', 'ggplot2', and Other Tidy Tools 
+    ggraph,         # An Implementation of Grammar of Graphics for Graphs and Networks 
+    igraph,         # Network Analysis and Visualization 
+    tidygraph       # A Tidy API for Graph Manipulation
+    #withr           # Run Code 'With' Temporarily Modified Global State
+)
+
+})
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 02) 
+
+conf2023 <- tt$conf2023 |> clean_names()
+conf2024 <- tt$conf2024 |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(conf2023)
+skim(conf2023)
+
+glimpse(conf2024)
+skim(conf2024)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# Prepare 2023 data
+conf2023_clean <- conf2023 |>
+    select(
+        speaker_name,
+        title = session_title,
+        description = session_abstract,
+        track = block_track_title,
+        session_type,
+        speaker_affiliation,
+        session_date,
+        session_start,
+        session_length
+    ) |>
+    mutate(
+        year = 2023,
+        has_video = FALSE
+    )
+
+# Prepare 2024 data
+conf2024_clean <- conf2024 |>
+    select(
+        speaker_name,
+        title = talk_title,
+        description,
+        track,
+        yt_url
+    ) |>
+    mutate(
+        year = 2024,
+        has_video = TRUE,
+        session_type = case_when(
+            str_to_lower(track) == "keynote" ~ "keynote",
+            TRUE ~ "regular"
+        ),
+        speaker_affiliation = NA_character_,
+        session_date = NA,
+        session_start = NA,
+        session_length = NA
+    )
+
+# Combine datasets
+conf_combined <- bind_rows(conf2023_clean, conf2024_clean) 
+
+### |-  plot data ----
+
+# Create topic similarity network
+title_similarity <- conf_combined |>
+    # Split titles into individual words
+    unnest_tokens(word, title) |>
+    
+    # Remove common stop words (e.g., "the", "and", "in")
+    anti_join(stop_words) |>
+    
+    # Clean up words:
+    # Remove numbers and single-letter words
+    filter(!str_detect(word, "^[0-9]+$"),
+           str_length(word) > 1) |>
+    
+    # Count word occurrences per track
+    count(track, word) |>
+    
+    # Focus on meaningful patterns:
+    group_by(track) |>
+    # Keep words that appear at least twice
+    filter(n >= 2) |>
+    # Take top 8 most frequent words per track
+    slice_max(n, n = 8) |>
+    ungroup()
+
+# Create network edges by finding pairs of tracks that share common words
+edges <- title_similarity |>
+    # Group by each unique word
+    group_by(word) |>
+    
+    # Keep only words that appear in more than one track
+    filter(n() > 1) |>
+    
+    # For each word group, create pairs of tracks that share the word
+    summarize(
+        combinations = list(data.frame(
+            # First track in each pair (taking first row of combinations)
+            X1 = combn(track, 2)[1,],
+            # Second track in each pair (taking second row of combinations) 
+            X2 = combn(track, 2)[2,]
+        ))
+    ) |>
+    
+    # Convert the list of combinations into rows
+    unnest(combinations) |>
+    
+    # Count how many words each pair of tracks have in common
+    # This creates the 'weight' of the connection between tracks
+    count(X1, X2, name = "weight")
+
+# Create network nodes
+nodes <- tibble(
+    name = unique(c(edges$X1, edges$X2)),
+    type = "track"
+)
+
+# Create network graph using tidygraph
+graph <- tbl_graph(
+    nodes = nodes,
+    edges = edges,
+    directed = FALSE
+) |>
+    # Add degree centrality using mutate
+    mutate(
+        degree = centrality_degree()
+    )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c("gray50", "#297ACC"))
+
+### |-  titles and caption ----
+title_text <- str_glue("Track Connections at posit::conf (2023-2024)")
+
+subtitle_text <- str_glue(
+    "__Kamada–Kawai__ Forced-Directed Network analysis showing how conference tracks are related<br>
+    through shared words in talk titles.<br><br>
+    __Node size__ corresponds to __node degree__ (the number of connections to other tracks),<br>
+    __edge thickness__ shows the number of shared words between tracks."
+)
+
+# Create caption
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 02,
+    source_text = "posit::conf attendee portal 2023-2024"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Weekly-specific modifications
+        legend.box = "vertical",          # Stack legends vertically
+        # legend.position = "top",
+        legend.position      = c(0.95, 1.28),    # x=1, y=1 puts it in the upper-right
+        legend.justification = c(1, 1),          # Anchor the legend’s top-right corner
+        legend.box.margin  = margin(b = 15),
+        legend.spacing     = unit(0.2, "cm"),
+        legend.box.spacing = unit(0.2, "cm"),
+        legend.key.size    = unit(0.8, "lines"),
+        legend.text        = element_text(size = 9),
+        legend.title       = element_text(size = 10, face = "bold"),
+        panel.grid.major   = element_blank(),
+        panel.grid.minor   = element_blank()
+    )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+
+# Set seed for reproducibility
+set.seed(123)  
+
+# Create layout using tidygraph functions
+graph_laid_out <- graph |>
+    activate(nodes) |>
+    create_layout(layout = "kk")
+
+# ggraph call
+p <- ggraph(graph_laid_out) +
+    # Geom
+    geom_edge_link(
+        aes(edge_alpha = weight, 
+            edge_width = weight),
+        edge_color = colors$palette[1],
+        show.legend = TRUE,
+        edge_linetype = "solid",
+        alpha = 0.5,    
+        lineend = "round"
+    ) +
+    geom_node_point(
+        aes(size = degree),
+        color = colors$palette[2],
+        alpha = 0.8
+    ) +
+    geom_node_label(
+        aes(label = str_wrap(name, 20)),
+        repel        = TRUE,
+        fill = alpha("white", 0.8),  
+        label.size   = 0,     # remove border
+        label.padding = unit(0.15, "lines"),
+        size         = 3.0,
+        family       = fonts$text,
+        fontface     = "bold",
+        color        = colors$text,
+        # Additional ggrepel arguments:
+        box.padding  = 0.4,        # Increase if labels overlap too much
+        point.padding = 0.3,       # Space between node and label
+        force        = 1.0,        # Higher = stronger repel
+        force_pull   = 0.1,        # Pull label toward or away from point
+        max.overlaps = Inf
+    ) +
+    # Scales
+    scale_edge_width(range = c(0.5, 2.5)) +
+    scale_size(range = c(3, 8)) +
+    scale_edge_alpha(range = c(0.2, 0.8)) +
+    
+    # Labs
+    labs(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text,
+        edge_alpha = "Shared Words",   
+        edge_width = "Connection Strength",   
+        size = "Node Degree" 
+    ) +
+    # Combine similar legends
+    guides(
+        edge_alpha = guide_legend(
+            title = "Connection Strength",
+            override.aes = list(alpha = 0.6)
+        ),
+        edge_width = "none",  # Hide duplicate legend
+        size = guide_legend(
+            title = "Node Degree",
+            override.aes = list(alpha = 0.8)
+        ) 
+    ) +
+    # Theme
+    theme(
+        plot.title = element_text(
+            size   = rel(2.6),
+            family = fonts$title,
+            face   = "bold",
+            color  = colors$title,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_markdown(
+            size   = rel(1.1),
+            family = fonts$subtitle,
+            color  = colors$subtitle,
+            lineheight = 1.2,
+            margin = margin(t = 5, b = 15)
+        ),
+        plot.caption = element_markdown(
+            size   = rel(0.65),
+            family = fonts$caption,
+            color  = colors$caption,
+            hjust  = 0.5,
+            margin = margin(t = 10)
+        )
+    )  
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot (p, type = "tidytuesday", 
+          year = 2025, week = 02, width = 14, height = 10)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_02.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_02.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - TidyTuesday 2025 Week 02: [posit::conf talks](https://github.com/rfordatascience/tidytuesday/tree/main/data/2025/2025-01-14)
+
+
+ 
+:::
