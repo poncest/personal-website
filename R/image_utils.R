@@ -5,7 +5,8 @@ save_plot <- function(plot,
                       week = NULL,
                       month = NULL,
                       date = NULL,
-                      name = NULL, 
+                      name = NULL,
+                      exercise = NULL,    # New parameter
                       height = 8, 
                       width = 10) {
   
@@ -23,7 +24,11 @@ save_plot <- function(plot,
   file_name <- switch(
     type,
     tidytuesday = sprintf("tt_%d_%02d.png", year, week),
-    swd = sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m"))),
+    swd = if (!is.null(exercise)) {
+      sprintf("swd_%d_%02d-Ex_%04d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")), exercise)
+    } else {
+      sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")))
+    },
     standalone = if (!is.null(name)) {
       paste0(name, ".png")
     } else {
@@ -70,6 +75,10 @@ save_plot <- function(plot,
   invisible(list(main = main_file, thumbnail = thumb_file))
 }
 
+# Helper function for NULL coalescing
+`%||%` <- function(x, y) if (is.null(x)) y else x
+
+
 # Saving more complex images (when using patchwork)
 save_plot_patchwork <- function(plot, 
                                 type = c("tidytuesday", "swd", "standalone"),
@@ -77,7 +86,8 @@ save_plot_patchwork <- function(plot,
                                 week = NULL,
                                 month = NULL,
                                 date = NULL,
-                                name = NULL, 
+                                name = NULL,
+                                exercise = NULL,    # New parameter
                                 height = 10, 
                                 width = 16) {
   
@@ -103,7 +113,11 @@ save_plot_patchwork <- function(plot,
   file_name <- switch(
     type,
     tidytuesday = sprintf("tt_%d_%02d.png", year, week),
-    swd = sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m"))),
+    swd = if (!is.null(exercise)) {
+      sprintf("swd_%d_%02d-Ex_%04d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")), exercise)
+    } else {
+      sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")))
+    },
     standalone = if (!is.null(name)) {
       paste0(name, ".png")
     } else {
@@ -144,7 +158,7 @@ save_plot_patchwork <- function(plot,
   
   # Font setup
   windowsFonts(Arial = windowsFont("Arial"))
-  sysfonts::font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+  sysfonts::font_add("fa6-brands", here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
   showtext::showtext_begin()
   showtext::showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
   

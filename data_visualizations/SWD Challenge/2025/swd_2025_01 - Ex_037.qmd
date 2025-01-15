@@ -1,0 +1,296 @@
+---
+title: "Energy Drink Brand Comparison: Activity Support Drives High Scores"
+subtitle: "'Supports an active day' ranks highest across all brands, while health claims show largest variation."
+description: "A comparative analysis of three energy drink brands focusing on consumer attributes. The visualization highlights key performance metrics, showcasing how brands excel in activity support while revealing significant variations in health-related claims. Part of the #SWDchallenge exploring effective use of alignment and white space in data visualization."
+author: "Steven Ponce"
+date: "2025-01-15"
+date-modified: last-modified
+categories: [
+  "Data Visualization",
+  "SWD Challenge",
+  "R",
+  "ggplot2",
+  "Brand Analysis",
+  "Consumer Research",
+  "Market Analysis"
+]
+image: "thumbnails/swd_2025_01 - Ex_0037.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                          
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/SWD Challenge/2025/swd_2025_01 - Ex_037.html" 
+  description: "Analysis comparing energy drink brands' consumer ratings across key attributes, revealing strong performance in activity support but varying health perceptions. #SWDchallenge"
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+
+### Original
+
+The goal of this month's Storytelling with Data exercise is to use space and alignment effectively.
+
+![Original chart](https://swd-community-media.s3.amazonaws.com/media/Screenshot_2025-01-15_at_09.16.11.png){#fig-1}
+
+
+Additional information can be found [HERE](https://community.storytellingwithdata.com/exercises/use-space-and-alignment-effectively)
+
+
+**Makeover**
+![A connected dot plot comparing consumer ratings of three energy drink brands (Lime Rush, Neon Pulse, and Storm Fuel) across 10 attributes. The visualization shows 'Supports an active day' scoring highest (~95%) across all brands, while 'Healthy energy source' shows the largest variation between brands, with Lime Rush scoring significantly lower (4%) than its competitors.](swd_2025_01-Ex_0037.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  scales,            # Scale Functions for Visualization
+  glue,              # Interpreted String Literals
+  here,              # A Simpler Way to Find Your Files
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  camcorder          # Record Your Plot History
+) 
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+
+raw_data <- read_csv(
+  here::here("data/lets_practice_exercise_037.csv")) |> clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(raw_data )
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+tidy_energy_drinks <- raw_data |>
+  pivot_longer(
+    cols = c(storm_fuel, neon_pulse, lime_rush),
+    names_to = "brand",
+    values_to = "score"
+  ) |>
+  mutate(
+    brand = str_to_title(str_replace(brand, "_", " ")),
+    # Reorder consumer likeability for more logical presentation
+    consumer_likeability = factor(consumer_likeability,
+      levels = c(
+        "Won't buy", "Definitely buy", "Might buy",
+        "Bold and exciting name", "Refreshing options",
+        "Reliable energy boost", "Eye-catching design",
+        "Reasonably priced", "Healthy energy source",
+        "Supports an active day"
+      )
+    )
+  )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c("#2c3e50", "#e74c3c", "#3498db"))
+
+### |-  titles and caption ----
+title_text   <- str_glue("Energy Drink Brand Comparison: Activity Support Drives High Scores") 
+
+subtitle_text <- str_glue("'Supports an active day' ranks highest across all brands, while health claims show largest variation")
+
+# Create caption
+caption_text <- create_swd_caption(
+  year = 2025,
+  month = "Jan",
+  source_text = "Let's Practice! Exercise 3.7"
+)
+
+
+# |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+            
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+      legend.position     = "top",
+      plot.margin         = margin(t = 10, r = 20, b = 10, l = 20),
+      axis.title.x        = element_text(margin = margin(10, 0, 0, 0), size = rel(1.1), 
+                                         color = colors$text, family = fonts$text, face = "bold", hjust = 0.5),
+      axis.title.y        = element_text(margin = margin(0, 10, 0, 0), size = rel(1.1), 
+                                         color = colors$text, family = fonts$text, face = "bold", hjust = 0.5),
+      axis.text           = element_text(size = rel(0.9), color = colors$text),
+      axis.line.x         = element_line(color = "#252525", linewidth = .3),
+      axis.ticks.x        = element_line(color = colors$text),  
+      axis.title          = element_text(face = "bold"),
+      panel.grid.minor    = element_blank(),
+      panel.grid.major    = element_blank(),
+      panel.grid.major.y  = element_line(color = "grey85", linewidth = .4)
+      )
+)
+      
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+p <- ggplot(
+  data = tidy_energy_drinks,
+  aes(x = score, y = consumer_likeability, group = consumer_likeability, color = brand)
+  ) +
+  
+  # Geoms
+  geom_line(color = "gray85", linewidth = 0.8) +
+  geom_point(size = 3.5) +
+
+  # Scales
+  scale_x_continuous(
+    limits = c(0, 100),
+    breaks = seq(0, 100, by = 20)
+  ) +
+  scale_y_discrete() +
+  scale_color_manual(values = colors$palette) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    x = "Score",
+    y = NULL,
+    color = "Brand: ",
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+  ) + 
+  
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(1.7),
+      family = "title",
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(1.05),
+      family = "subtitle",
+      color = colors$subtitle,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.65),
+      family = "caption",
+      color = colors$caption,
+      lineheight = 1.1,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 15, b = 5)
+    )
+  ) 
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+
+source(here::here("R/image_utils.R"))
+save_plot(p, type = 'swd', year = 2025, month = 01, exercise = 37, 
+                    width = 10, height = 10)
+
+```
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+#### 9. GitHub Repository
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+The complete code for this analysis is available in [`swd_2025_01 - Ex_037.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2025/01_Jan/swd_2025_01 - Ex_037.qmd).
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+ 
+1. Data Sources:
+   - Storytelling with Data Excercise | use space and alignment effectively: [Download the data](https://community.storytellingwithdata.com/exercises/use-space-and-alignment-effectively)
+
+
+:::
