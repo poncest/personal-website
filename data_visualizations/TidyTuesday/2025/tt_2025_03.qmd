@@ -240,7 +240,7 @@ colors <- get_theme_colors(palette = c(
 ### |-  titles and caption ----
 title_text <- str_glue("The Paradox of Himalayan Climbing Expeditions")
 
-subtitle_text <- str_glue("While __larger teams__ achieve __higher success rates__, they also face __increased risks__.<br><br>
+subtitle_text <- str_glue("While larger teams achieve higher success rates, they also face increased risks.\n
                           Analysis of climbing patterns, team dynamics, and safety implications from 1925 to 2024")
 
 # Create caption
@@ -574,11 +574,11 @@ combined_plot <- combined_plot +
                 lineheight = 1.1,
                 margin = margin(t = 5, b = 5)
             ),
-            plot.subtitle = element_markdown(
-                size   = rel(1.2),
+            plot.subtitle = element_text(
+                size   = rel(1.1),
                 family = fonts$subtitle,
                 color  = colors$subtitle,
-                lineheight = 1.2,
+                lineheight = 1.1,
                 margin = margin(t = 5, b = 15)
             ),
             plot.caption = element_markdown(

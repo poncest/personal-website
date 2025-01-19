@@ -144,7 +144,7 @@ save_plot_patchwork <- function(plot,
   
   # Font setup
   windowsFonts(Arial = windowsFont("Arial"))
-  sysfonts::font_add("fa6-brands", here::here("fonts/6.4.2/Font Awesome 6 Brands-Regular-400.otf"))
+  sysfonts::font_add("fa6-brands", here::here("fonts/6.6.0/Font Awesome 6 Brands-Regular-400.otf"))
   showtext::showtext_begin()
   showtext::showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
   
