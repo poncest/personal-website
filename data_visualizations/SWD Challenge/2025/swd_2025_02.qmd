@@ -1,0 +1,394 @@
+---
+title: "Five Major U.S. Fresh Vegetable Crops (2000-2022)"
+subtitle: "A streamgraph showing harvested acres across different vegetables"
+description: "An exploration of USDA agricultural data using streamgraphs to visualize production trends across five major vegetable crops, highlighting the dominance of sweet corn and tomatoes in U.S. fresh market production from 2000 to 2022."
+author: "Steven Ponce"
+date: "2025-02-01"
+date-modified: last-modified
+categories: ["SWDchallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "streamgraph",
+  "agricultural data",
+  "USDA statistics",
+  "ggplot2",
+  "data storytelling",
+  "vegetable production",
+  "time series",
+  "area charts",
+  "crop analysis",
+  "tidyverse"
+]
+image: "thumbnails/swd_2025_02.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                          
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/SWD Challenge/2025/swd_2025_02.html" 
+  description: "Discover how U.S. fresh vegetable production evolved over two decades through an innovative streamgraph visualization, revealing significant growth in sweet corn and tomato cultivation after 2010."
+  linkedin: true
+  twitter: true
+  email: true
+---
+
+![A streamgraph visualization showing harvested acres of five major U.S. fresh vegetable crops from 2000 to 2022. The graph reveals layers of production with Sweet Corn and Tomatoes dominating at over 60K acres each by 2020. Smaller production areas are shown for Squash, Spinach, and Potatoes. The visualization uses color-coding and connecting lines with dots to identify each vegetable type. An upward trend in overall production is notable after 2010.](swd_2025_02.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  scales,            # Scale Functions for Visualization
+  glue,              # Interpreted String Literals
+  here,              # A Simpler Way to Find Your Files
+  janitor,           # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,             # Compact and Flexible Summaries of Data
+  camcorder,         # Record Your Plot History
+  ggstream           # Create Streamplots in 'ggplot2'
+) 
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+
+vegatables_raw <- read_csv(
+  here::here("data/NASS - 52F3230D-BDBF-3D09-902C-7125CCE63C9F.csv")
+  ) |> 
+  clean_names() 
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(vegatables_raw)
+skim(vegatables_raw)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+vegatables_clean <- vegatables_raw |>
+  # Select only the relevant columns 
+  select(year, commodity, value) |>
+  # Handle special codes 
+  filter(
+    value != "(D)",  # Withheld to avoid disclosing data
+    value != "(Z)",  # Less than half unit
+    value != "(S)",  # Insufficient reports
+    value != "(NA)", # Not available
+    value != "(X)"   # Not applicable
+  ) |>
+  mutate(
+    value = as.numeric(value),
+    # Format commodity names
+    commodity = case_when(
+      commodity == "SWEET CORN" ~ "Sweet Corn",
+      commodity == "POTATOES" ~ "Potatoes",
+      commodity == "TOMATOES" ~ "Tomatoes",
+      TRUE ~ str_to_title(commodity)
+    )
+  ) |>
+  # Remove any remaining NA values 
+  filter(!is.na(value)) |>
+  # Group and summarize
+  group_by(year, commodity) |>
+  summarise(total_acres = sum(value, na.rm = TRUE), .groups = 'drop') |> 
+  ungroup()
+
+
+# Tibble for manual label positions
+label_positions <- tibble(
+  commodity = c("Potatoes", "Spinach", "Squash", "Sweet Corn", "Tomatoes"),
+  # X positions for vertical alignment
+  x_position = c(2002, 2005, 2008, 2011, 2013),
+  # Label positions - extending beyond the streams
+  y_position = c(25000, 35000, 45000, 60000, -60000),  
+  # Stream connection points - where the lines should touch the streams
+  y_start = c(19000, 10000, 8000, 8000, -30000)    
+)
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "Potatoes"   = "#C4A484",   
+  "Spinach"    = "#165B33",     
+  "Squash"     = "#FFB01F",      
+  "Sweet Corn" = "#F7E03D",   
+  "Tomatoes"   = "#E41B17"    
+  )
+)
+
+### |-  titles and caption ----
+title_text   <- str_glue("Five Major U.S. Fresh Vegetable Crops (2000-2022)") 
+subtitle_text <- str_glue("A streamgraph showing harvested acres across different vegetables")
+
+# Create caption
+caption_text <- create_swd_caption(
+    year = 2025,
+    month = "Feb",
+    source_text = "Data Source: USDA Agricultural Statistics Service"
+  )
+
+
+# |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis formatting
+    axis.title   = element_text(color = colors$text, face = "bold", size = rel(0.72)),
+    axis.text    = element_text(color = colors$text, size = rel(0.9)),
+    axis.line.x  = element_line(color = "#252525", linewidth = .3),
+    axis.ticks.x = element_line(color = colors$text),  
+
+    # Grid customization
+    panel.grid.minor   = element_blank(),
+    panel.grid.major   = element_blank(),
+    panel.grid.major.y = element_line(color = "grey85", linewidth = .4),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+    
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+p <- ggplot(vegatables_clean, 
+       aes(x = year, 
+           y = total_acres, 
+           fill = commodity, 
+           group = commodity)) +
+  geom_stream(
+    type = "mirror",
+    bw = 0.85,
+    extra_span = 0.2
+  ) +
+  # Add vertical connecting lines
+  geom_segment(
+    data = label_positions,
+    aes(
+      x = x_position,
+      y = y_start,
+      xend = x_position,
+      yend = y_position
+    ),
+    color = colors$text,
+    linewidth = 0.3,
+    linetype = "solid"
+  ) +
+  # Add points at stream intersections
+  geom_point(
+    data = label_positions,
+    aes(
+      x = x_position,
+      y = y_start
+    ),
+    color = colors$text,
+    size = 1.5
+  ) +
+  # Add labels
+  geom_text(
+    data = label_positions,
+    aes(
+      x = x_position,
+      y = y_position,
+      label = commodity
+    ),
+    size = 4.5,
+    fontface = "bold",
+    color = colors$text,
+    vjust = ifelse(label_positions$y_position < 0, 1.2, -0.2)  
+  ) +
+  # Add trend annotation
+  annotate(
+    "text", 
+    x = 1999, 
+    y = -53000, 
+    label = str_glue("Overall vegetable production grew\n
+                     significantly after 2010,dominated\n
+                     by sweet corn and tomatoes with\n
+                     over 60K acres each"),
+    lineheight = 0.55,
+    size = 4,
+    fontface = "italic",
+    hjust = 0
+  ) +
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  scale_x_continuous(
+    breaks = seq(2000, 2025, 5),
+    expand = c(0.02, 0)
+  ) +
+  scale_y_continuous(
+    labels = scales::label_number(scale = 1/1000, suffix = "K"),
+    expand = c(0.02, 0),
+    position = "right",
+    sec.axis = dup_axis(  # Add secondary axis for better title placement
+      name = NULL,
+      labels = NULL
+    )
+  ) +
+  # Labs
+  labs(
+    x = "Year",
+    y = NULL,
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+  ) +
+  # Add custom y-axis title using annotate
+  annotate(
+    "text",
+    x = 1998,  
+    y = 0,     
+    label = "Acres Harvested\n(Thousands)",
+    angle = 90,
+    fontface = "bold", 
+    size = 3.5,
+    vjust = 0.5,
+    hjust = 0.5,
+    color = "gray30"
+  ) + 
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.7),
+      family = fonts$title,
+      face   = "bold",
+      color  = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color  = colors$subtitle,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.65),
+      family = fonts$caption,
+      color  = colors$caption,
+      lineheight = 1.1,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 15, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+
+source(here::here("R/image_utils.R"))
+save_plot(
+  p, type = 'swd', year = 2025, month = 02, 
+  width = 8, height = 8
+  )
+
+```
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+#### 9. GitHub Repository
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+The complete code for this analysis is available in [`swd_2025_02.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2025/02_Feb/swd_2025_02.qmd).
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+ 
+Data Sources:
+
+- USDA National Agricultural Statistics Service: [`USDA National Agricultural Statistics Service`](https://www.nass.usda.gov/Data_and_Statistics/)
+
+- USDA National Agricultural Statistics Service (Quick Stats): [`USDA National Agricultural Statistics Service (Quick Stats`](https://quickstats.nass.usda.gov/results/3A29A7C1-6D8D-347A-908F-89E54126430F)
+
+:::
