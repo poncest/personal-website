@@ -100,10 +100,10 @@ save_plot_patchwork <- function(plot,
   
   # Base paths setup
   base_paths <- list(
-    tidytuesday = here::here("data_visualizations/TidyTuesday", year),
-    swd = here::here("data_visualizations/SWD Challenge", year),
+    tidytuesday = here::here("data_visualizations/TidyTuesday", as.character(year)),  # Ensure year is character
+    swd = here::here("data_visualizations/SWD Challenge", as.character(year)),
     standalone = here::here("projects/standalone_visualizations"),
-    makeovermonday = here::here("data_visualizations/MakeoverMonday", year),
+    makeovermonday = here::here("data_visualizations/MakeoverMonday", as.character(year))
   )
   
   # Input validation
