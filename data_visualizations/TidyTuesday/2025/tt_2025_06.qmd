@@ -1,0 +1,480 @@
+---
+title: "CDC Dataset Purge: A Timeline of Public Health Data Removal"
+subtitle: "Analysis of CDC datasets backed up on archive.org during the Trump administration's data purge"
+description: "A data visualization analysis exploring CDC dataset archival patterns from 2016 to 2025. The analysis reveals changing accessibility patterns and a significant increase in archival activity beginning in 2020, with a focus on public health data preservation."
+author: "Steven Ponce"
+date: "2025-02-02" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+    "CDC",
+   "public health",
+   "data accessibility",
+   "data preservation",
+   "archive.org",
+   "ggplot2",
+   "time series",
+   "data analysis",
+   "health data",
+   "data visualization",
+   "R",
+   "tidyverse"
+]
+image: "thumbnails/tt_2025_06.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_06.html"
+  description: "Exploring patterns in CDC dataset archival activity: A visual analysis of public health data accessibility and preservation efforts from 2016-2025. #TidyTuesday #rstats #DataViz"
+
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A two-panel visualization of CDC dataset archival patterns. Top panel: Bar chart showing distribution of 1,257 datasets by access level - majority are either Unspecified (51.5%) or Public Access (47.9%). Bottom panel: Area chart showing cumulative growth of archived datasets from 2016 to 2025, with a notable increase in archival activity starting 2020, marked by a vertical dashed line.](tt_2025_06.png){#fig-1}
+
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    patchwork,      # The Composer of Plots
+    camcorder       # Record Your Plot History 
+    )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 06) 
+
+cdc <- tt$cdc_datasets |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(cdc)
+skim(cdc)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# P1. Distribution plot  
+distribution <- cdc |>
+  mutate(
+    access_category = case_when(
+      public_access_level %in% c("public", "public domain") ~ "Public Access",
+      public_access_level == "restricted public" ~ "Restricted Access",
+      public_access_level == "non-public" ~ "No Public Access",
+      TRUE ~ "Unspecified"
+    )
+  ) |>
+  count(access_category) |>
+  mutate(
+    pct = n / sum(n) * 100,
+    label = sprintf("%.1f%%\n(n=%d)", pct, n),
+    # Conditional hjust and color based on count
+    hjust = ifelse(n > 200, 1.2, -0.2),
+    label_color = ifelse(n > 200, "white", "gray30")
+  )
+
+# P2. Timeline plot
+timeline_data <- cdc |>
+  mutate(
+    access_category = case_when(
+      public_access_level %in% c("public", "public domain") ~ "Public Access",
+      public_access_level == "restricted public" ~ "Restricted Access",
+      public_access_level == "non-public" ~ "No Public Access",
+      TRUE ~ "Unspecified"
+    ),
+    issued = as.Date(issued)
+  ) |>
+  filter(!is.na(issued)) |>
+  arrange(issued) |>
+  group_by(access_category) |>
+  mutate(cumulative = row_number()) |>
+  ungroup()
+
+# Find the inflection point around 2020
+inflection_date <- as.Date("2020-04-01")
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(
+    palette = c(
+        "Public Access"     = "#3498DB",      
+        "Restricted Access" = "#E67E22",   
+        "No Public Access"  = "#C0392B",    
+        "Unspecified"       = "#7F8C8D" 
+    )
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("CDC Dataset Purge: A Timeline of Public Health Data Removal")
+subtitle_text <- str_glue("Analysis of CDC datasets backed up on archive.org during the Trump administration's data purge")
+
+# Create caption
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 06,
+    source_text = "archive.org/details/20250128-cdc-datasets"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Axis elements
+        axis.title = element_text(color = colors$text, size = rel(0.8)),
+        axis.text = element_text(color = colors$text, size = rel(0.7)),
+        
+        # Grid elements
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(color = "grey80", linewidth = 0.1),
+        
+        # Legend elements
+        legend.position = "right",
+        legend.title = element_text(family = fonts$text, size = rel(0.8)),
+        legend.text = element_text(family = fonts$text, size = rel(0.7)),
+        
+        # Plot margins 
+        plot.margin = margin(t = 10, r = 10, b = 10, l = 10),
+
+    )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot 
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+
+# P1. Distribution plot 
+p1 <- ggplot(distribution,
+             aes(x = reorder(access_category, n), 
+                 y = n, 
+                 fill = access_category)
+) +
+    
+    # Geoms
+    geom_col() +
+    geom_text(
+        aes(label = label,
+            hjust = hjust,
+            color = label_color),
+        size = 3.5,
+        fontface = "bold",
+        family = fonts$text
+    ) +
+    coord_flip() +
+    
+    # Scales
+    scale_fill_manual(values = colors$palette) +
+    scale_color_identity() +  
+    scale_x_discrete() +
+    scale_y_continuous(
+        expand = expansion(mult = c(0, 0.25)) 
+    ) +
+    
+    # Labs
+    labs(
+        title = "Distribution of Dataset Access Levels",
+        x = NULL,
+        y = "Number of Datasets"
+    ) +
+    
+    # Theme
+    theme(
+        legend.position = "none",
+        panel.grid.major.y = element_blank(),
+        
+        plot.title = element_text(
+            size   = rel(1.3),
+            family = fonts$title,
+            face   = "bold",
+            color  = colors$title,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        )
+    )
+
+# P2. Timeline plot with enhancements
+p2 <- ggplot(timeline_data,
+             aes(x = issued, 
+                 y = cumulative, 
+                 fill = access_category)
+) +
+    # Rectangle
+    annotate(
+        "rect",
+        xmin = inflection_date,
+        xmax = max(timeline_data$issued),
+        ymin = 0,
+        ymax = max(timeline_data$cumulative),
+        fill = "gray85",
+        alpha = 0.3
+    ) +
+    
+    # Geoms
+    geom_area(alpha = 0.8) +
+    geom_line(color = "white", linewidth = 0.5) +
+    geom_vline(
+        xintercept = inflection_date, 
+        linetype = "dashed", 
+        color = colors$caption,
+        alpha = 0.7
+    ) +
+    # Note
+    annotate(
+        "text", 
+        x = inflection_date,
+        y = max(timeline_data$cumulative) * 0.9,
+        label = "Notable increase in\narchival activity",
+        hjust = -0.1,
+        size = 3.5,
+        color = colors$caption,
+        family = fonts$caption
+    ) +
+    
+    # Scales
+    scale_fill_manual(values = colors$palette) +
+    scale_x_date(
+        date_breaks = "1 year",
+        date_labels = "%Y",
+    ) +
+    scale_y_continuous(
+        expand = expansion(mult = c(0, 0.1)),
+        breaks = function(x) seq(0, max(x), by = 50)
+    ) +
+    
+    # Labs
+    labs(
+        title = "Cumulative Growth of Archived Datasets",
+        subtitle = sprintf("Note: Only %d out of %d datasets (%.1f%%) have valid dates",
+                           sum(!is.na(cdc$issued)),
+                           nrow(cdc),
+                           100 * sum(!is.na(cdc$issued)) / nrow(cdc)),
+        x = "Year",
+        y = "Number of Datasets"
+    ) +
+    
+    # Theme
+    theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        legend.spacing.x = unit(0.2, "cm"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank(),
+        
+        plot.title = element_text(
+            size = rel(1.3),
+            family = fonts$title,
+            face = "bold",
+            color = colors$title,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(0.9),
+            family = fonts$caption,
+            color = colors$caption,
+            margin = margin(b = 10)
+        ),
+        axis.title = element_text(
+            size = rel(0.9),
+            family = fonts$caption,
+            color = colors$caption
+        ),
+    )
+
+# Combine plots 
+combined_plot <- (p1 / p2) +
+    plot_layout(heights = c(0.8, 1.2)) 
+
+combined_plot <- combined_plot +
+    plot_annotation(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text, 
+        theme = theme(
+            plot.title = element_text(
+                size   = rel(1.75),
+                family = fonts$title,
+                face   = "bold",
+                color  = colors$title,
+                lineheight = 1.1,
+                margin = margin(t = 5, b = 5)
+            ),   
+            plot.subtitle = element_text(
+                size   = rel(0.9),
+                family = fonts$subtitle,
+                color  = colors$subtitle,
+                lineheight = 1.2,
+                margin = margin(t = 5, b = 5)
+            ), 
+            plot.caption = element_markdown(
+                size   = rel(0.6),
+                family = fonts$caption,
+                color  = colors$caption,
+                hjust  = 0.5,
+                margin = margin(t = 10)
+            ),
+            plot.margin = margin(t = 20, r = 10, b = 20, l = 10),
+        )
+    )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 6, 
+  width = 10,
+  height = 10
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_06.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_06.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - TidyTuesday 2025 Week 06: [CDC Datasets](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-02-11)
+
+:::
