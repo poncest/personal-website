@@ -3,7 +3,7 @@ title: "RWFD Supply Chain Analytics Dashboard"
 subtitle: "Interactive visualization of manufacturing logistics metrics, focusing on cost analysis and warehouse utilization"
 description: "An interactive R Shiny dashboard that transforms complex supply chain data into actionable insights. Features real-time KPIs, cost analysis, and warehouse performance metrics with dynamic filtering and visualizations."  
 author: "Steven Ponce"
-date: "2024-02-16"
+date: "2025-02-16"
 categories: ["R Programming", "Shiny", "Supply Chain", "2025"]
 tags: [
   "r-shiny",
@@ -72,34 +72,38 @@ knitr::opts_chunk$set(
 )
 ```
 
-![RWFD Supply Chain Dashboard: An interactive Shiny application featuring logistics KPIs, cost analysis, and warehouse performance metrics. The dashboard providesinsights into shipping costs, warehouse utilization, and service level performance.](sa_2025-02-16.png){#fig-1}
+![RWFD Supply Chain Dashboard: An interactive Shiny application featuring logistics KPIs, cost analysis, and warehouse performance metrics. The dashboard provides insights into shipping costs, warehouse utilization, and service level performance.](sa_2025-02-16.png){#fig-1}
 
 ### <mark> __Overview__ </mark>  
 
-#### 1. __Overview__
+#### 1. Overview
 
 The RWFD Supply Chain Dashboard is an interactive R Shiny application designed to analyze and visualize manufacturing logistics data. The dashboard focuses on two main areas:
 
 a. **Overview Dashboard**
+
    - Real-time tracking of total shipping costs
    - Average cost per KG analysis
    - Warehouse utilization monitoring
    - On-time delivery performance metrics
 
 b. **Cost Analysis Dashboard**
+
    - Detailed cost breakdown by location
    - Unit cost analysis with efficiency quadrants
    - Performance matrix for warehouse comparison
 
-#### 2.  __Key Features__ 
+#### 2. Key Features 
 
 a. **Interactive Elements**
+
    - Dynamic filtering by warehouse location
    - Carrier-specific analysis
    - Service level breakdowns
    - Real-time metric updates
 
 b. **Visualizations**
+
    - Interactive route cost analysis
    - Storage cost comparisons
    - Transport mode breakdowns
@@ -107,11 +111,12 @@ b. **Visualizations**
    - Efficiency matrix heatmap
 
 c. **Data Downloads**
+
    - CSV exports for all visualizations
    - Customizable data filtering
    - Comprehensive metrics export
 
-#### 3. __Technical Implementation__ 
+#### 3. Technical Implementation
 
 The dashboard is built using:
 
@@ -122,7 +127,7 @@ The dashboard is built using:
 - **DT**: Data tables
 - Additional packages: scales, glue, janitor
 
-#### 4. __Project Structure__ 
+#### 4. Project Structure
 
 ```
 ├── app.R              # Main application
@@ -134,21 +139,24 @@ The dashboard is built using:
     └── utils/         # Helper functions
 ```
 
-#### 5. __Data Sources__ 
+#### 5. Data Sources
 
 The application processes four key datasets:
 
 a. **Order List**: Transaction data
+
    - Shipping details
    - Order metrics
    - Service levels
 
 b. **Freight Rates**: Pricing data
+
    - Carrier rates
    - Route costs
    - Service options
 
 c. **Warehouse Data**: Facility metrics
+
    - Storage costs
    - Utilization rates
    - Capacity limits
@@ -159,7 +167,7 @@ c. **Warehouse Capacities**: Infrastructure data
    - Regional information
    - Facility type and status
 
-#### 6. __Project Links__ 
+#### 6. Project Links
 
 - **Live Dashboard**: [RWFD Supply Chain Dashboard](https://0l6jpd-steven-ponce.shinyapps.io/RWFD_supply_chain/)
 
