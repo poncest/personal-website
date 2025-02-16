@@ -1,0 +1,212 @@
+---
+title: "RWFD Supply Chain Analytics Dashboard"
+subtitle: "Interactive visualization of manufacturing logistics metrics, focusing on cost analysis and warehouse utilization"
+description: "An interactive R Shiny dashboard that transforms complex supply chain data into actionable insights. Features real-time KPIs, cost analysis, and warehouse performance metrics with dynamic filtering and visualizations."  
+author: "Steven Ponce"
+date: "2024-02-16"
+categories: ["R Programming", "Shiny", "Supply Chain", "2025"]
+tags: [
+  "r-shiny",
+  "supply-chain-analytics",
+  "dashboard",
+  "data-visualization",
+  "logistics",
+  "interactive-dashboard",
+  "warehouse-analytics",
+  "cost-analysis",
+  "business-intelligence",
+  "bslib",
+  "tidyverse",
+  "ggiraph",
+  "performance-metrics",
+  "kpi-monitoring"
+]
+image: "thumbnails/rwfd_dashboard.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  
+  permalink: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2025-02-16.html"
+  description: "Explore an interactive R Shiny dashboard for supply chain analytics, featuring real-time KPIs, cost analysis, and warehouse performance visualization. Built with #rstats #shiny #dataviz"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(
+  dev = "png",
+  fig.width = 9,
+  fig.height = 10,
+  dpi = 320
+)
+```
+
+![RWFD Supply Chain Dashboard: An interactive Shiny application featuring logistics KPIs, cost analysis, and warehouse performance metrics. The dashboard providesinsights into shipping costs, warehouse utilization, and service level performance.](sa_2025-02-16.png){#fig-1}
+
+### <mark> __Overview__ </mark>  
+
+#### 1. __Overview__
+
+The RWFD Supply Chain Dashboard is an interactive R Shiny application designed to analyze and visualize manufacturing logistics data. The dashboard focuses on two main areas:
+
+a. **Overview Dashboard**
+   - Real-time tracking of total shipping costs
+   - Average cost per KG analysis
+   - Warehouse utilization monitoring
+   - On-time delivery performance metrics
+
+b. **Cost Analysis Dashboard**
+   - Detailed cost breakdown by location
+   - Unit cost analysis with efficiency quadrants
+   - Performance matrix for warehouse comparison
+
+#### 2.  __Key Features__ 
+
+a. **Interactive Elements**
+   - Dynamic filtering by warehouse location
+   - Carrier-specific analysis
+   - Service level breakdowns
+   - Real-time metric updates
+
+b. **Visualizations**
+   - Interactive route cost analysis
+   - Storage cost comparisons
+   - Transport mode breakdowns
+   - Service level distribution
+   - Efficiency matrix heatmap
+
+c. **Data Downloads**
+   - CSV exports for all visualizations
+   - Customizable data filtering
+   - Comprehensive metrics export
+
+#### 3. __Technical Implementation__ 
+
+The dashboard is built using:
+
+- **R Shiny**: Core web framework
+- **bslib**: Modern Bootstrap 5 styling
+- **tidyverse**: Data processing
+- **ggiraph**: Interactive visualizations
+- **DT**: Data tables
+- Additional packages: scales, glue, janitor
+
+#### 4. __Project Structure__ 
+
+```
+├── app.R              # Main application
+├── global.R           # Global settings
+├── modules/
+│   ├── overview/      # Overview dashboard
+│   └── cost_analysis/ # Cost analysis
+└── R/
+    └── utils/         # Helper functions
+```
+
+#### 5. __Data Sources__ 
+
+The application processes four key datasets:
+
+a. **Order List**: Transaction data
+   - Shipping details
+   - Order metrics
+   - Service levels
+
+b. **Freight Rates**: Pricing data
+   - Carrier rates
+   - Route costs
+   - Service options
+
+c. **Warehouse Data**: Facility metrics
+   - Storage costs
+   - Utilization rates
+   - Capacity limits
+
+c. **Warehouse Capacities**: Infrastructure data
+
+   - Daily capacity limits
+   - Regional information
+   - Facility type and status
+
+#### 6. __Project Links__ 
+
+- **Live Dashboard**: [RWFD Supply Chain Dashboard](https://0l6jpd-steven-ponce.shinyapps.io/RWFD_supply_chain/)
+
+- **Source Code**: [GitHub Repository](https://github.com/poncest/RWFD_supply_chain)
+
+
+#### 7. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 8. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+[Access the GitHub repository here](https://github.com/poncest/RWFD_supply_chain)
+:::
+
+
+#### 9. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data originally from:
+   - Kalganova, Tatiana; Dzalbs, Ivars (2019). Supply Chain Logistics Problem Dataset. Brunel University London. [Dataset](https://doi.org/10.17633/rd.brunel.7558679.v2)
+   
+   - Accessed via: [RWFD Real World Fake Data](https://sonsofhierarchies.com/real-world-fake-data/)
+
+:::
+
+
+#### 10. Citation
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+To cite this dashboard:
+   - Ponce, S. (2024). RWFD Supply Chain Dashboard [Shiny Application](https://github.com/poncest/RWFD_supply_chain)
+
+:::
