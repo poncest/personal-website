@@ -1,0 +1,449 @@
+---
+title: "The Spectrum of Frequencies in Nature and Technology"
+subtitle: "From heartbeats to radiation, visualizing the vast range of frequencies"
+description: "An interactive visualization exploring the vast spectrum of frequencies in nature and technology, from the slow rhythm of a human heartbeat to the high-energy waves of cosmic radiation. This visualization demonstrates how different phenomena operate across an enormous range of frequencies, helping us understand the interconnected scales of biological processes, sound waves, technological signals, and electromagnetic radiation."
+author: "Steven Ponce"
+date: "2025-02-18" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+"frequencies",
+"physics",
+"nature",
+"technology",
+"radiation",
+"scientific-visualization",
+"interactive-visualization",
+"highcharter",
+"logarithmic-scale",
+"data-storytelling",
+"electromagnetic-spectrum",
+"biological-rhythms",
+"sound-waves",
+"frequency-analysis",
+"science-communication"
+]
+image: "thumbnails/mm_2025_08.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:                     
+  permalink: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_08.html"
+  description: "Explore the fascinating spectrum of frequencies in nature and technology through an interactive visualization, revealing how phenomena from heartbeats to cosmic radiation operate across vastly different scales. #DataViz #Science #Technology"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+### Original
+
+The original visualization **Per second - vibrations / cycles / waves / rate / frequency*"** from [information is beautiful](https://informationisbeautiful.net/2024/per-second-vibrations-cycles-waves-rate-frequency/)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_08/original_chart.png)
+
+### Makeover
+
+![A line graph showing frequency ranges across different categories. The y-axis uses a logarithmic scale from 0 Hz to 1000000000 PHz. Five categories are shown: Biological (blue) showing lowest frequencies, Sound (black) and Technology (orange) in the middle ranges, and Radiation (purple) reaching the highest frequencies. Other (green) spans across multiple ranges.](mm_2025_08.gif){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    lubridate,      # Make Dealing with Dates a Little Easier
+    camcorder,      # Record Your Plot History 
+    highcharter,    # A Wrapper for the 'Highcharts' Library
+    htmlwidgets,    # HTML Widgets for R
+    webshot2        # Take Screenshots of Web Pages
+    )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+per_second_raw <- read_csv(
+  here::here('data/per_second.csv')) |> 
+  clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(per_second_raw)
+skim(per_second_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+per_second_clean <- per_second_raw  |>
+  select(unit:source) |> 
+  filter(description != '"Frame rate" of conscious perception in human brain') |> 
+  mutate(
+    category = case_when(
+      str_detect(tolower(description), "brain|heart|purr") ~ "Biological",
+      str_detect(tolower(description), "sound|audio|speaker|speech") ~ "Sound",
+      str_detect(tolower(description), "radio|wifi|bluetooth|power") ~ "Technology",
+      str_detect(tolower(description), "light|ray|radiation") ~ "Radiation",
+      TRUE ~ "Other"
+    ),
+    # Add formatted frequency for tooltip
+    freq_formatted = case_when(
+      vibrations_cycles_waves_rate_per_second_not_formatted >= 1e15 ~ paste0(round(vibrations_cycles_waves_rate_per_second_not_formatted/1e15, 1), " PHz"),
+      vibrations_cycles_waves_rate_per_second_not_formatted >= 1e12 ~ paste0(round(vibrations_cycles_waves_rate_per_second_not_formatted/1e12, 1), " THz"),
+      vibrations_cycles_waves_rate_per_second_not_formatted >= 1e9 ~ paste0(round(vibrations_cycles_waves_rate_per_second_not_formatted/1e9, 1), " GHz"),
+      vibrations_cycles_waves_rate_per_second_not_formatted >= 1e6 ~ paste0(round(vibrations_cycles_waves_rate_per_second_not_formatted/1e6, 1), " MHz"),
+      vibrations_cycles_waves_rate_per_second_not_formatted >= 1e3 ~ paste0(round(vibrations_cycles_waves_rate_per_second_not_formatted/1e3, 1), " kHz"),
+      TRUE ~ paste0(round(vibrations_cycles_waves_rate_per_second_not_formatted, 1), " Hz")
+    )
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors_list <- list(
+  "Biological" = "#36A9E1",  
+   "Sound"      = "#333333",      
+   "Technology" = "#FF7F00",  
+   "Radiation"  = "#7B68EE",   
+   "Other"      = "#2ECC71")
+
+### |-  titles and caption ----
+title_text <- str_glue("The Spectrum of Frequencies in Nature and Technology")
+subtitle_text <- str_glue("From heartbeats to radiation, visualizing the vast range of frequencies")
+caption_text <-  str_glue("#MakeoverMonday 2025 Week 8 &#8226; Source: Information is Beautiful")
+
+### |-  plot theme ----
+
+# Create custom theme
+custom_theme <- hc_theme(
+  chart = list(
+    backgroundColor = "#f5f5f2",
+    style = list(
+      fontFamily = "Arial, Helvetica, sans-serif"
+    )
+  ),
+  title = list(
+    style = list(
+      fontSize = "20px",
+      fontWeight = "bold",
+      fontFamily = "Arial, Helvetica, sans-serif"
+    )
+  ),
+  subtitle = list(
+    style = list(
+      fontSize = "14px",
+      fontFamily = "Arial, Helvetica, sans-serif",
+      color = "#666666"
+    )
+  ),
+  caption = list(
+    style = list(
+      fontSize = "10px",
+      fontFamily = "Arial, Helvetica, sans-serif",
+      color = "#666666"
+    )
+  ),
+  legend = list(
+    itemStyle = list(
+      fontFamily = "Arial, Helvetica, sans-serif",
+      fontSize = "12px"
+    )
+  ),
+  tooltip = list(
+    style = list(
+      fontFamily = "Arial, Helvetica, sans-serif",
+      fontSize = "12px"
+    )
+  ),
+  xAxis = list(
+    labels = list(
+      style = list(
+        fontFamily = "Arial, Helvetica, sans-serif"
+      )
+    )
+  ),
+  yAxis = list(
+    labels = list(
+      style = list(
+        fontFamily = "Arial, Helvetica, sans-serif"
+      )
+    )
+  )   
+)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot  ----
+# Create the highchart visualization
+hc_viz <- highchart() |>
+  hc_add_theme(custom_theme) |>
+  hc_chart(type = "line") |>
+  hc_title(
+    text = title_text,
+    align = "left"
+  ) |>
+  hc_subtitle(
+    text = subtitle_text,
+    align = "left"
+  ) |>
+  hc_caption(
+    text = caption_text,  
+    align = "right"
+  ) |> 
+  hc_xAxis(
+    title = list(text = "Phenomena Index"),
+    gridLineWidth = 1,
+    gridLineColor = "#E8E8E8",
+    tickInterval = 5
+  ) |>
+  hc_yAxis(
+    type = "logarithmic",
+    title = list(text = "Frequency (Hz)"),
+    gridLineWidth = 1,
+    gridLineColor = "#E8E8E8",
+    minorGridLineWidth = 0,
+    labels = list(
+      formatter = JS("function() {
+        var value = this.value;
+        if (value >= 1e15) return (value/1e15).toFixed(1) + ' PHz';
+        if (value >= 1e12) return (value/1e12).toFixed(1) + ' THz';
+        if (value >= 1e9) return (value/1e9).toFixed(1) + ' GHz';
+        if (value >= 1e6) return (value/1e6).toFixed(1) + ' MHz';
+        if (value >= 1e3) return (value/1e3).toFixed(1) + ' kHz';
+        return value.toFixed(1) + ' Hz';
+      }")
+    )
+  ) |>
+  hc_legend(
+    align = "center",
+    verticalAlign = "bottom",
+    layout = "horizontal",
+    backgroundColor = "transparent",
+    borderWidth = 0
+  ) |>
+  hc_tooltip(
+    shared = FALSE,
+    headerFormat = "",
+    pointFormat = paste0(
+      "<b>Category: {point.category}</b><br/>",
+      "<b>{point.name}</b><br/>",
+      "Frequency: {point.freq}<br/>",
+      "Phenomena Index: {point.x}"
+    ),
+    backgroundColor = "white",
+    borderWidth = 1,
+    shadow = TRUE
+  )
+
+# Add line charts (series) by category
+for(cat in unique(per_second_clean$category)) {
+  data_subset <- per_second_clean |>
+    filter(category == cat)
+  
+  hc_viz <- hc_viz |>
+    hc_add_series(
+      name = cat,
+      color = colors_list[[cat]],
+      data = list_parse(
+        data_subset |>
+          mutate(
+            x = seq_along(description),
+            y = vibrations_cycles_waves_rate_per_second_not_formatted,
+            name = description,
+            freq = freq_formatted,
+            category = category
+          ) |>
+          select(x, y, name, freq, category)
+      ),
+      marker = list(
+        enabled = TRUE,
+        symbol = "circle",
+        radius = 4
+      ),
+      lineWidth = 1.5,
+      states = list(
+        hover = list(
+          lineWidth = 2,
+          lineWidthPlus = 0
+        )
+      )
+    )
+}
+
+# Add additional chart options
+hc_viz <- hc_viz |>
+  hc_plotOptions(
+    series = list(
+      animation = list(duration = 1000),
+      marker = list(
+        states = list(
+          hover = list(
+            enabled = TRUE,
+            radius = 6
+          )
+        )
+      )
+    )
+  ) |>
+  hc_credits(
+    enabled = TRUE,
+    text = "&#x1F465; stevenponce &#8226; &#x1F4BB; poncest",  
+    style = list(
+      fontSize = "10px",
+      color = "#666666"
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+#| message: false      
+#| results: "hide"
+#| echo: true
+#| eval: true
+#| include: false      # hide the output
+
+### |-  plot image ----  
+width_px <- 10 * 96  # 960 pixels
+height_px <- 8 * 96  # 768 pixels
+
+# Define the paths
+output_dir <- here::here("data_visualizations/MakeoverMonday/2025")
+html_file <- file.path(output_dir, "mm_2025_08.html")
+png_file <- file.path(output_dir, "mm_2025_08.png")
+
+# Create directory if it doesn't exist
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Save as HTML first
+saveWidget(hc_viz, html_file)
+
+# Convert to PNG with specific dimensions
+webshot(
+  url = html_file,
+  file = png_file,
+  delay = 2,
+  vwidth = width_px,
+  vheight = height_px
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_08.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_08.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Article:
+   - Per Second – Vibrations / Cycles / Waves / Rate / Frequency: [Per Second – Vibrations / Cycles / Waves / Rate / Frequency](https://informationisbeautiful.net/2024/per-second-vibrations-cycles-waves-rate-frequency/)
+
+
+2. Data:
+- Makeover Monday 2025 Week 08: [Per Second – Vibrations / Cycles / Waves / Rate / Frequency](https://data.world/makeovermonday/per-second-vibrations-cycles-waves-rate-frequency)
+ 
+:::
