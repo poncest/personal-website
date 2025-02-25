@@ -264,9 +264,9 @@ colors <- get_theme_colors(
 title_text <- str_glue("Racial and Ethnic Disparities in Reproductive Medicine Research (2010-2023)")
 
 subtitle_text <- str_glue(
-    "Analysis of __318 studies__ from high-impact journals examining disparities in reproductive health<br><br>",
-    "This visualization reveals critical patterns in how disparities are studied: inconsistent racial categorization unequal sample sizes across groups,<br> ",
-    "and effect sizes clustering slightly above 1.0, suggesting systematic disadvantages for non-reference groups. These methodological choices <br>",
+    "Analysis of 318 studies from high-impact journals examining disparities in reproductive health\n\n",
+    "This visualization reveals critical patterns in how disparities are studied: inconsistent racial categorization unequal sample sizes across groups,\n ",
+    "and effect sizes clustering slightly above 1.0, suggesting systematic disadvantages for non-reference groups. These methodological choices \n",
     "impact our understanding of disparities."
 )
 
@@ -469,8 +469,8 @@ combined_plot <- (p1 + p2) / p3 +
                 lineheight = 1.1,
                 margin = margin(t = 5, b = 5)
             ),
-            plot.subtitle = element_markdown(
-                size   = rel(0.95),
+            plot.subtitle = element_text(
+                size   = rel(0.9),
                 family = fonts$subtitle,
                 color  = colors$subtitle,
                 lineheight = 1.2,
