@@ -35,6 +35,21 @@ create_swd_caption <- function(year, month, source_text) {
   str_glue("{swd_text} {social_text}")
 }
 
+# Create SWD (Exercise) social media caption
+create_swd_exe_caption <- function(year, month, source_text) {
+  # Get icons from existing function
+  icons <- get_social_icons()
+  
+  # Create SWD challenge header
+  swd_text <- str_glue("#SWDchallenge: {month} {year} Exercise &bull; Source: {source_text}<br>")
+  
+  # Create social media handles
+  social_text <- str_glue("{icons$linkedin} stevenponce &bull; {icons$bluesky} sponce1 &bull; {icons$github} poncest &bull; #rstats #ggplot2")
+  
+  # Combine texts
+  str_glue("{swd_text} {social_text}")
+}
+
 # Create social media caption (MakeoverMonday)
 create_mm_caption <- function(mm_year, mm_week, source_text) {
   icons <- get_social_icons()
