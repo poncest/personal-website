@@ -265,8 +265,7 @@ p1 <- ggplot(enso_data, aes(x = annual_precipitation_anomaly, y = entity, fill =
     x = 'Anomaly (mm)',
     y = NULL,
     fill = 'Year Type',
-  ) 
-  
+  )
 
 # P2. Dot Plot ---- 
 p2 <-ggplot(comparative_stats, aes(x = mean_anomaly, y = entity, color = event_type)) +
@@ -290,12 +289,16 @@ p2 <-ggplot(comparative_stats, aes(x = mean_anomaly, y = entity, color = event_t
   labs(
     x = "Mean Precipitation Anomaly (mm)",
     y = NULL,
-  ) 
-
+    color = "Event Type: "
+  ) +
+  # Theme
+  theme(legend.position = "top")
 
 # Combined Plots ----
 combined_plot <- (p1 | plot_spacer() | p2) +
-  plot_layout(widths = c(1, 0.05, 1), nrow = 1) +
+  plot_layout(
+    widths = c(1, 0.05, 1),
+    nrow = 1) +
   plot_annotation(
     title = title_text,
     subtitle = subtitle_text,
@@ -323,9 +326,10 @@ combined_plot <- (p1 | plot_spacer() | p2) +
         hjust  = 0.5,
         margin = margin(t = 10)
       ),
-      plot.margin = margin(t = 20, r = 10, b = 20, l = 10),
+      plot.margin = margin(t = 20, r = 10, b = 20, l = 10)
+      )
     )
-  )
+  
 ```
 
 #### 7. Save
