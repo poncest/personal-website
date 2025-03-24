@@ -1,0 +1,459 @@
+---
+title: "Focus to Collaboration Ratio Across Industries"
+subtitle: "How industries balance individual work vs. teamwork (centered at 1.5:1 ratio)"
+description: "This visualization explores how different industries balance focus time versus collaboration time in their workday, using a 1.5:1 ratio as a benchmark. The chart reveals that most industries favor individual work, with Financial Services showing the strongest focus orientation, while Healthcare leans more toward collaboration. Insurance demonstrates a perfect balance at exactly 1.5:1."
+author: "Steven Ponce"
+date: "2025-03-24" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+"Focus Time", "Collaboration", "Productivity", "Work Culture", "Industry Comparison", "Workday Analysis", "Employee Productivity", "Time Management", "ggplot2", "Activtrak", "Work-life Balance", "Employee Wellbeing"
+]
+image: "thumbnails/mm_2025_13.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:                     
+  permalink: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_13.html"
+  description: "Exploring how different industries balance individual focus work vs. collaborative teamwork in this #MakeoverMonday visualization. Financial Services shows the strongest focus orientation at 1.73:1, while Healthcare favors more collaboration at 1.43:1. #DataViz #RStats"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+### Original
+
+The original visualization __Work Productivity__ comes from [Work Productivity](https://ourworldindata.org/grapher/global-precipitation-anomaly)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_13/original_chart.png)
+
+### Makeover
+
+![Bar chart showing Focus to Collaboration Ratio across industries. Financial Services has the highest ratio (1.73:1), followed by Professional Services (1.60:1) and Cross-Industry (1.52:1). Insurance is balanced exactly at 1.50:1, while Healthcare is the most collaboration-oriented at 1.43:1. Bars represent deviation from the balanced 1.5:1 ratio, with hour differences noted for each industry.](mm_2025_13.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    lubridate,      # Make Dealing with Dates a Little Easier
+    camcorder       # Record Your Plot History 
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+#' The raw data for the week MakeoverMonday challenge can be downloaded 
+#' https://data.world/makeovermonday/2025w12-precipitation-anomalies
+#' 
+#' Article
+#' https://ourworldindata.org/grapher/global-precipitation-anomaly
+
+productivity_raw <- read_csv(
+  here::here('data/Work productivy Activtrak Report.csv')) |> 
+    clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(productivity_raw)
+skim(productivity_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+
+productivity_data <- productivity_raw |>         
+  # Convert total time hours string to numeric for basic metrics
+  mutate(
+    total_time_numeric = case_when(
+      industry == "Cross-Industry" ~ 8 + 54/60,
+      industry == "Fin Serv" ~ 9,
+      industry == "Healthcare" ~ 8 + 42/60,
+      industry == "Insurance" ~ 8 + 41/60,
+      industry == "Prof. Servs." ~ 8 + 52/60
+    ),
+    # basic metrics
+    non_productive_time = total_time_numeric - productive_time_hrs,
+    work_activities_time = focus_time_hrs + collaboration_time_hrs,
+    focus_collaboration_ratio = focus_time_hrs / collaboration_time_hrs,
+    productive_time_percent = (productive_time_hrs / total_time_numeric) * 100,
+    
+    # derived metrics
+    ratio_deviation = focus_collaboration_ratio - 1.5,
+    industry_label = paste0(industry, " (", format(round(focus_collaboration_ratio, 2), nsmall=2), ":1)"),
+    dominance = case_when(
+      abs(ratio_deviation) < 0.001 ~ "Balanced",
+      ratio_deviation > 0 ~ "More Focused",
+      TRUE ~ "More Collaborative"
+    ),
+    hours_diff = focus_time_hrs - collaboration_time_hrs,
+    hours_diff_label = paste0("Difference: ", format(round(abs(hours_diff), 1), nsmall=1), " hrs"),
+    annotation = paste0(
+      focus_time_hrs, " hrs focus / ", 
+      collaboration_time_hrs, " hrs collaboration"
+    ),
+    industry_order = rank(-focus_collaboration_ratio)
+  )
+
+# Annotation for Insurance
+insurance_annotation <- tibble(
+  x = 0.15,
+  y = which(productivity_data$industry == "Insurance"),
+  label = "No bar shown because ratio is exactly 1.5:1\n(6.9 hrs focus ÷ 4.6 hrs collaboration),\nplacing it precisely at the baseline"
+)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+"More Collaborative" = "#fc8d62",  
+  "Balanced" = "#8da0cb",            
+  "More Focused" = "#66c2a5"  
+))
+  
+### |-  titles and caption ----
+title_text <- str_wrap("Focus to Collaboration Ratio Across Industries", width = 80)
+subtitle_text <- str_glue("How industries balance individual work vs. teamwork (centered at 1.5:1 ratio)<br><br>",
+                          "A ratio > 1.5:1 indicates more focus-oriented work culture<br>",
+                          "A ratio < 1.5:1 indicates more collaboration-oriented work culture")
+
+# Create caption
+caption_text <- create_mm_caption(
+    mm_year = 2025,
+    mm_week = 13,
+    source_text = "Activtrak"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Legend formatting
+    legend.position = "top",
+    legend.title = element_text(face = "bold"),
+
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5), 
+    axis.ticks.length = unit(0.2, "cm"), 
+
+    # Axis formatting
+    axis.title.x = element_text(face = "bold", size = rel(1.14)),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(face = "bold", size = rel(1)),
+    
+    # Grid lines
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Margin
+    plot.margin = margin(20, 30, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot  ----
+
+p <- ggplot(
+  productivity_data,
+  aes(
+    x = reorder(industry_label, -industry_order),
+    y = ratio_deviation
+  )
+) +
+  # Geoms
+  geom_rect(
+    aes(
+      xmin = as.numeric(factor(reorder(industry_label, -industry_order))) - 0.5,
+      xmax = as.numeric(factor(reorder(industry_label, -industry_order))) + 0.5,
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "gray95",
+    color = NA,
+    alpha = 0.3
+  ) +
+  geom_rect(
+    data = productivity_data |> filter(dominance == "Balanced"),
+    aes(
+      xmin = as.numeric(factor(reorder(industry_label, -industry_order))) - 0.5,
+      xmax = as.numeric(factor(reorder(industry_label, -industry_order))) + 0.5,
+      ymin = -Inf,
+      ymax = Inf
+    ),
+    fill = "gray90",
+    color = NA,
+    alpha = 0.5
+  ) +
+  geom_hline(
+    yintercept = 0,
+    color = alpha("black", 0.5),
+    linewidth = 0.2,
+    linetype = "solid"
+  ) +
+  geom_col(
+    aes(fill = dominance),
+    width = 0.7
+  ) +
+  geom_point(
+    data = productivity_data |> filter(dominance == "Balanced"),
+    aes(x = reorder(industry_label, -industry_order), y = 0),
+    color = colors$palette["Balanced"],
+    size = 4,
+    shape = 18 # Diamond shape
+  ) +
+  geom_text(
+    aes(
+      label = sprintf("%.2f:1", focus_collaboration_ratio),
+      y = ifelse(ratio_deviation >= 0,
+        pmax(ratio_deviation / 2, 0.02),
+        pmin(ratio_deviation / 2, -0.02)
+      )
+    ),
+    color = "black",
+    fontface = "bold",
+    size = 4
+  ) +
+  geom_text(
+    aes(
+      label = hours_diff_label,
+      y = 0
+    ),
+    hjust = -0.1,
+    vjust = 2.7,
+    size = 3,
+    color = "black",
+    alpha = 0.7
+  ) +
+  geom_text(
+    data = insurance_annotation,
+    aes(x = x, y = y, label = label),
+    hjust = 0,
+    vjust = 0.5,
+    size = 2.8,
+    fontface = "italic",
+    color = "black",
+    alpha = 0.8
+  ) +
+  geom_vline(
+    xintercept = 0,
+    color = "black",
+    linewidth = 0.7,
+    linetype = "dashed"
+  ) +
+  annotate(
+    "text",
+    x = 0,
+    y = 5.7,
+    label = "Balanced (1.5:1)",
+    hjust = 0.5,
+    vjust = 1,
+    size = 3,
+    fontface = "italic",
+    color = "black",
+    alpha = 0.7
+  ) +
+  # Scales
+  scale_x_discrete(position = "top") +
+  scale_y_continuous(
+    limits = c(-0.1, 0.3),
+    breaks = seq(-0.1, 0.3, by = 0.05),
+    labels = function(x) sprintf("%+.2f", x)
+  ) +
+  scale_fill_manual(
+    values = colors$palette,
+    name = "Work Style"
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "Deviation from balanced ratio (1.5:1)"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(2.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(1),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 15)
+    ),
+    plot.caption = element_markdown(
+      size   = rel(0.75),
+      family = fonts$caption,
+      color  = colors$caption,
+      hjust  = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "makeovermonday", 
+  year = 2025,
+  week = 13,
+  width = 10, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_13.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_13.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data:
+
+  - Makeover Monday 2025 Week 13: [Work Productivity](https://data.world/makeovermonday/2025-week-13-work-productivity)
+  
+2. Article
+
+- Productivity Benchmarks Report 1H 2024: Cross-Industry & Location Insights: [Productivity Benchmarks Report 1H 2024](https://www.activtrak.com/resources/benchmarks/productivity-benchmarks-cross-industry/)
+ 
+:::
