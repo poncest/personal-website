@@ -1,0 +1,423 @@
+---
+title: "Citrus: The Only Effective Treatment for Scurvy (1757)"
+subtitle: "Fractions of patients showing improvement vs. continuing symptoms after treatment"
+description: "A visualization exploring James Lind's pioneering 1757 scurvy treatment trial, illustrating how citrus was the only effective remedy among six treatments tested. This diverging stacked bar chart highlights the fractions of patients showing improvement versus continuing symptoms, showcasing an early example of evidence-based medicine."
+author: "Steven Ponce"
+date: "2025-04-01" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+ "ggplot2",
+"diverging-chart",
+"medical-history",
+"likert-scale",
+"historical-data",
+"scurvy",
+"clinical-trials",
+"medical-research",
+"fractions",
+"comparisons",
+"medicaldata"
+  ]
+image: "thumbnails/30dcc_2025_01.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_01.html"
+  description: "Day 1 of #30DayChartChallenge: A visualization of the first controlled clinical trial in history (1757), showing that only citrus effectively treated scurvy. The chart displays fractions of patients' symptom severity across different treatments."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A diverging stacked bar chart comparing scurvy treatments from 1757. Only citrus shows 100% of patients with improvement (50% none, 50% mild symptoms), while all other treatments show moderate to severe symptoms. Dilute sulfuric acid shows 50% mild improvement. The chart demonstrates why citrus was the only effective treatment for scurvy.](30dcc_2025_01.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,    # Easily Install and Load the 'Tidyverse'
+  ggtext,       # Improved Text Rendering Support for 'ggplot2'
+  showtext,     # Using Fonts More Easily in R Graphs
+  janitor,      # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,        # Compact and Flexible Summaries of Data
+  scales,       # Scale Functions for Visualization
+  lubridate,    # Make Dealing with Dates a Little Easier
+  camcorder     # Record Your Plot History
+)
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  8,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2023, week = 30) 
+
+scurvy <- tt$scurvy |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(scurvy)
+skim(scurvy)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+# Define constants upfront
+symptom_names <- c(
+  gum_rot_d6 = "Gum Rot",
+  skin_sores_d6 = "Skin Sores", 
+  weakness_of_the_knees_d6 = "Knee Weakness",
+  lassitude_d6 = "Lassitude"
+)
+
+treatment_names <- c(
+  dilute_sulfuric_acid = "Dilute Sulfuric Acid",
+  purgative_mixture = "Purgative Mixture",
+  sea_water = "Sea Water"
+)
+
+# Treatment effectiveness order 
+treatment_order <- c(
+  "Citrus", "Cider", "Dilute Sulfuric Acid", 
+  "Vinegar", "Sea Water", "Purgative Mixture"
+)
+
+# Process scurvy data 
+complete_diverging_data <- scurvy |>
+  # Convert Likert scales to ordered factors
+  mutate(across(
+    names(symptom_names),
+    \(x) factor(
+      case_when(
+        str_detect(x, "0_none") ~ "None (0)",
+        str_detect(x, "1_mild") ~ "Mild (1)",
+        str_detect(x, "2_moderate") ~ "Moderate (2)",
+        str_detect(x, "3_severe") ~ "Severe (3)"
+      ),
+      levels = c("None (0)", "Mild (1)", "Moderate (2)", "Severe (3)")
+    )
+  )) |>
+  # Clean treatment names
+  mutate(
+    treatment_clean = case_when(
+      treatment %in% names(treatment_names) ~ treatment_names[treatment],
+      TRUE ~ str_to_title(treatment)
+    )
+  ) |>
+  # Convert to long format
+  pivot_longer(
+    cols = names(symptom_names),
+    names_to = "symptom",
+    values_to = "severity"
+  ) |>
+  # Map symptom codes to readable names
+  mutate(symptom = symptom_names[symptom]) |>
+  # Calculate proportions
+  group_by(treatment_clean, symptom) |>
+  count(severity) |>
+  mutate(proportion = n / sum(n)) |>
+  ungroup() |>
+  # Create diverging data structure
+  mutate(
+    position = if_else(
+      severity %in% c("None (0)", "Mild (1)"), 
+      "Improved", 
+      "Problem"
+    ),
+    plot_proportion = if_else(position == "Improved", -proportion, proportion),
+    severity_ordered = factor(
+      severity, 
+      levels = c("None (0)", "Mild (1)", "Moderate (2)", "Severe (3)")
+    )
+  ) |>
+  # Ensure all combinations exist (handle missing values)
+  complete(
+    treatment_clean, 
+    symptom, 
+    severity_ordered,
+    fill = list(proportion = 0, plot_proportion = 0, n = 0)
+  ) |>
+  # Recreate position for new rows
+  mutate(
+    position = case_when(
+      severity_ordered %in% c("None (0)", "Mild (1)") ~ "Improved",
+      severity_ordered %in% c("Moderate (2)", "Severe (3)") ~ "Problem",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ---- 
+colors <- get_theme_colors(palette = c(
+  "None (0)" = "#1d4e89",       
+  "Mild (1)" = "#4b86c5",      
+  "Moderate (2)" = "#e8996f",  
+  "Severe (3)" = "#d95d33"      
+  ))  
+
+### |-  titles and caption ----
+# text
+title_text    <- str_glue("Citrus: The Only Effective Treatment for Scurvy (1757)") 
+subtitle_text <- str_glue("Fractions of patients showing improvement vs. continuing symptoms after treatment")
+
+# Create caption
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 01,
+  source_text =  "{ medicaldata } R package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text.x = element_text(color = colors$text, size = rel(0.7)),
+    axis.text.y = element_text(color = colors$text, size = rel(0.75), face = "bold"),
+    
+    # Grid elements
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    
+    # Legend elements
+    legend.position = "top",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(
+  complete_diverging_data |>
+    filter(symptom == "Gum Rot") |>
+    mutate(treatment_clean = factor(treatment_clean, levels = treatment_order))
+) +
+  # Geoms
+  geom_col(
+    aes(
+      x = treatment_clean,
+      y = plot_proportion,
+      fill = severity_ordered
+    ),
+    position = "stack"
+  ) +
+  geom_text(
+    aes(
+      x = treatment_clean,
+      y = plot_proportion,
+      label = ifelse(proportion >= 0.05,
+        scales::percent(abs(proportion),
+          accuracy = 1
+        ), ""
+      )
+    ),
+    position = position_stack(vjust = 0.5),
+    color = "white",
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = function(x) paste0(abs(x) * 100, "%"),
+    limits = c(-1, 1),
+    breaks = seq(-1, 1, 0.25),
+    minor_breaks = NULL
+  ) +
+  scale_fill_manual(
+    values = colors$palette
+  ) +
+  coord_flip(clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    x = NULL,
+    y = NULL,
+    fill = "Severity Level",
+    caption = caption_text
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.75),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.caption = element_markdown(
+      size = rel(.65),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 01, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_01.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_01.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - TidyTuesday 2023 week 30 Scurvy: [Scurvy](https://github.com/rfordatascience/tidytuesday/tree/e0cda77e7b4ca3f7e201f6fe23d9ead080a5a19c/data/2023/2023-07-25)
+
+:::

@@ -1,8 +1,9 @@
 # Saving normal images (no patchwork) ----
 save_plot <- function(plot, 
-                      type = c("tidytuesday", "swd", "standalone", "makeovermonday"),
+                      type = c("tidytuesday", "swd", "standalone", "makeovermonday", "30daychartchallenge"),
                       year = format(Sys.Date(), "%Y"),
                       week = NULL,
+                      day = NULL,
                       month = NULL,
                       date = NULL,
                       name = NULL, 
@@ -16,8 +17,9 @@ save_plot <- function(plot,
   base_paths <- list(
     tidytuesday = here::here("data_visualizations/TidyTuesday", as.character(year)),  # Ensure year is character
     swd = here::here("data_visualizations/SWD Challenge", as.character(year)),
-    standalone = here::here("projects/standalone_visualizations"),
-    makeovermonday = here::here("data_visualizations/MakeoverMonday", as.character(year))
+    makeovermonday = here::here("data_visualizations/MakeoverMonday", as.character(year)),
+    `30daychartchallenge` = here::here("data_visualizations/30DayChartChallenge", as.character(year)),
+    standalone = here::here("projects/standalone_visualizations")
   )
   
   # Input validation
@@ -26,6 +28,9 @@ save_plot <- function(plot,
   }
   if (type == "makeovermonday" && is.null(week)) {
     stop("Week parameter is required for MakeoverMonday plots")
+  }
+  if (type == "30daychartchallenge" && is.null(day)) {
+    stop("Day parameter is required for 30DayChartChallenge plots")
   }
   if (type == "swd" && is.null(month)) {
     warning("Month not specified for SWD plot, using current month")
@@ -36,6 +41,7 @@ save_plot <- function(plot,
     type,
     tidytuesday = sprintf("tt_%d_%02d.png", year, week),
     makeovermonday = sprintf("mm_%d_%02d.png", year, week),
+    `30daychartchallenge` = sprintf("30dcc_%d_%02d.png", year, day),
     swd = sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m"))),
     standalone = if (!is.null(name)) {
       paste0(name, ".png")
@@ -78,9 +84,10 @@ save_plot <- function(plot,
 
 # Saving more complex images (when using patchwork) ----
 save_plot_patchwork <- function(plot, 
-                                type = c("tidytuesday", "swd", "standalone", "makeovermonday"),
+                                type = c("tidytuesday", "swd", "standalone", "makeovermonday", "30daychartchallenge"),
                                 year = format(Sys.Date(), "%Y"),
                                 week = NULL,
+                                day = NULL,
                                 month = NULL,
                                 date = NULL,
                                 name = NULL, 
@@ -102,6 +109,7 @@ save_plot_patchwork <- function(plot,
   base_paths <- list(
     tidytuesday = here::here("data_visualizations/TidyTuesday", as.character(year)),  # Ensure year is character
     swd = here::here("data_visualizations/SWD Challenge", as.character(year)),
+    `30daychartchallenge` = here::here("data_visualizations/30DayChartChallenge", as.character(year)),
     standalone = here::here("projects/standalone_visualizations"),
     makeovermonday = here::here("data_visualizations/MakeoverMonday", as.character(year))
   )
@@ -112,6 +120,9 @@ save_plot_patchwork <- function(plot,
   }
   if (type == "makeovermonday" && is.null(week)) {
     stop("Week parameter is required for MakeoverMonday plots")
+  }
+  if (type == "30daychartchallenge" && is.null(day)) {
+    stop("Day parameter is required for 30DayChartChallenge plots")
   }
   if (type == "swd" && is.null(month)) {
     warning("Month not specified for SWD plot, using current month")
@@ -125,6 +136,7 @@ save_plot_patchwork <- function(plot,
     type,
     tidytuesday = sprintf("tt_%d_%02d.png", year, week),
     makeovermonday = sprintf("mm_%d_%02d.png", year, week),
+    `30daychartchallenge` = sprintf("30dcc_%d_%02d.png", year, day),
     swd = sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m"))),
     standalone = if (!is.null(name)) {
       paste0(name, ".png")
