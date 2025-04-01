@@ -1,0 +1,339 @@
+---
+title: "Shooting Performance Variability Across NBA Teams (2023-24)"
+subtitle: "Field goal percentage distribution with statistical outliers highlighted in red"
+description: "This visualization explores the distribution of field goal percentages across NBA teams during the 2023-24 season, with a focus on identifying statistical outliers. Using boxplots with overlaid data points, the chart reveals which teams maintained consistent shooting performance versus those with more variable results. Statistical outliers (defined using the 1.5×IQR rule) are highlighted in red, providing insights into exceptional shooting performances and unusually poor shooting nights."
+author: "Steven Ponce"
+date: "2025-04-07" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"ggplot2",
+"boxplot",
+"hoopR",
+"NBA",
+"sports analytics",
+"outlier detection",
+"statistical distribution",
+"basketball",
+"data storytelling",
+"exploratory data analysis"
+  ]
+image: "thumbnails/30dcc_2025_07.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_07.html"
+  description: "Exploring NBA shooting performance variability across teams in the 2023-24 season. Which teams show consistent field goal percentages, and which teams have the most outlier games? Check out this visualization highlighting statistical distribution and outliers in NBA team shooting."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![ A boxplot showing field goal percentage distribution across NBA teams for the 2023-24 season. Teams are ordered vertically by median percentage, with Indiana at the top. Statistical outliers are highlighted as red dots. A dashed blue vertical line indicates the league mean FG%. The chart reveals which teams have more consistent shooting performance versus those with extreme outlier games.](30dcc_2025_07.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data
+  camcorder       # Record Your Plot History
+)
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# Get player stats for the 2023-2024 NBA season
+nba_teams_2024 <- load_nba_team_box(seasons = 2024) 
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(nba_teams_2024)
+skim(nba_teams_2024)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+nba_teams_2024 <- nba_teams_2024 |> 
+  filter(team_abbreviation != "EAST" & team_abbreviation != "WEST") |> 
+  mutate(
+    team_abbreviation = fct_reorder(team_abbreviation, field_goal_pct, median)
+  ) 
+
+# outliers df        
+outliers_df <- nba_teams_2024 |> 
+  mutate(
+    q1 = quantile(field_goal_pct, 0.25, na.rm = TRUE),
+    q3 = quantile(field_goal_pct, 0.75, na.rm = TRUE),
+    iqr = q3 - q1,
+    is_outlier = field_goal_pct < (q1 - 1.5 * iqr) | 
+    field_goal_pct > (q3 + 1.5 * iqr),
+    .by = team_abbreviation
+    ) |>
+  filter(is_outlier)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ---- 
+colors <- get_theme_colors(palette = NULL)
+
+### |-  titles and caption ----
+# text
+title_text    <- str_glue("Shooting Performance Variability Across NBA Teams (2023-24)") 
+subtitle_text <- str_glue("Field goal percentage distribution with statistical outliers highlighted in red")
+
+# Create caption
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 07,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    
+    axis.line.x = element_line(color = "gray50", linewidth = .2),
+
+    # Grid elements
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+ 
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(
+  data = nba_teams_2024,
+  aes(y = team_abbreviation, x = field_goal_pct)
+) +
+  # Geoms
+  geom_boxplot(fill = "lightgray", alpha = 0.2, outlier.shape = NA) +
+  geom_jitter(height = 0.2, alpha = 0.2, color = "darkgray", size = 1.5) +
+  geom_point(
+    data = outliers_df,
+    color = "red", size = 2.5
+  ) +
+  geom_vline(
+    xintercept = mean(nba_teams_2024$field_goal_pct, na.rm = TRUE),
+    linetype = "dashed", color = "blue", alpha = 0.8
+  ) +
+  annotate(
+    "text", 
+    x = mean(nba_teams_2024$field_goal_pct, na.rm = TRUE), 
+    y = levels(nba_teams_2024$team_abbreviation)[length(levels(nba_teams_2024$team_abbreviation))],
+    label = "League Mean FG%",  
+    vjust = -2.1,
+    color = "blue", 
+    size = 4, 
+    alpha = 0.8,
+    fontface = "bold"
+  ) +
+  # Scales
+  scale_x_continuous(labels = scales::number_format(suffix ="%")) +
+  scale_y_discrete(
+    expand = expansion(0.05, 0.0)
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    y = "Team",
+    x = "Field Goal Percentage"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 30)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 07, 
+  width = 8, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_07.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_07.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
