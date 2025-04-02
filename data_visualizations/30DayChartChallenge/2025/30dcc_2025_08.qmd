@@ -1,0 +1,338 @@
+---
+title: "Distribution of Points Per Game: Starters vs. Bench Players"
+subtitle: "Players with at least 10 games played in the 2023-24 NBA Season"
+description: "Visualizing the stark contrast in scoring distributions between NBA starters and bench players using data from the hoopR package for the 2023-24 season."
+author: "Steven Ponce"
+date: "2025-04-08" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"NBA", "basketball", "hoopR", "ggplot2", "histogram", "sports analytics", "scoring distribution", "bench players", "starters", "tidyverse", "Day 8"
+  ]
+image: "thumbnails/30dcc_2025_08.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_08.html"
+  description: "See how NBA starters and bench players differ in scoring distributions, with starters averaging nearly three times more points per game than bench players in the 2023-24 season. #30DayChartChallenge #DataViz #NBA"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A histogram showing the distribution of points per game for NBA players in the 2023-24 season, comparing starters versus bench players. Bench players (orange bars) are concentrated at lower scoring ranges with a mean of 5.3 PPG, while starters (blue bars) show a broader distribution with higher scoring averages and a mean of 14.5 PPG. Vertical dashed lines indicate the mean values for each group.](30dcc_2025_08.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data
+  camcorder       # Record Your Plot History
+)
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+nba_players_2024 <- load_nba_player_box(seasons = 2024)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(nba_players_2024)
+skim(nba_players_2024)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+# Add starter status  
+player_ppg_role <- nba_players_2024 |>
+  mutate(starter = ifelse(starter, "Starter", "Bench")) |>
+  summarise(
+    ppg = mean(points, na.rm = TRUE),
+    games_played = n(),
+    .by = c(athlete_display_name, starter)
+  ) |>
+  filter(games_played >= 10)
+
+# Calculate mean PPG for each role
+role_means <- player_ppg_role |>
+  summarise(
+    mean_ppg = mean(ppg, na.rm = TRUE), 
+    .by = starter
+    )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ---- 
+colors <- get_theme_colors(
+  palette = c("Starter" = "#1F77B4", "Bench" = "#FF7F0E")
+  )
+
+colors2 <- get_theme_colors(
+  palette = c("Starter" = "#0D3B66", "Bench" = "#C1292E")
+)
+
+### |-  titles and caption ----
+# text
+title_text    <- str_glue("Distribution of Points Per Game: Starters vs. Bench Players") 
+subtitle_text <- str_glue("Players with at least 10 games played in the 2023-24 NBA Season")
+
+# Create caption
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 08,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    
+    axis.line.x = element_line(color = "gray50", linewidth = .2),
+
+    # Grid elements
+    # panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+ 
+    # Legend elements
+    legend.position = "inside",
+    legend.position.inside = c(0.95, 0.95),
+    legend.justification = c(1, 1),
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(player_ppg_role, aes(x = ppg, fill = starter)) +
+  # Geoms
+  geom_histogram(binwidth = 1.5, position = "identity", alpha = 0.7) +
+  geom_vline(
+    data = role_means, 
+    aes(xintercept = mean_ppg, color = starter),
+    linetype = "dashed", linewidth = 0.5, show.legend = FALSE
+    ) +
+  # Annotate
+  annotate(
+    "text", 
+    x = role_means$mean_ppg[role_means$starter == "Starter"] + 4.2,
+    y = max(table(cut(player_ppg_role$ppg, breaks = seq(0, 40, by = 1.5)))) * 0.9 ,
+    label = paste0("Starter Mean: ", round(role_means$mean_ppg[role_means$starter == "Starter"], 1), " PPG"),
+    color = colors2$palette[1],
+    size = 3.2, 
+    alpha = 0.8,
+    fontface = "bold"
+  ) +
+  annotate(
+    "text", 
+    x = role_means$mean_ppg[role_means$starter == "Bench"] + 4, 
+    y = max(table(cut(player_ppg_role$ppg, breaks = seq(0, 40, by = 1.5)))) * 1,
+    label = paste0("Bench Mean: ", round(role_means$mean_ppg[role_means$starter == "Bench"], 1), " PPG"),
+    color = colors2$palette[2],
+    size = 3.2, 
+    alpha = 0.8,
+    fontface = "bold"
+    ) +
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  scale_color_manual(values = colors2$palette) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Points Per Game",
+    y = "Number of Players",
+    fill = "Role"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.5),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(1),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 08, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_08.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_08.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
