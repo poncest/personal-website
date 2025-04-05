@@ -1,0 +1,407 @@
+---
+title: "NBA Teams: Distribution of Assist-to-Turnover Ratios"
+subtitle: "2024 NBA Season | Teams sorted by median ratio | Circle size represents number of players"
+description: "Visualizing NBA players' ball-handling efficiency through assist-to-turnover ratios. This dotplot combines distribution patterns with a striped design to show how players across different teams balance assists against turnovers, with teams ranked by median performance."
+author: "Steven Ponce"
+date: "2025-04-11" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"#30DayChartChallenge2025", "Day11", "Distribution", "Stripes", "NBA", "Basketball", "Sports Analytics", "hoopR", "ggplot2", "Player Performance", "Ball Handling", "Dotplot"
+  ]
+image: "thumbnails/30dcc_2025_11.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_11.html"
+  description: "Day 11 of #30DayChartChallenge: Distribution & Stripes. Exploring NBA players' assist-to-turnover ratios across teams with a dotplot visualization showing which teams have the most efficient ball handlers."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A dotplot showing the distribution of assist-to-turnover ratios for NBA teams in the 2024 season. Teams are sorted vertically by median ratio, with Jazz at the top and Celtics at the bottom. Purple circles represent players, with larger circles indicating more players with that specific ratio value. Most players cluster between ratios of 1.0-2.5. Alternating gray background stripes highlight each team row. A vertical dashed line marks the league median.](30dcc_2025_11.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data 
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 10,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# Get player stats for 2024 NBA season
+nba_players <- load_nba_player_box(seasons = 2024)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(nba_players)
+skim(nba_players)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+# Aggregate to get season stats per player
+player_season_stats <- nba_players |>
+  filter(!did_not_play) |>
+  group_by(athlete_id, athlete_display_name, team_id, team_name) |>
+  summarize(
+    games_played = n(),
+    total_minutes = sum(minutes, na.rm = TRUE),
+    avg_minutes = total_minutes / games_played,
+    total_assists = sum(assists, na.rm = TRUE),
+    total_turnovers = sum(turnovers, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Filter out players with minimal playing time
+filtered_players <- player_season_stats |>             
+  filter(games_played >= 20, avg_minutes >= 10)
+
+# Calculate Assist-to-Turnover Ratio (capped at 5)
+filtered_players <- filtered_players |>
+  mutate(AST_TO_Ratio = total_assists / pmax(total_turnovers, 1)) |>
+  mutate(AST_TO_Ratio = pmin(AST_TO_Ratio, 5))
+
+# Get team names to use for grouping
+filtered_players$Team <- filtered_players$team_name
+
+# Create team summary stats
+team_stats <- filtered_players |>
+  group_by(Team) |>
+  summarize(
+    median_ratio = median(AST_TO_Ratio, na.rm = TRUE),
+    mean_ratio = mean(AST_TO_Ratio, na.rm = TRUE),
+    min_ratio = min(AST_TO_Ratio, na.rm = TRUE),
+    max_ratio = max(AST_TO_Ratio, na.rm = TRUE),
+    q25 = quantile(AST_TO_Ratio, 0.25),
+    q75 = quantile(AST_TO_Ratio, 0.75),
+    players = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(median_ratio))
+
+# Order teams by median ratio
+team_order <- team_stats$Team
+filtered_players$Team <- factor(filtered_players$Team, levels = team_order)
+
+# Create background stripes df
+background_stripes <- data.frame(
+  Team = team_order[seq(1, length(team_order), by = 2)],
+  xmin = rep(-Inf, length(team_order[seq(1, length(team_order), by = 2)])),
+  xmax = rep(Inf, length(team_order[seq(1, length(team_order), by = 2)])),
+  ymin = seq(1, length(team_order), by = 2) - 0.5,
+  ymax = seq(1, length(team_order), by = 2) + 0.5
+)
+
+# Prepare data for dot plot
+dotplot_data <- filtered_players |>
+  mutate(ratio_rounded = round(AST_TO_Ratio * 2) / 2) |>
+  group_by(Team, ratio_rounded) |>
+  summarize(count = n(), .groups = "drop")
+
+dotplot_data$Team <- factor(dotplot_data$Team, levels = team_order)
+
+# Create median indicators df
+median_indicators <- team_stats |>
+  select(Team, median_ratio) |>
+  mutate(Team = factor(Team, levels = team_order))
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ---- 
+colors <- get_theme_colors(
+  palette = c("#6A0DAD")  
+  )
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("NBA Teams: Distribution of Assist-to-Turnover Ratios",
+                          width = 60) 
+subtitle_text <- str_wrap("2024 NBA Season | Teams sorted by median ratio | Circle size represents number of players", 
+                          width = 100)
+
+# Create caption
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 11,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.text.y = element_text(color = colors$text, size = rel(0.68)),
+    
+    axis.line.x = element_line(color = "gray50", linewidth = .2),
+
+    # Grid elements
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+ 
+    # Legend elements
+    legend.position = "bottom",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot() +
+  # Geoms
+  geom_rect(
+    data = background_stripes,                                                  # Stripes
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+    fill = "gray80", alpha = 0.4
+    ) +
+  geom_vline(
+    xintercept = seq(0, 5, by = 0.5), 
+    color = "gray90", linewidth = 0.3
+    ) +
+  geom_vline(xintercept = median(team_stats$median_ratio), 
+             linetype = "dashed", color = "gray50", linewidth = 0.5) +
+  geom_point(
+    data = dotplot_data,
+    aes(x = ratio_rounded, y = as.numeric(Team), 
+    size = count),
+    color = colors$palette,
+    alpha = 0.6
+    ) +
+  # Annotations
+  annotate(
+    "richtext", x = 4.6, y = 3, label = "Top-ranked<br>teams have<br>more players<br>with higher<br>assist-to-<br>turnover ratios", 
+    hjust = 0, vjust = 0.5, size = 3, fill = NA, label.color = NA
+    ) +
+  annotate(
+    "richtext", x = 0, y = 1, 
+    label = "Most teams have <span style='color:#2D708EFF;'>clusters</span> of<br>players with ratios between 1.0-2.5",
+    hjust = 0, vjust = 0.5, size = 3, fill = NA, label.color = NA
+    ) +
+  annotate(
+    "richtext", x = 4.2, y = length(team_order) - 3.5,
+    label = "Larger circles indicate<br>more players with that<br>specific ratio value",
+    hjust = 0, vjust = 0, size = 3, fill = NA, label.color = NA
+    ) +
+  annotate(
+    "text", x = median(team_stats$median_ratio) + 0.05, y = length(team_order) + 1.1,
+    label = "League median", hjust = 0, size = 3, lineheight = 0.9
+    ) +
+  # Scales
+  scale_x_continuous(
+    breaks = seq(0, 5, 0.5),
+    limits = c(0, 5.2),
+    expand = expansion(add = c(0.1, 0))
+  ) +
+  scale_y_continuous(
+    breaks = 1:length(team_order), 
+    labels = team_order,
+    expand = expansion(add = c(0.8, 0.8))
+    ) +
+  scale_size_continuous(
+    range = c(1, 9), 
+    breaks = c(1, 3, 5, 7),
+    name = "Number of Players"
+    ) +
+  # Labs
+  labs(title = title_text,
+       subtitle = subtitle_text,
+       caption = caption_text,
+       x = "Assist-to-Turnover Ratio (rounded to nearest 0.5)",
+       y = NULL
+    ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(2),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(1),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 5, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 11, 
+  width = 10, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_11.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_11.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
