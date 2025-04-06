@@ -1,0 +1,345 @@
+---
+title: "Traffic Volume Distribution Analysis Across California Counties"
+subtitle: "Empirical Cumulative Distribution Function (ECDF) of Annual Average Daily Traffic"
+description: "Analyzing traffic volume distributions across California counties using Empirical Cumulative Distribution Functions (ECDF). This visualization reveals striking differences between urban and rural counties, providing insights into traffic patterns throughout the state highway network."
+author: "Steven Ponce"
+date: "2025-04-12" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"ECDF", "ggplot2", "tidyverse", "distribution", "traffic analysis",
+"California", "log scale", "cumulative distribution", "highway data", "data.gov"
+  ]
+image: "thumbnails/30dcc_2025_12.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_12.html"
+  description: "Day 12 of #30DayChartChallenge: Visualizing traffic volume distributions across California counties using ECDF plots, revealing the stark contrast between urban and rural highway traffic patterns."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A line graph showing Empirical Cumulative Distribution Functions (ECDF) of Annual Average Daily Traffic across ten California counties. The x-axis shows traffic volume from 100 to over 100,000 vehicles on a logarithmic scale. Horizontal dashed lines mark the 25th, 50th, and 75th percentiles. Urban counties like Los Angeles (LA) and Orange (ORA) show curves shifted right, indicating higher traffic volumes. In contrast, rural counties like Tulare (TUL) show curves shifted left, indicating lower traffic volumes.](30dcc_2025_12.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  paletteer,      # Comprehensive Collection of Color Palettes
+  lubridate,      # Make Dealing with Dates a Little Easier
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+traffic_volumnes_raw <- read_csv(here::here(
+  'data/30DayChartChallenge/2025/Traffic_Volumes_AADT.csv')
+  ) |>
+    clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(traffic_volumnes_raw)
+skim(traffic_volumnes_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+traffic_volumes_tidy <- traffic_volumnes_raw |>        
+  select(objectid, district, route, county, location_description, 
+         back_aadt, ahead_aadt) |>
+  pivot_longer(
+    cols = c(back_aadt, ahead_aadt),
+    names_to = "direction",
+    values_to = "aadt"
+  ) |>
+  mutate(
+    direction = case_when(
+      direction == "back_aadt" ~ "Back",
+      direction == "ahead_aadt" ~ "Ahead",
+      TRUE ~ direction
+    )
+  ) |>
+  filter(!is.na(aadt))
+
+# County-level summaries
+county_traffic <- traffic_volumes_tidy |>
+  group_by(county) |>
+  summarize(
+    count = n(),
+    median_aadt = median(aadt, na.rm = TRUE)
+  ) |>
+  arrange(desc(count)) |>
+  slice_head(n = 10)  # Top 10 counties 
+
+# ECDF for top counties
+top_counties <- county_traffic$county
+
+# Data plot
+ecdf_data <- traffic_volumes_tidy |>
+  filter(county %in% top_counties)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ---- 
+colors <- get_theme_colors(
+  palette = paletteer::paletteer_d(
+    "ggprism::prism_dark2"
+    )
+  )
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("Traffic Volume Distribution Analysis Across California Counties",
+                          width = 50) 
+subtitle_text <- str_wrap("Empirical Cumulative Distribution Function (ECDF) of Annual Average Daily Traffic", 
+                          width = 90)
+
+# Create caption
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 12,
+  source_text =  "California AADT via data.gov" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.text.y = element_text(color = colors$text, size = rel(0.68)),
+    
+    axis.line.x = element_line(color = "gray50", linewidth = .2),
+
+    # Grid elements
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+ 
+    # Legend elements
+    legend.position = "right",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ecdf_data |>
+  ggplot(aes(x = aadt, color = county)) +
+  # Geoms
+  stat_ecdf(geom = "step", linewidth = 1) +
+  geom_hline(
+    yintercept = c(0.25, 0.5, 0.75), linetype = "dashed", 
+    color = "gray50", alpha = 0.7
+    ) +
+  # Annotate
+  annotate(
+    "text", x = min(traffic_volumes_tidy$aadt, na.rm = TRUE), 
+    y = c(0.26, 0.51, 0.76), 
+    label = c("25th", "50th", "75th"), 
+    hjust = 0, size = 3, color = "gray30"
+    ) +
+  # Scales
+  scale_x_log10(labels = scales::comma) +
+  scale_color_manual(values = colors$palette) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Annual Average Daily Traffic (log scale)",
+    y = "Cumulative Probability",
+    color = "County",
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.9),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(.85),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 5, b = 15)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 12, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_12.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_12.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - California Annual Average Daily Traffic Volumes, Metadata Updated: November 27, 2024 [data.gov](https://catalog.data.gov/dataset/traffic-volumes-aadt-ee8d6)
+  
+:::
