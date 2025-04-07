@@ -1,0 +1,443 @@
+---
+title: "NBA Player Archetypes: The Relationship Between Defense and 3-Point Shooting"
+subtitle: "2023-2024 Season | Four Player Archetypes Identified via K-means Clustering"
+description: "Exploring the relationship between defensive contributions and 3-point shooting ability in NBA players for the 2023-2024 season, using K-means clustering to identify four distinct player archetypes. This visualization reveals how elite defenders rarely excel at 3-point shooting, while the league's best shooters often sacrifice defensive effort, highlighting the rarity and value of two-way stars like Victor Wembanyama."
+author: "Steven Ponce"
+date: "2025-04-13" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"NBA", "Basketball", "Cluster Analysis", "K-means", "ggplot2", "hoopR", "Player Analysis", "Sports Analytics", "Relationships", "Clusters"
+  ]
+image: "thumbnails/30dcc_2025_13.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_13.html"
+  description: "Day 13 of #30DayChartChallenge: Identifying NBA player archetypes through the relationship between defense and 3-point shooting using K-means clustering"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A scatter plot showing the relationship between NBA players' defensive contributions (steals plus blocks per game) and 3-point shooting percentages. Four distinct clusters identified through K-means clustering reveal player archetypes: Two-Way Stars (upper right), Defensive Specialists (upper left), Offensive Specialists (lower right), and Role Players (lower center). Notable players like Victor Wembanyama stand out as elite two-way performers. Dashed lines indicate league averages for both metrics, creating quadrants with annotations describing each player archetype's characteristics.](30dcc_2025_13.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data
+  ggrepel,        # Automatically Position Non-Overlapping Text Labels with 'ggplot2'
+  cluster,        # "Finding Groups in Data": Cluster Analysis Extended Rousseeuw etal
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 10,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# Get NBA player data for 2023-2024 season
+players_2024_list <- nba_leaguedashplayerstats(season = "2023-24")
+
+# Extract the data frame from the response
+players_2024 <- players_2024_list$LeagueDashPlayerStats
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(players_2024)
+skim(players_2024)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+player_stats <- players_2024 |>
+  # Make sure numeric columns are actually numeric
+  mutate(
+    GP = as.numeric(GP),
+    MIN = as.numeric(MIN),
+    STL = as.numeric(STL),
+    BLK = as.numeric(BLK),
+    FG3_PCT = as.numeric(FG3_PCT),
+    FT_PCT = as.numeric(FT_PCT)
+  ) |>
+  # Filter for players with meaningful minutes
+  filter(GP >= 40, MIN >= 15) |>
+  # Calculate key metrics
+  mutate(
+    STL_per_game = STL / GP,
+    BLK_per_game = BLK / GP,
+    defensive_contribution = STL_per_game + BLK_per_game
+  ) |>
+  # Select specific columns
+  select(
+    PLAYER_NAME, TEAM_ABBREVIATION, 
+    GP, MIN, 
+    STL_per_game, BLK_per_game, defensive_contribution,
+    FG3_PCT, FT_PCT
+  )
+
+# Cluster df 
+cluster_data <- player_stats |>
+  filter(
+    !is.na(defensive_contribution),
+    !is.na(FG3_PCT),
+    !is.na(FT_PCT)
+  )
+
+# Scale the variables for clustering
+scaled_data <- cluster_data |>
+  select(defensive_contribution, FG3_PCT, FT_PCT) |>
+  scale()
+
+# Apply k-means clustering with k=4
+set.seed(123) 
+k <- 4
+km_result <- kmeans(scaled_data, centers = k, nstart = 25)
+
+# Add cluster assignments back to the data
+cluster_data$cluster <- as.factor(km_result$cluster)
+
+# Descriptive cluster labels
+centers <- as.data.frame(km_result$centers)
+colnames(centers) <- c("defensive_contribution", "FG3_PCT", "FT_PCT")
+
+# Create more meaningful cluster labels
+cluster_labels <- c()
+for(i in 1:k) {
+  def_val <- centers[i, "defensive_contribution"]
+  fg3_val <- centers[i, "FG3_PCT"]
+  ft_val <- centers[i, "FT_PCT"]
+  
+  if(def_val > 0 && fg3_val > 0 && ft_val > 0) {
+    label <- "Two-Way Stars" # Good at everything
+  } else if(def_val > 0 && (fg3_val < 0 || ft_val < 0)) {
+    label <- "Defensive Specialists" # Good defense, weaker shooting
+  } else if(def_val < 0 && fg3_val > 0 && ft_val > 0) {
+    label <- "Offensive Specialists" # Good shooting, weaker defense
+  } else {
+    label <- "Role Players" # Average or below average
+  }
+  cluster_labels[i] <- label
+}
+
+# Map the labels to clusters
+cluster_mapping <- setNames(cluster_labels, 1:k)
+cluster_data$cluster_label <- cluster_mapping[cluster_data$cluster]
+
+# Identify top players in each cluster (for labeling in the plot)
+top_players <- cluster_data |>    
+  group_by(cluster) |>
+  arrange(desc(defensive_contribution + FG3_PCT + FT_PCT)) |>
+  slice_head(n = 3) |>
+  ungroup()
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ---- 
+colors <- get_theme_colors(
+  palette = c(
+    "#D55E00",
+    "#CC79A7",
+    "#009E73",
+    "#0072B2"
+    )  
+  )
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("NBA Player Archetypes: The Relationship Between Defense and 3-Point Shooting",
+                          width = 55) 
+subtitle_text <- str_wrap("2023-2024 Season | Four Player Archetypes Identified via K-means Clustering", 
+                          width = 100)
+
+# Create caption
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 13,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.text.y = element_text(color = colors$text, size = rel(0.68)),
+
+    # Grid elements
+    panel.grid.minor = element_blank(),
+
+    # Legend elements
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(
+  cluster_data, 
+  aes(x = FG3_PCT, y = defensive_contribution, 
+      color = cluster_label)
+) +
+  # Geoms
+  geom_point(
+    alpha = 0.5, 
+    size = 3
+  ) +
+  geom_text_repel( # Label top players
+    data = top_players,
+    aes(label = PLAYER_NAME),
+    size = 3,
+    seed = 123,
+    max.overlaps = 15,
+    box.padding = 0.5,
+    segment.color = "grey50"
+  ) +
+  geom_hline( # average lines 
+    yintercept = mean(cluster_data$defensive_contribution),
+    linetype = "dashed",
+    color = "grey50",
+    alpha = 0.5
+  ) +
+  geom_vline(
+    xintercept = mean(cluster_data$FG3_PCT),
+    linetype = "dashed",
+    alpha = 0.5
+  ) +
+  # Scales
+  scale_y_continuous(
+    limits = c(-0.05, 5),
+    breaks = pretty_breaks()
+  ) +
+  scale_x_continuous(
+    limits = c(-0.05, 1),
+    breaks = pretty_breaks()
+  ) +
+  scale_color_manual(values = colors$palette) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "3-Point Field Goal Percentage (FG3%)",
+    y = "Defensive Contribution (STL + BLK per game)",
+    color = "Player Archetype"
+  ) +
+  # Annotate
+  annotate("text", x = -0.05, y = 3.75, 
+           label = "Elite defenders rarely\nshoot well from deep", 
+           size = 3.5, fontface = "italic", color = colors$palette[1], hjust = 0) +
+  
+  annotate("text", x = 0.45, y = 3.65, 
+           label = "Two-Way Stars are rare\nand highly valuable", 
+           size = 3.5, fontface = "italic", color = colors$palette[2], hjust = 0) +
+  
+  annotate("text", x = 0.02, y = 0, 
+           label = "Role players contribute\nin less measurable ways", 
+           size = 3.5, fontface = "italic", color = colors$palette[3], hjust = 0) +
+  
+  annotate("text", x = 0.65, y = 1, 
+           label = "Elite shooters often\nsacrifice defensive effort", 
+           size = 3.5, fontface = "italic", color = colors$palette[4], hjust = 0) +
+  
+  annotate("text", x = 0.03, y = 4, label = "Defensive Specialists", 
+           color = colors$palette[1], fontface = "bold", size = 4) +
+  
+  annotate("text", x = 0.35, y = 3.8, label = "Two-Way Stars", 
+           color = colors$palette[2], fontface = "bold", size = 4) +
+  
+  annotate("text", x = 0.08, y = 0.25, label = "Role Players", 
+           color = colors$palette[3], fontface = "bold", size = 4) +
+  
+  annotate("text", x = 0.75, y = 1.3, label = "Offensive Specialists", 
+           color = colors$palette[4], fontface = "bold", size = 4) +
+  
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(2),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.8),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 20, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 13, 
+  width = 10, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_13.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_13.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
