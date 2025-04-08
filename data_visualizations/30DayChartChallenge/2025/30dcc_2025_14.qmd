@@ -1,0 +1,377 @@
+---
+title: "Win Percentage by Player Combinations and Playstyle in 2023-2024 Season"
+subtitle: "Top-performing duos organized by their playing chemistry, with team affiliations"
+description: "Visualization exploring the relationship between NBA player partnerships and win percentages in the 2023-2024 season, categorized by playstyle groups. The chart reveals which player combinations have the strongest on-court chemistry and how playing styles influence team success."
+author: "Steven Ponce"
+date: "2025-04-14" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"NBA", "Basketball", "Player Analytics", "Sports Visualization", "hoopR", "ggplot2", "Player Chemistry", "Win Rate", "Team Performance", "Relationships", "Kinship", "Player Partnerships", "Playstyle Analysis"
+  ]
+image: "thumbnails/30dcc_2025_14.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_14.html"
+  description: "Day 14 of #30DayChartChallenge: Visualizing NBA player relationships and how different playstyle combinations impact win percentages during the 2023-2024 season"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A lollipop chart showing NBA player combinations organized by playstyle groups (Offensive-Minded, Developing Chemistry, Two-Way Elite, and Defensive-Minded). Each horizontal line represents a player pair with team affiliations in parentheses, extending to points indicating their win percentage. The Offensive-Minded category tops the chart with the highest win rates (up to 90%), dominated by New York Knicks players. Colors differentiate the playstyle groups: yellow for Offensive-Minded, blue for Developing Chemistry, red for Two-Way Elite, and purple for Defensive-Minded. The visualization demonstrates which player relationships produce the most wins across different playing styles and teams.](30dcc_2025_14.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+   tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data
+  paletteer,      # Comprehensive Collection of Color Palettes
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# Get the lineup data
+lineups_2man <- nba_leaguedashlineups(
+  season = "2023-24",
+  measure_type = "Advanced",
+  group_quantity = 2, # 2-player combinations
+  season_type = "Regular Season"
+)
+
+lineups_df <- lineups_2man$Lineups
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(lineups_df)
+skim(lineups_df)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+lineups_clean <- lineups_df |>
+  select(
+    player_combo = GROUP_NAME,
+    min = MIN,
+    net_rating = NET_RATING,
+    off_rating = OFF_RATING, 
+    def_rating = DEF_RATING,
+    gp = GP,
+    w = W,
+    l = L,
+    win_pct = W_PCT
+  ) |>
+  mutate(
+    across(c(min, net_rating, off_rating, def_rating, gp, w, l, win_pct), as.numeric),
+    win_loss_diff = w - l,
+    combo_effectiveness = (win_pct * 100) * (net_rating / 20) # Scale 
+  ) |>
+  # Filter for meaningful playing time
+  filter(min >= 300) |>
+  # Group player combinations based on their effectiveness
+  mutate(
+    playstyle_group = case_when(
+      off_rating > median(off_rating) & def_rating < median(def_rating) ~ "Offensive-Minded",
+      off_rating < median(off_rating) & def_rating > median(def_rating) ~ "Defensive-Minded",
+      off_rating > median(off_rating) & def_rating > median(def_rating) ~ "Two-Way Elite",
+      TRUE ~ "Developing Chemistry"
+    )
+  )
+
+# Top player combinations by effectiveness
+top_combos <- lineups_clean |>
+  group_by(playstyle_group) |>
+  arrange(desc(combo_effectiveness)) |>
+  slice_max(order_by = combo_effectiveness, n = 8) |>
+  ungroup()
+
+# Facet order (levels)
+playstyle_order <- top_combos |>
+  group_by(playstyle_group) |>
+  summarize(avg_win = mean(win_pct, na.rm = TRUE)) |>
+  arrange(desc(avg_win)) |>
+  pull(playstyle_group)
+
+# Housekeeping
+rm(lineups_2man)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(
+  palette = paletteer:::paletteer_d(
+    "ggsci::default_aaas",
+    type = 'discrete', 
+    n = 4)
+)
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("Win Percentage by Player Combinations and Playstyle in 2023-2024 Season",
+                          width = 60) 
+subtitle_text <- str_wrap("Top-performing duos organized by their playing chemistry, with team affiliations", 
+                          width = 100)
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 14,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.text.y = element_text(color = colors$text, size = rel(0.75)),
+
+    # Grid elements
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Strip
+    strip.text = element_text(family = fonts$text, color = colors$text, face = "bold", size = rel(0.92)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(top_combos,
+       aes(
+         x = win_pct * 100, 
+         y = fct_reorder(player_combo, win_pct))
+) +
+  # Geom
+  geom_segment(aes(
+    x = 0,
+    xend = win_pct * 100,
+    y = fct_reorder(player_combo, win_pct),
+    yend = fct_reorder(player_combo, win_pct),
+    color = playstyle_group
+  ), 
+  linewidth = 1, 
+  alpha = 0.8
+  ) +
+  geom_point(aes(
+    color = playstyle_group), 
+    size = 3.5
+  ) +
+  geom_text(aes(
+    label = sprintf("%.0f%%", win_pct * 100)), 
+    hjust = -0.5, size = 3
+  ) +
+  # Scales
+  scale_x_continuous(    
+    limits = c(0, 100)
+  ) +
+  scale_y_discrete() +
+  scale_color_manual(values = colors$palette) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Win Rate (%)",
+    y = NULL,
+    color = "Playstyle",
+  ) +
+  # Facets 
+  facet_wrap(~ factor(
+    playstyle_group, levels = playstyle_order), 
+    scales = "free_y", ncol = 1
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.6),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.9),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 15)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 5, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 14, 
+  width = 8, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_14.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_14.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
