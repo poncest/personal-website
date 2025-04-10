@@ -1,0 +1,396 @@
+---
+title: "NBA 2023-2024: High Usage Players with Below-Average Efficiency"
+subtitle: "Highlighting the 'negative relationship' where high offensive responsibility doesn't translate to scoring efficiency"
+description: "Exploring the crucial balance between usage rate and shooting efficiency in NBA players. This visualization identifies players who consume significant offensive possessions while shooting below league average efficiency—highlighting a key negative relationship that teams should monitor."
+author: "Steven Ponce"
+date: "2025-04-16" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"NBA", "Basketball Analytics", "ggplot2", "hoopR", "Sports Data", "Usage Rate", "Efficiency", "True Shooting Percentage", "Relationships", "Negative", "Player Performance"
+  ]
+image: "thumbnails/30dcc_2025_16.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_16.html"
+  description: "Day 16 of #30DayChartChallenge: NBA players with high usage rates but below-average shooting efficiency—the relationship every team wants to avoid. #DataViz #RStats #hoopR #NBA"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A scatter plot showing NBA players' True Shooting Percentage versus Usage Rate for the 2023-2024 season. Red dots highlight players with high usage but below-average efficiency (below 57%), labeled as the "Team Concern Area." Six notable inefficient high-usage players are labeled, including Anthony Edwards and DeAaron Fox. Blue dots represent all other players. The visualization demonstrates the negative relationship between offensive responsibility and scoring efficiency.](30dcc_2025_16.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data
+  ggrepel,        # Automatically Position Non-Overlapping Text Labels with ggplot2
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# Get player stats for 2023-24 season using proper API call
+player_stats <- nba_leaguedashplayerstats(
+  season = "2023-24", 
+  season_type = "Regular Season"
+  )
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(player_stats)
+skim(player_stats)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+# Extract and clean the data frame
+player_data <- player_stats$LeagueDashPlayerStats |>
+  clean_names() |>
+  # Convert to numeric
+  mutate(across(c(
+    gp, min, fgm, fga, fg3m, fg3a, ftm, fta, pts, tov
+    ), 
+    as.numeric)) |>
+  # Filter to players with significant minutes
+  filter(
+    gp >= 40,  
+    min >= 15  
+  ) |>
+  # Calculate True Shooting Percentage
+  mutate(
+    ts_pct = pts / (2 * (fga + 0.44 * fta)) * 100,
+    # Calculate usage rate
+    usage_rate = 100 * (fga + 0.44 * fta + tov) / 
+      (min/gp * 5),  # approximation based on available data
+    player_name = player_name
+  ) |>
+  # Select relevant columns and calculate minutes per game
+  mutate(min_per_game = min / gp) |>          
+  select(player_name, team_abbreviation, 
+         usage_rate, ts_pct, min_per_game, min, gp) |>
+  na.omit()
+
+# Calculate average TS% for reference
+avg_ts <- mean(player_data$ts_pct)
+
+# Identify players with high usage but below average efficiency
+inefficient_high_usage <- player_data |>
+  filter(
+    usage_rate > median(usage_rate),  # Above median usage
+    ts_pct < avg_ts                   # Below average efficiency
+  )
+
+# Select top players with highest usage or lowest efficiency for labeling
+inefficient_high_usage_labeled <- inefficient_high_usage |>
+  # Sort by a combined metric of high usage and low efficiency
+  arrange(desc(usage_rate - ts_pct)) |>
+  # Take only top players
+  slice_head(n = 6)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "#5b9bd5", 
+    "#e15759"
+  )
+)
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("NBA 2023-2024: High Usage Players with Below-Average Efficiency",
+                          width = 70) 
+
+subtitle_text <- str_wrap("Highlighting the 'negative relationship' where high offensive responsibility doesn't translate to scoring efficiency",
+                          width = 85)
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 16,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+
+    # Grid elements
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "gray92"),
+
+    # Legend elements
+    legend.position = "top",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(player_data, aes(x = usage_rate, y = ts_pct)) +
+  # Geoms 
+  geom_hline(                         # average TS%
+    yintercept = avg_ts, 
+    linetype = "dashed",
+    color = "gray60", 
+    alpha = 0.6
+    ) +
+  geom_point(aes(
+    size = min_per_game, 
+    color = ts_pct < avg_ts & usage_rate > median(usage_rate)), 
+    alpha = 0.3,
+    ) +
+  geom_point(                         # inefficient high-usage players
+    data = inefficient_high_usage, 
+    aes(size = min_per_game),
+    color = "red", 
+    alpha = 0.5
+    ) +
+  geom_text_repel(
+    data = inefficient_high_usage_labeled,
+    aes(label = player_name),
+    size = 2.5,
+    color = "red",
+    force = 10,
+    max.overlaps = 10,
+    segment.size = 0.2,
+    segment.alpha = 0.6,
+    seed = 123
+  ) +
+  # Scales
+  scale_color_manual(
+    values = colors$palette,
+    labels = c("Other Players", "Below Avg TS% & High Usage")
+  ) +
+  scale_size_continuous(
+    name = "Minutes Per Game", 
+    range = c(1, 6)
+    ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Usage Rate (%)",
+    y = "True Shooting Percentage (%)",
+    color = "Player Type"
+  ) +
+  # Annotate 
+  annotate(             # highlight high usage and below average TS area
+    "rect", 
+    xmin = median(player_data$usage_rate),
+    xmax = max(player_data$usage_rate) + 1, 
+    ymin = min(player_data$ts_pct) - 1, 
+    ymax = avg_ts,
+    alpha = 0.08, 
+    fill = "red"
+    ) + 
+  annotate(
+    "text", 
+    x = median(player_data$usage_rate) + (max(player_data$usage_rate) - median(player_data$usage_rate))/2, 
+    y = avg_ts - 12,
+    label = "Team Concern Area:\nHigh Usage, Low Efficiency",
+    color = "red", 
+    fontface = "bold",
+    size = 3, 
+    alpha = 0.8
+    ) +
+  # Legend
+  guides(
+    color = guide_legend(title.position = "top",ncol = 2),
+    size = guide_legend(title.position = "top", ncol = 3)
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 16, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_16.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_16.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
