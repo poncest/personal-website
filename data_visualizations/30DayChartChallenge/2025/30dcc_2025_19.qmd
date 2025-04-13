@@ -1,0 +1,370 @@
+---
+title: "NBA 3-Point Shooting Efficiency: Top 4 Teams"
+subtitle: "7-Game rolling averages showing shooting trends throughout the 2023-2024 season"
+description: "Exploring NBA 3-point shooting efficiency through smoothed time series visualization, showing how top teams' performance fluctuated throughout the 2023-2024 season. Created for Day 19 of the #30DayChartChallenge focusing on time series data with smoothing techniques."
+date: "2025-04-19" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"ggplot2", "hoopR", "timeseries", "smooth", "NBA", "basketball", "sports analytics", "rolling average", "facets", "ggh4x"
+  ]
+image: "thumbnails/30dcc_2025_19.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_19.html"
+  description: "Day 19 of #30DayChartChallenge: Time Series & Smooth - Visualizing NBA 3-point shooting efficiency with 7-game rolling averages for the top 4 teams in the 2023-2024 season"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A 2x2 grid showing 7-game rolling averages of 3-point shooting percentages for four NBA teams (Celtics, Suns, Thunder, and Timberwolves) during the 2023-2024 season. Each panel displays individual game data as gray dots with a colored trend line representing the rolling average. ](30dcc_2025_19.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  hoopR,          # Access Men's Basketball Play by Play Data
+  zoo,            # S3 Infrastructure for Regular and Irregular Time Series (Z's Ordered Observations)
+  ggh4x,          # Hacks for 'ggplot2'
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+# Load player box scores
+player_boxes <- load_nba_player_box(seasons = 2024)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(player_boxes)
+skim(player_boxes)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+# Calculate team season averages
+team_season_stats <- player_boxes |>        
+  group_by(team_name) |>
+  summarize(
+    games = n_distinct(game_id),
+    three_pt_made = sum(three_point_field_goals_made, na.rm = TRUE),
+    three_pt_attempts = sum(three_point_field_goals_attempted, na.rm = TRUE),
+    three_pt_pct = (three_pt_made / three_pt_attempts) * 100,
+    .groups = "drop"
+  ) |>
+  filter(games >= 70) |>  # Ensure sufficient games 
+  arrange(desc(three_pt_pct))
+
+# Top 4 teams by 3PT percentage
+top4_teams <- team_season_stats |> 
+  slice_head(n = 4) |> 
+  pull(team_name)
+
+# Process game-by-game data for 
+team_shooting <- player_boxes |>
+  filter(team_name %in% top4_teams) |>
+  group_by(team_name, game_date) |>
+  summarize(
+    three_point_made = sum(three_point_field_goals_made, na.rm = TRUE),
+    three_point_attempts = sum(three_point_field_goals_attempted, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    three_pt_pct = (three_point_made / three_point_attempts) * 100,
+    game_date = as.Date(game_date)
+  ) |>
+  filter(!is.na(three_pt_pct), !is.infinite(three_pt_pct))
+
+# Calculate team averages for reference lines
+team_averages <- team_shooting |>
+  group_by(team_name) |>
+  summarize(
+    avg_pct = mean(three_pt_pct, na.rm = TRUE),
+    .groups = "drop"
+    )
+
+# Calculate 7-game rolling average
+team_rolling_data <- team_shooting |>
+  arrange(team_name, game_date) |>
+  group_by(team_name) |>
+  mutate(
+    rolling_avg_pct = rollmean(three_pt_pct, k = 7, fill = NA, align = "right"),
+    .groups = "drop"
+    )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "Celtics" = "#007932",
+    "Suns" = "#1D1160", 
+    "Thunder" =  "#007cc2",
+    "Timberwolves" = "#236192"
+  )
+)
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("NBA 3-Point Shooting Efficiency: Top 4 Teams",
+                          width = 55) 
+
+subtitle_text <- str_wrap("7-Game rolling averages showing shooting trends throughout the 2023-2024 season",
+                          width = 85)
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 19,
+  source_text =  "ESPN via { hoopR } package" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Axis elements
+    axis.title.y = element_text(color = colors$text, size = rel(0.8), margin = margin(r = 10)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+
+    # Grid elements
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray92"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_blank(),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Facet elements
+    strip.background = element_rect(fill = "gray90", color = NA),
+    strip.text = element_text(face = "bold", size = rel(1), margin = margin(10, 0, 10, 0)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(team_rolling_data, aes(x = game_date)) +
+  # Geoms
+  geom_point(aes(y = three_pt_pct), alpha = 0.3, size = 2, color = "gray50") +
+  geom_line(aes(y = rolling_avg_pct, color = team_name), linewidth = 2) +
+  geom_hline(
+    data = team_averages, aes(yintercept = avg_pct),
+    linetype = "dashed", color = "gray30", linewidth = 0.7
+  ) +
+  # Scales
+  scale_x_date(
+    date_breaks = "2 month",
+    date_labels = "%b",
+    limits = c(min(team_shooting$game_date), max(team_shooting$game_date))
+  ) +
+  scale_y_continuous(
+    limits = c(20, 60),
+    breaks = seq(20, 60, by = 10),
+    labels = function(x) paste0(x, "%")
+  ) +
+  scale_color_manual(values = colors$palette) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "3-Point Shooting %",
+  ) +
+  # Facet
+  facet_wrap2(
+    ~team_name,
+    ncol = 2,
+    strip = strip_themed(
+      background_x = elem_list_rect(fill = colors$palette[levels(factor(team_rolling_data$team_name))]),
+      text_x = elem_list_text(color = "white", face = "bold", size = 14)
+    )
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 19, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_19.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_19.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - ESPN via { hoopR } package: [hoopR](https://github.com/sportsdataverse/hoopR)
+  
+:::
