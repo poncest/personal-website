@@ -1,0 +1,325 @@
+---
+title: "Stellar Observations by the Hubble Space Telescope"
+subtitle: "Timeline of the 10 Most Frequently Observed Celestial Targets"
+description: "Analyzing Hubble Space Telescope observation patterns of stellar objects from 2015-2023, revealing scientific priorities and long-term monitoring programs through time series visualization."
+date: "2025-04-22" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"Astronomy", "Hubble", "Timeseries", "Space", "ggplot2", "Stars", "HST", "MAST", "Telescope", "Celestial Objects"
+  ]
+image: "thumbnails/30dcc_2025_22.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/30dcc_2025_22.html"
+  description: "Day 22 of #30DayChartChallenge: Timeseries of stellar observations by the Hubble Space Telescope, revealing patterns of scientific interest across cosmic targets."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![Time series visualization of Hubble Space Telescope observations from 2016-2024, showing the 10 most frequently observed celestial targets. Gold dots represent observations, with NGC104-WFC having the most consistent observations over time. M-51 shows a concentrated period of observations in 2017-2018, while NGC5139-WFC observations only begin around 2020.](30dcc_2025_22.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+hubble_raw <- read_csv(here::here(
+  "data/30DayChartChallenge/2025/HST_2025-04-05T07_06_02-04_00.csv")
+  ) |> 
+    clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(hubble_raw)
+skim(hubble_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+# Filter for the top 10 targets
+top_stars <- hubble_raw |>
+  filter(sci_targname != "ANY") |>  
+  count(sci_targname, sort = TRUE) |>
+  slice_head(n = 10)
+
+# Filter for those top targets
+top_observations <- hubble_raw |>
+  filter(sci_targname %in% top_stars$sci_targname)
+
+# Prepare the timeline data
+observations_timeline <- top_observations |>
+  mutate(
+    clean_name = str_replace(sci_targname, "^\\d+\\s*", "")           
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c("#FFD700")
+)
+
+### |-  titles and caption ----
+# text
+title_text    <- str_wrap("Stellar Observations by the Hubble Space Telescope",
+                          width = 55) 
+
+subtitle_text <- str_wrap("Timeline of the 10 Most Frequently Observed Celestial Targets",
+                          width = 85)
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 22,
+  source_text =  "Barbara A. Mikulski Archive for Space Telescopes (MAST)" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    
+    plot.background = element_rect(fill = "black", color = NA),
+    panel.background = element_rect(fill = "black", color = NA),
+    
+    text = element_text(color = "white"),
+    axis.text = element_text(color = "white"),
+    axis.title = element_text(color = "white"),
+    
+    panel.grid.major = element_line(color = "gray30", linetype = "dotted"),
+    panel.grid.minor = element_line(color = "gray20", linetype = "dotted"),
+
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(
+  observations_timeline, 
+  aes(x = sci_start_time, y = clean_name)
+  ) +
+  # Geoms
+  geom_point(
+    color = colors$palette,  
+    size = 2,
+    alpha = 0.8
+  ) +
+  # Annotate
+  annotate(
+    "text", 
+    x = as.POSIXct("2018-02-01"), 
+    y = "M-51", 
+    label = paste(                        
+      "Search Parameters:",
+      "Objects: star | Radius: 3 arcminutes | Date: 2015-2023",
+      "Instrument: ACS | Exposure Time: >60s | Science observations only",
+      sep = "\n"
+    ),
+    hjust = 0,
+    vjust = 1.3,  
+    color = "white",
+    size = 3,
+    lineheight = 0.9,
+    fontface = "italic"
+  ) +
+  # Scale
+  scale_x_datetime(
+    labels = date_format("%Y"),
+    breaks = breaks_width("2 years")
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Observation Date",
+    y = "Target Name",
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      color = 'white',
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = 'white',
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 15)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = alpha('white', 0.8),
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 22, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_22.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_22.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - Barbara A. Mikulski Archive for Space Telescopes [(MAST)](https://archive.stsci.edu/hst/search.php)
+  
+:::
