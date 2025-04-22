@@ -1,0 +1,379 @@
+---
+title: "Gender Gap in Educational Exclusion by Region"
+subtitle: "Difference in percentage with less than 4 years of education (female - male), 2010 - 2021."
+description: "Global gender disparities in educational exclusion across regions, highlighting which areas have higher percentages of females or males with less than 4 years of schooling. The visualization combines statistical uncertainty (error bars) with data inclusivity metrics (reporting countries) to address the #30DayChartChallenge 2025 theme of 'Uncertainties and Inclusion'."
+date: "2025-04-28" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"Education Inequality", "Gender Gap", "UNESCO", "Educational Exclusion", "Uncertainties", "Inclusion", "ggplot2", "Statistical Uncertainty", "Confidence Intervals", "Global Education"
+  ]
+image: "thumbnails/30dcc_2025_28.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2025/30dcc_2025_28.html"
+  description: "Day 28 of #30DayChartChallenge: Gender Gap in Educational Exclusion by Region - Visualizing uncertainty in global education disparities and highlighting regional inclusion gaps"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A dot plot showing the gender gap in educational exclusion across regions. Sub-Saharan Africa has the largest gap (+8.2%) where females have less education, followed by Central and Southern Asia (+4.6%) and Northern Africa (+2.9%). Europe and Eastern Asia show minimal differences. Latin America (-0.3%) and Oceania (-0.5%) have slightly more males with less education. Error bars indicate statistical uncertainty. A dashed vertical line represents gender parity, with subtle background shading distinguishing areas where females (pink) or males (blue) are more excluded.](30dcc_2025_28.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+unesco_education_raw <- read_csv(
+  here::here(
+    "data/30DayChartChallenge/2025/1699460825-wide_2023_sept.csv")) |> 
+  clean_names() 
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(unesco_education_raw)
+skim(unesco_education_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+education_clean <- unesco_education_raw |>
+  filter(!is.na(edu4_2024_m)) |>   # Focus on the key metric
+  mutate(edu4_2024_m = as.numeric(edu4_2024_m)) |>
+  filter(!is.na(sex)) |>
+  filter(year >= 2010) |>
+  select(country, region_group, year, sex, edu4_2024_m, edu4_2024_no)
+
+# Gender gaps (inclusion)
+gender_gaps <- education_clean |>
+  group_by(country, region_group, year) |>
+  summarize(
+    female_rate = mean(edu4_2024_m[sex == "Female"], na.rm = TRUE),
+    male_rate = mean(edu4_2024_m[sex == "Male"], na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  # Calculate the gender gap (female - male)
+  mutate(
+    gender_gap = female_rate - male_rate,
+    abs_gap = abs(gender_gap)
+  ) |>
+  filter(!is.na(gender_gap))
+
+# Regional averages with uncertainty
+region_gaps <- gender_gaps |>
+  group_by(region_group) |>
+  summarize(
+    mean_gap = mean(gender_gap, na.rm = TRUE),
+    sd_gap = sd(gender_gap, na.rm = TRUE),
+    countries = n_distinct(country),
+    # Calculate uncertainty
+    lower_ci = mean_gap - 1.96 * sd_gap / sqrt(countries),
+    upper_ci = mean_gap + 1.96 * sd_gap / sqrt(countries),
+    # Calculate mean rates for context
+    mean_female = mean(female_rate, na.rm = TRUE),
+    mean_male = mean(male_rate, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    disadvantaged_gender = ifelse(mean_gap > 0, "Female", "Male"),
+    region_label = paste0(region_group, " (n=", countries, ")")
+  ) |>
+  arrange(desc(abs(mean_gap)))
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "Female" = "#D81B60", "Male" = "#1E88E5"
+    )
+  )
+
+### |-  titles and caption ----
+# text
+title_text    <- str_glue("Gender Gap in Educational Exclusion by Region")
+
+subtitle_text <- str_glue("Difference in percentage with less than **4 years of education** (female - male), 2010 - 2021.",
+                          "<br>Higher values indicate greater educational exclusion.",
+                          "<br><br>Error bars show uncertainty (95% confidence intervals)",
+                          "<br>n = number of countries reporting (higher values indicate more complete regional data)")
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 28,
+  source_text =  "Unesco Institute for Statistics" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Legend
+    legend.position = "bottom",
+    
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.y = element_text(color = colors$text, size = rel(0.8), 
+                                hjust = 0.5, margin = margin(r = 10)),
+    axis.title.x = element_text(color = colors$text, size = rel(0.8), 
+                                hjust = 0.5, margin = margin(t = 10)),
+    
+    axis.line.x = element_line(color = "gray50", linewidth = .2),
+    
+    # Grid elements
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_line(color = "gray65", linewidth = 0.05),
+    panel.grid.major.x = element_line(color = "gray65", linewidth = 0.05),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(region_gaps, aes(x = reorder(region_label, mean_gap), y = mean_gap)) +
+  # Geoms
+  geom_hline(
+    yintercept = 0, linetype = "dashed", color = "gray50"
+    ) +
+  geom_errorbar(
+    aes(ymin = lower_ci, ymax = upper_ci), 
+    width = 0.3, color = "gray50"
+    ) +
+  geom_point(
+    aes(color = disadvantaged_gender), 
+    size = 3.5, alpha = 0.8
+    ) +
+  geom_text(
+    aes(label = sprintf("%+.1f%%", 100 * mean_gap)),
+    color = "black", hjust = 0.5, vjust = -1, size = 3.5
+    ) +
+  # Scales
+  scale_color_manual(
+    values = colors$palette,
+    name = "More Excluded Gender",
+    labels = c("Female", "Male")
+    ) +
+  scale_y_continuous(
+    labels = scales::percent_format(),
+    limits = c(-0.1, 0.13),
+    name = "Gender Gap (percentage points)"
+    ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = ""
+  ) +
+  # Annotate
+  annotate(
+    "text", y = 0.11, x = 3, 
+    label = str_wrap("Positive values: Females have less education (more excluded)", width = 25),
+    hjust = 1, size = 3, color = "#D81B60"
+    ) +
+  annotate(
+    "text", y = -0.025, x = 2, 
+    label = str_wrap("Negative values: Males have less education (more excluded)",
+                     width = 22),
+    hjust = 1, size = 3, color = "#1E88E5"
+    ) +
+  annotate(
+    "text", y = 0.005, x = 1.1, 
+    label = "Gender parity line\n(equal educational exclusion)", 
+    vjust = -0.85, hjust = 0, size = 3, color = "gray50" 
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.9),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 0.8,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0,
+      halign = 0,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 28, 
+  width = 8, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_28.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_28.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - Unesco Institute for Statistics, Gender Equality in Education [World Inequality Database on Education, Indicator: Less than 4 years of schooling](https://www.education-inequalities.org/indicators/edu4#maxYear=2023&minYear=2018&ageGroup=%22edu4_2024%22)
+  
+:::
