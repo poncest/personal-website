@@ -1,0 +1,355 @@
+---
+title: "Meteorite Mass Distribution and Uncertainty"
+subtitle: "Observed falls show less uncertainty than found meteorites across all classes"
+description: "An exploration of uncertainty in extraterrestrial meteorite mass measurements, comparing observed meteorite falls versus those found later. This visualization reveals how discovery conditions impact measurement precision across different meteorite classes."
+date: "2025-04-29" 
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+"meteorites", "uncertainty", "extraterrestrial", "ggdist", "halfeye plot", "confidence intervals", "statistical uncertainty", "celestial objects", "space rocks", "astronomy"
+  ]
+image: "thumbnails/30dcc_2025_29.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2025/30dcc_2025_29.html"
+  description: "Day 29 of #30DayChartChallenge: Uncertainties & Extraterrestrial. Visualizing how discovery methods affect measurement uncertainty in meteorite masses."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![A halfeye plot showing meteorite mass distribution by class (H Chondrite, L Chondrite, Pallasite, and Iron) with confidence intervals. Each class is split by discovery type (Observed Fall in purple, Found Later in teal).](30dcc_2025_29.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,          # Compact and Flexible Summaries of Data
+  scales,         # Scale Functions for Visualization
+  lubridate,      # Make Dealing with Dates a Little Easier
+  ggdist,         # Visualizations of Distributions and Uncertainty 
+  camcorder       # Record Your Plot History
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+meteorite_landings <- read_csv(
+  here::here(
+    "data/30DayChartChallenge/2025/Meteorite_Landings_20240731.csv")) |> 
+  clean_names() 
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(meteorite_landings)
+skim(meteorite_landings)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Tidy ----
+meteorites <- meteorite_landings |> 
+  mutate(
+    fall = if_else(tolower(fall) == "fell", "Observed Fall", "Found Later"),
+    mass_g = as.numeric(mass_g),
+    year = as.numeric(year),
+    class_simplified = case_when(
+      str_detect(recclass, "^H") ~ "H Chondrite",
+      str_detect(recclass, "^L") ~ "L Chondrite",
+      str_detect(recclass, "^LL") ~ "LL Chondrite",
+      str_detect(recclass, "Iron") ~ "Iron",
+      str_detect(recclass, "Pallasite") ~ "Pallasite",
+      TRUE ~ "Other"
+    )
+  ) |>
+  filter(
+    !is.na(mass_g) & !is.na(year) & !is.na(recclass),
+    class_simplified %in% c("H Chondrite", "L Chondrite", "Iron", "Pallasite"),
+    mass_g >= 10 & mass_g <= 100000
+  ) 
+
+# Class statistics 
+class_stats <- meteorites |>
+  group_by(class_simplified) |>
+  summarize(
+    median_mass = median(mass_g),
+    count = n(),
+    .groups = "drop"
+  ) |>
+  arrange(desc(median_mass))
+
+# Reorder class factor levels based on median mass
+meteorites <- meteorites |>
+  mutate(
+    class_simplified = factor(
+      class_simplified, 
+      levels = class_stats$class_simplified)
+    )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "Observed Fall" = "#593C8F", "Found Later" = "#1B9AAA", "Other" = 'gray'
+    )
+  )          
+ 
+### |-  titles and caption ----
+# text
+title_text    <- str_glue("Meteorite Mass Distribution and Uncertainty")
+
+subtitle_text <- str_glue("Observed falls show less uncertainty than found meteorites across all classes")
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2025,
+  dcc_day = 29,
+  source_text =  "Meteorite Landings. University of Rochester" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Legend
+    legend.position = "bottom",
+    
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.y = element_text(color = colors$text, size = rel(0.8), 
+                                hjust = 0.5, margin = margin(r = 10)),
+    axis.title.x = element_text(color = colors$text, size = rel(0.8), 
+                                hjust = 0.5, margin = margin(t = 10)),
+    
+    axis.line.x = element_line(color = "gray50", linewidth = .2),
+    
+    # Grid elements
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.y = element_line(color = "gray65", linewidth = 0.05),
+    panel.grid.major.x = element_line(color = "gray65", linewidth = 0.05),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 20, b = 10, l = 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme) 
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot ----
+p <- ggplot(meteorites, aes(x = class_simplified, y = mass_g, fill = fall)) +
+  # Geoms
+  stat_halfeye(
+    aes(fill = fall),
+    .width = c(0.50, 0.80, 0.95),
+    interval_alpha = 0.8,
+    slab_alpha = 0.7,
+    point_alpha = 1.0,
+    scale = 0.8,
+    position = position_dodge(width = 0.6),
+    color = "black"
+  ) +
+  # Scales
+  scale_y_log10(
+    labels = function(x) paste0(x / 1000, " kg"),
+    breaks = c(10, 100, 1000, 10000, 100000)
+  ) +
+  scale_fill_manual(
+    values = colors$palette,
+    name = "Discovery Type"
+  ) +
+  scale_x_discrete(
+    labels = function(x) {
+      counts <- class_stats$count[match(x, class_stats$class_simplified)]
+      paste0(x, "\n(n= ", scales::comma(counts), ")")
+    }
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "Mass (kilograms, log scale)"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.9),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 0.8,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 0.65,
+      hjust = 0.5,
+      halign = 0.5,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2025, 
+  day = 29, 
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2025_29.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/30dcc_2025_29.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+   - Pandit, Aabha; Romanowski, Alois; Owen, Heather (2024). [Meteorite Landings. University of Rochester.](https://doi.org/10.60593/ur.d.26462452.v1)
+  
+:::
