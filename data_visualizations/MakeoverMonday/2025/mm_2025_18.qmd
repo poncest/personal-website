@@ -1,0 +1,398 @@
+---
+title: "Trump Approval Ratings Across Selected Demographic Groups"
+subtitle: "Net approval and disapproval percentages from Pew Research survey, April 7-13, 2025"
+description: "A visual analysis of Trump approval ratings across key demographic groups based on Pew Research Center data. This visualization reveals significant disparities in approval ratings, with substantial gaps between political affiliations, racial/ethnic groups, education levels, age groups, and genders."
+author: "Steven Ponce"
+date: "2025-04-28" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+"approval ratings", "political polling", "demographic analysis", "data visualization", "Pew Research", "lollipop chart", "ggplot2", "trump", "politics", "opinion polling"
+]
+image: "thumbnails/mm_2025_18.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:                     
+  permalink: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_18.html"
+  description: "MakeoverMonday week 18: Visualizing Trump approval ratings across demographic groups using Pew Research Center data, highlighting the stark contrasts in political support among different segments of the population."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+### Original
+
+The original visualization __Trump Approval Ratings__ comes from [Pew Research Center "Evaluations of Trump: Job approval and confidence on issues"](https://www.pewresearch.org/politics/2025/04/23/evaluations-of-trump-job-approval-and-confidence-on-issues/)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_18/original_chart.png)
+
+### Makeover
+
+![Bar chart titled 'Trump Approval Ratings Across Selected Demographic Groups' showing approval and disapproval percentages across different demographics. Black Americans show highest disapproval (82%) with lowest approval (14%), while Republicans show highest approval (75%) with lowest disapproval (24%). Other groups including Hispanic, Postgrad, Ages 18-29, Women, Total population, Men, and White Americans all show higher disapproval than approval, with White Americans being closest to parity (49% approval, 51% disapproval). Data from Pew Research survey, April 7-13, 2025.](mm_2025_18.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    lubridate,      # Make Dealing with Dates a Little Easier
+    camcorder       # Record Your Plot History 
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  8,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+## Original Chart
+# Trump Approval Ratings
+# https://data.world/makeovermonday/2025w18-trump-approval-ratings
+
+##  Article
+# Pew Research Center "Evaluations of Trump: Job approval and confidence on issues"
+# https://www.pewresearch.org/politics/2025/04/23/evaluations-of-trump-job-approval-and-confidence-on-issues/
+
+approval_ratings_raw <- read_csv(
+  here::here('data/MakeoverMonday/2025/Trump Approval Ratings - Response.csv')) |> 
+    clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(approval_ratings_raw)
+skim(approval_ratings_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+
+lollipop_data <- approval_ratings_raw |>
+  # Select key demographics but categorize them
+  filter(demographic %in% c(
+    "Total", "Men", "Women", "White", "Black", "Hispanic", 
+    "Ages 18-29", "Postgrad", "Rep/Lean Rep", "Dem/Lean Dem"
+  )) |>
+  # Add proper categorization
+  mutate(                       
+    category = case_when(
+      demographic %in% c("Men", "Women") ~ "Gender",
+      demographic %in% c("White", "Black", "Hispanic") ~ "Race/Ethnicity",
+      demographic == "Ages 18-29" ~ "Age",
+      demographic == "Postgrad" ~ "Education",
+      demographic %in% c("Rep/Lean Rep", "Dem/Lean Dem") ~ "Political Affiliation",
+      TRUE ~ "Overall"
+    ),
+    # Order demographics by approval gap (disapproval - approval)
+    approval_gap = net_disapprove - net_approve,
+    demographic = reorder(demographic, approval_gap)
+  ) |>
+  select(demographic, category, net_approve, net_disapprove, approval_gap)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "#53917E", "#6D1A36"
+))
+  
+### |-  titles and caption ----
+title_text <- str_wrap("Trump Approval Ratings Across Selected Demographic Groups", width = 80)
+subtitle_text <- str_wrap("Net approval and disapproval percentages from Pew Research survey, April 7-13, 2025\nNote: Selected representative groups shown from original dataset of 23 demographic categories",
+                          width = 85)
+
+# Create caption
+caption_text <- create_mm_caption(
+    mm_year = 2025,
+    mm_week = 18,
+    source_text = "Pew Research Center"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Legend formatting
+    legend.position = "top",
+    legend.title = element_text(face = "bold"),
+
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5), 
+    axis.ticks.length = unit(0.2, "cm"), 
+
+    # Axis formatting
+    axis.title.x = element_text(face = "bold", size = rel(1.14)),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(face = "bold", size = rel(1)),
+    
+    # Grid lines
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Margin
+    plot.margin = margin(20, 30, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot  ----
+
+p <- ggplot(lollipop_data) +
+  # Geoms
+  geom_vline(xintercept = 50, color = "gray90", linetype = "dashed") +
+  geom_segment(
+    aes(
+      x = demographic, xend = demographic,
+      y = net_approve, yend = net_disapprove
+    ),
+    color = "gray50",
+    linewidth = 0.6
+  ) +
+  geom_point(aes(x = demographic, y = net_approve),
+    size = 4,
+    shape = 16,
+    color = colors$palette[1]
+  ) +
+  geom_point(aes(x = demographic, y = net_disapprove),
+    size = 4,
+    shape = 17,
+    color = colors$palette[2]
+  ) +
+  geom_text(
+    aes(
+      x = demographic, y = net_approve,
+      label = paste0(net_approve, "%")
+    ),
+    nudge_y = -5, nudge_x = 0.1, size = 3.2,
+    color = colors$palette[1]
+  ) +
+  geom_text(
+    aes(
+      x = demographic, y = net_disapprove,
+      label = paste0(net_disapprove, "%")
+    ),
+    nudge_y = 5, nudge_x = 0.1, size = 3.2,
+    color = colors$palette[2]
+  ) +
+  geom_text(
+    data = distinct(lollipop_data, demographic, category),
+    aes(x = demographic, y = -10, label = category),
+    hjust = 0, size = 3, color = "gray30", fontface = "italic"
+  ) +
+  # Annotate
+  annotate(
+    "point",
+    x = 1.5, y = 90,
+    shape = 16, size = 4, color = colors$palette[1]
+  ) +
+  annotate(
+    "text",
+    x = 1.5, y = 91,
+    label = "  Approval", hjust = 0, size = 3.5, color = colors$palette[1]
+  ) +
+  annotate(
+    "point",
+    x = 1, y = 90,
+    shape = 17, size = 4, color = colors$palette[2]
+  ) +
+  annotate(
+    "text",
+    x = 1, y = 91,
+    label = "  Disapproval", hjust = 0, size = 3.5, color = colors$palette[2]
+  ) +
+  # Scales
+  scale_y_continuous(
+    limits = c(-10, 100),
+    breaks = seq(0, 100, 25)
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "Percentage"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.5),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 15)
+    ),
+    plot.caption = element_markdown(
+      size   = rel(0.65),
+      family = fonts$caption,
+      color  = colors$caption,
+      hjust  = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "makeovermonday", 
+  year = 2025,
+  week = 18,
+  width = 10, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_18.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_18.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data:
+
+  - Makeover Monday 2025 Week 18: [Work Productivity]https://data.world/makeovermonday/2025w18-trump-approval-ratings)
+  
+2. Article
+
+- Pew Research Center: [Evaluations of Trump: Job approval and confidence on issues](https://www.pewresearch.org/politics/2025/04/23/evaluations-of-trump-job-approval-and-confidence-on-issues/)
+ 
+:::
