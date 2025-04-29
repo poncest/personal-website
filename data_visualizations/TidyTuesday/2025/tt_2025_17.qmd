@@ -1,0 +1,385 @@
+---
+title: "Topic-Speaker Bipartite Network for useR! 2025 Conference"
+subtitle: "Connections between speakers and topics"
+description: "Exploring the connections between speakers and topics at the upcoming useR! 2025 conference using network analysis. This visualization uses a bipartite network approach to reveal how speakers cluster around five key topics in the R community: Visualization, Machine Learning, Data Wrangling, Package Development, and Reproducibility."
+author: "Steven Ponce"
+date: "2025-04-29" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+"network-analysis", "bipartite-network", "useR2025", "conference-data", "ggplot2", "igraph", "r-community", "data-science", "network-visualization", "speaker-topics"
+]
+image: "thumbnails/tt_2025_17.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_17.html"
+  description: "#TidyTuesday week 17: Visualizing speaker-topic connections for the useR! 2025 conference through a bipartite network graph that reveals community clustering and cross-disciplinary interests."
+
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![Topic-Speaker Bipartite Network for useR! 2025 Conference. The visualization shows connections between speakers (salmon-colored circles) and five topics (blue circles with labels): Visualization, Machine Learning, Data Wrangling, Package Development, and Reproducibility. The network clusters speakers around their respective topics, with some speakers positioned between multiple topics, indicating cross-disciplinary interests. The layout places topics centrally, with speakers radiating outward, creating a star-like pattern for each topic cluster.](tt_2025_17.png){#fig-1}
+
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    igraph,         # Network Analysis and Visualization
+    ggrepel,        # Automatically Position Non-Overlapping Text Labels with 'ggplot2'
+    camcorder       # Record Your Plot History 
+    )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  8,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 17) 
+
+user2025_raw <- tt$user2025 |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(user2025_raw)
+skim(user2025_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+user2025 <- user2025_raw |>
+    mutate(
+        keywords_list = str_split(keywords, ", "),
+        co_authors = replace_na(co_authors, "")
+    )
+
+# Define Topic Mapping 
+topic_definitions <- tribble(
+    ~pattern, ~topic,
+    "visualization|ggplot2|shiny|dashboard|interactive", "Visualization",
+    "machine learning|deep learning|statistics|modeling|neural", "Machine Learning",
+    "data wrangling|tidyverse|data.table|cleaning|manipulation", "Data Wrangling",
+    "reproducibility|rmarkdown|workflow|version control|git", "Reproducibility",
+    "package|cran|bioconductor|github", "Package Development"
+)
+
+# Expand to keyword-topic map
+keyword_topics <- map_dfr(seq_len(nrow(topic_definitions)), function(i) {
+    pattern <- topic_definitions$pattern[i]
+    topic <- topic_definitions$topic[i]
+    matched <- unique(unlist(user2025$keywords_list))[str_detect(unique(unlist(user2025$keywords_list)), regex(pattern, ignore_case = TRUE))]
+    tibble(keyword = matched, topic = topic)
+    }) |> distinct()
+
+# Create Edges ----
+speaker_topic_edges <- user2025 |>
+    unnest(keywords_list) |>
+    inner_join(keyword_topics, by = c("keywords_list" = "keyword")) |>
+    select(speakers, topic) |>
+    distinct()
+
+# Build Graph ----
+g <- graph_from_data_frame(speaker_topic_edges |> rename(from = speakers, to = topic), directed = FALSE)
+
+# Set node attributes
+V(g)$type <- ifelse(V(g)$name %in% speaker_topic_edges$speakers, "speaker", "topic")
+V(g)$label <- ifelse(V(g)$type == "speaker", str_trunc(str_extract(V(g)$name, "^[^(]+"), 25), V(g)$name)
+deg <- degree(g)
+V(g)$size <- ifelse(V(g)$type == "speaker", rescale(deg, to = c(3.5, 6)), 10)
+V(g)$color <- ifelse(V(g)$type == "speaker", "#F4978E", "#99C1DE")
+V(g)$shape <- 21
+
+# Compute Layout ----
+set.seed(42)
+layout_coords <- layout_with_fr(g) + matrix(rnorm(length(V(g)) * 2, sd = 0.15), ncol = 2)
+
+# Build Plot Data ----
+nodes_df <- data.frame(
+    name = V(g)$name,
+    type = V(g)$type,
+    color = V(g)$color,
+    shape = V(g)$shape,
+    size = V(g)$size,
+    label = V(g)$label,
+    x = layout_coords[, 1],
+    y = layout_coords[, 2]
+)
+
+edges_df <- as_data_frame(g) |>
+    left_join(nodes_df |> select(name, x_from = x, y_from = y), by = c("from" = "name")) |>
+    left_join(nodes_df |> select(name, x_to = x, y_to = y), by = c("to" = "name"))
+
+# Label high-degree speakers only
+high_deg_names <- names(deg[deg >= 2 & V(g)$type == "speaker"])
+speaker_labels_df <- nodes_df |> filter(name %in% high_deg_names)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = c(
+        "speaker" = "#F4978E", "topic" = "#99C1DE"
+    )
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("Topic-Speaker Bipartite Network for useR! 2025 Conference")
+subtitle_text <- str_glue("Connections between speakers and topics")
+
+# Create caption
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 17,
+    source_text =  "Program for the useR! 2025 conference" 
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Text styling 
+        plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), margin = margin(b = 10)),
+        plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+        
+        # Axis elements
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        
+        # Grid elements
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(),
+        
+        # Legend elements
+        legend.position = "plot",
+        legend.direction = "horizontal",
+        legend.title = element_text(family = fonts$text, size = rel(0.8), face = "bold"),
+        legend.text = element_text(family = fonts$text, size = rel(0.7)),
+        
+         # Plot margins 
+        plot.margin = margin(t = 20, r = 20, b = 20, l = 20),
+    )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot  ----
+p <- ggplot() +
+    # Geoms
+    geom_segment(
+        data = edges_df, aes(x = x_from, y = y_from, xend = x_to, yend = y_to),
+        color = "#CCCCCC", alpha = 0.5, size = 0.3
+        ) +
+    geom_point(
+        data = nodes_df,
+        aes(x = x, y = y, fill = type, size = size),
+        shape = 21, stroke = 0.4, color = "#333333", show.legend = FALSE
+        ) +
+    geom_text(
+        data = nodes_df |> filter(type == "topic"),
+        aes(x = x, y = y, label = label),
+        color = "#1A1A1A", size = 5, fontface = "bold"
+        ) +
+    geom_text_repel(
+        data = speaker_labels_df,
+        aes(x = x, y = y, label = label),
+        color = "#333333", size = 3.2,
+        max.overlaps = 20, point.padding = 0.3, box.padding = 0.4,
+        segment.color = "#AAAAAA", segment.alpha = 0.6,
+        force = 0.5, seed = 42
+        ) +
+    # Scales
+    scale_fill_manual(values = colors$palette) +
+    scale_size_identity() +
+    coord_equal(clip = "off") +
+    # Labs
+    labs(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text,
+        x = NULL,
+        y = NULL,
+    ) +
+    # Theme
+    theme(
+        plot.title = element_text(
+            size = rel(1.4),
+            family = fonts$title,
+            face = "bold",
+            color = colors$title,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+        ),
+        plot.subtitle = element_text(
+            size = rel(0.85),
+            family = fonts$subtitle,
+            color = alpha(colors$subtitle, 0.9),
+            lineheight = 1.2,
+            margin = margin(t = 5, b = 10)
+        ),
+        plot.caption = element_markdown(
+            size = rel(0.65),
+            family = fonts$caption,
+            color = colors$caption,
+            hjust = 0.5,
+            margin = margin(t = 10)
+        )
+    )  
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 17, 
+  width = 8,
+  height = 8
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_17.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_17.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data Sources:
+
+   - TidyTuesday 2025 Week 17: [useR! 2025 program](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-04-29)
+
+:::
