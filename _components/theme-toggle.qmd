@@ -66,10 +66,11 @@ function toggleTheme() {
   document.body.appendChild(announcement);
   
   setTimeout(() => {
-    document.body.removeChild(announcement);
-    location.reload();
-  }, 1000);
-}
+  document.body.removeChild(announcement);
+  // Preserve URL parameters when reloading
+  const currentUrl = window.location.href;
+  location.href = currentUrl; // This preserves URL parameters
+}, 1000);
 
 document.addEventListener('DOMContentLoaded', () => {
   const currentTheme = localStorage.getItem('theme') || 'light';
