@@ -1,5 +1,3 @@
-//netlify-build.sh
-
 #!/bin/bash
 
 # Check if this is a preview build
