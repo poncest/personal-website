@@ -5,11 +5,6 @@
 [[plugins]]
 package = "@quarto/netlify-plugin-quarto"
 
-# Add caching plugin
-[[plugins]]
-package = "@netlify/plugin-cachier"
-  [plugins.inputs]
-  paths = [".quarto", "_freeze"]
 
 [build]
   command = "bash netlify-build.sh"
