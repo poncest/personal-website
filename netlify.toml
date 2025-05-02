@@ -1,20 +1,11 @@
 [[plugins]]
 package = "@quarto/netlify-plugin-quarto"
+  [plugins.inputs]
+  version = "latest"
+  cmd = "render"
 
 [build]
-  command = "quarto render"
   publish = "_site"
 
 [context.branch-deploy]
   command = "quarto render --to html --execute-daemon"
-
-# Keep your header configurations
-[[headers]]
-  for = "/*.js"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"
-
-[[headers]]
-  for = "/*.css"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"
