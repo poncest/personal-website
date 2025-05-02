@@ -10,7 +10,13 @@ project:
     timeout: 3600
 
 execute:
-  freeze: auto                
+  cache: true
+  freeze: auto
+  echo: fenced  # Only show code when explicitly fenced
+  warning: false  # Hide warnings unless necessary
+  message: false  # Hide messages unless necessary
+  fig-dpi: 96  # Lower DPI for faster rendering (web standard)
+  fig-format: png  # More efficient than PDF for web              
 
 website:
   title: "Steven Ponce"
@@ -108,3 +114,15 @@ format:
             }
           }
           </script>
+    # Resource optimization
+    smooth-scroll: true
+    anchor-sections: true
+    code-fold: show
+    code-tools: false
+    code-link: false  # Disable since you're getting warnings about this
+    html-math-method: katex  # Faster than MathJax
+    
+     # Performance tweaks
+    self-contained: false
+    minimal: false
+    standalone: false  # Don't include unnecessary libraries
