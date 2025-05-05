@@ -1,0 +1,530 @@
+---
+title: "The Uneven Landscape of Asian Restaurants in the U.S."
+subtitle: "Comparing restaurant presence with Asian American population distribution"
+description: "This visualization explores the disparity between Asian restaurant types in the U.S. and their corresponding population demographics. Based on Pew Research Center data, it reveals how Chinese, Japanese, and Thai cuisines dominate the Asian restaurant landscape while Filipino and Indian cuisines remain significantly under-represented despite their larger population shares."
+author: "Steven Ponce"
+date: "2025-05-05" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+"Asian restaurants", "demographic analysis", "representation gap", "cuisine diversity", "population distribution", "data storytelling", "patchwork", "restaurant industry", "ethnic food", "cultural representation", "data journalism"
+]
+image: "thumbnails/mm_2025_19.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:                     
+  permalink: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_19.html"
+  description: "MakeoverMonday week 19: The Uneven Landscape of Asian Restaurants in the U.S. - Exploring how 78% of Asian restaurants serve just three cuisines, despite representing only 33% of the Asian American population"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+### Original
+
+The original visualization __Asian Restaurant in the US__ comes from [71% of Asian restaurants in the U.S. serve Chinese, Japanese or Thai food](https://www.pewresearch.org/short-reads/2023/05/23/71-of-asian-restaurants-in-the-u-s-serve-chinese-japanese-or-thai-food/)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_19/original_chart.png)
+
+### Makeover
+
+![A data visualization titled 'The Uneven Landscape of Asian Restaurants in the U.S.' showing two main charts. The top chart displays the composition of Asian restaurants by cuisine type, with Chinese (39%), Japanese (28%), and Thai (11%) dominating. The bottom chart shows representation gaps, highlighting how Japanese (+21%), Chinese (+15%), and Thai (+9%) cuisines are over-represented compared to their population percentages, while Filipino (-19%) and Indian (-14%) cuisines are significantly under-represented. Key insights explain that only 12% of U.S. restaurants serve Asian food and that the three dominant cuisines represent only one-third of Asian Americans.](mm_2025_19.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    janitor,        # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,          # Compact and Flexible Summaries of Data
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    lubridate,      # Make Dealing with Dates a Little Easier
+    readxl,         # Read Excel Files
+    patchwork,      # The Composer of Plots
+    camcorder       # Record Your Plot History 
+  )
+})
+
+### |- figure size ----
+gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+## Original Chart
+# Asian Restaurant in the US
+# https://data.world/makeovermonday/2025-w19-asian-restaurants-in-the-us
+
+##  Article
+# Pew Research Center "71% of Asian restaurants in the U.S. serve Chinese, Japanese or Thai food"
+# https://www.pewresearch.org/short-reads/2023/05/23/71-of-asian-restaurants-in-the-u-s-serve-chinese-japanese-or-thai-food/
+
+sheet1_raw <- read_excel(
+  here::here('data/MakeoverMonday/2025/MakeoverMonday 2025 W19_ Asian Restaurants in the US.xlsx'),
+                                   sheet = 1) |> 
+  clean_names()
+
+sheet2_raw <- read_excel(
+  here::here('data/MakeoverMonday/2025/MakeoverMonday 2025 W19_ Asian Restaurants in the US.xlsx'),
+                                   sheet = 2) |> 
+  clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(sheet1_raw)
+glimpse(sheet2_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+sheet2_clean <- sheet2_raw |>
+  mutate(percent_of_asian_restaurants = case_when(
+    percent_of_asian_restaurants == "<1" ~ "0.5",
+    TRUE ~ percent_of_asian_restaurants
+  )) |>
+  mutate(percent_of_asian_restaurants = as.numeric(percent_of_asian_restaurants))
+
+# Add Asian population percentages based on Pew Research Center data
+# Source: "71% of Asian restaurants in the U.S. serve Chinese, Japanese or Thai food"
+# Published by Pew Research Center on May 23, 2023
+population_data <- tibble(
+  category = c("Chinese", "Japanese", "Thai", "Indian", "Vietnamese", "Korean", 
+               "Filipino", "Pakistani", "Mongolian", "Burmese", "Other Asian/Unspecified"),
+  percent_of_asian_population = c(24, 7, 2, 21, 11, 9, 20, 3, 0.1, 0.9, 2)
+)
+
+# Combine datasets
+sheet2_combined <- sheet2_clean |>
+  left_join(population_data, by = "category") |> 
+  mutate(
+    percent_of_all_restaurants = percent_of_asian_restaurants * sheet1_raw$percent_of_all_us_restaurants[1] / 100,
+    representation_ratio = percent_of_asian_restaurants / percent_of_asian_population,
+    representation_diff = percent_of_asian_restaurants - percent_of_asian_population,
+    representation_status = ifelse(representation_diff > 0, "over represented", "under represented")
+  )
+
+# plot 1 data: composition 
+composition_data <- sheet2_combined |>
+  filter(category != "Other Asian/Unspecified") |>
+  arrange(desc(percent_of_asian_restaurants)) |>
+  mutate(label_text = paste0(percent_of_asian_restaurants, "%"))
+
+# plot 2 data: diverging bars
+diverging_data <- sheet2_combined |>
+  filter(
+    category != "Other Asian/Unspecified",
+    percent_of_asian_restaurants >= 1
+    ) |>
+  # Create a temporary data frame with the needed calculations
+  mutate(
+    hjust_value = ifelse(representation_diff > 0, -0.2, 1.2)
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "over represented" =  "#4CAF50",   
+  "under represented" = "#FF9800", 
+  "neutral" = "#BDBDBD" 
+))
+  
+### |-  titles and caption ----
+title_text <- str_wrap("The Uneven Landscape of Asian Restaurants in the U.S.", width = 80)
+subtitle_text <- str_wrap("Comparing restaurant presence with Asian American population distribution",
+                          width = 85)
+
+# Create caption
+caption_text <- create_mm_caption(
+    mm_year = 2025,
+    mm_week = 19,
+    source_text = "Pew Research Center"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Legend formatting
+    legend.position = "top",
+    legend.title = element_text(face = "bold"),
+
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5), 
+    axis.ticks.length = unit(0.2, "cm"), 
+
+    # Axis formatting
+    axis.title.x = element_text(face = "bold", size = rel(0.85)),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(face = "bold", size = rel(0.85)),
+    
+    # Grid lines
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Margin
+    plot.margin = margin(10, 10, 10, 10)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot 1  ----
+# Composition bar chart     
+composition_plt <- composition_data |>
+  ggplot(aes(x = reorder(category, percent_of_asian_restaurants), 
+             y = percent_of_asian_restaurants,
+             fill = representation_status)
+         ) +
+  # Geoms
+  geom_col() +
+  geom_text(aes(label = label_text), 
+            hjust = -0.2, size = 3.5) +
+  # Scales
+  scale_fill_manual(
+    values = colors$palette,
+    name = "Representation"
+  ) +
+  scale_y_continuous(limits = c(0, 45), labels = function(x) paste0(x, "%")) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = "Composition of Asian Restaurants in the U.S.",
+    subtitle = "Percentage of Asian restaurants by cuisine type",
+    x = NULL,
+    y = "Percentage of Asian Restaurants"
+  ) +
+  # Theme
+  theme(
+    legend.position = "plot",
+    panel.grid.major.y = element_blank(),
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 9, color = "gray50")
+  )
+
+### |-  Plot 2  ----
+# Diverging bar chart
+diverging_plt <- diverging_data |>
+  ggplot(aes(x = reorder(category, representation_diff), 
+             y = representation_diff,
+             fill = representation_status)
+         ) +
+  # Geoms
+  geom_col() +
+  geom_hline(yintercept = 0, linewidth = 0.5, color = 'gray20') +
+  geom_text(
+    aes(label = paste0(ifelse(representation_diff > 0, "+", ""), 
+                       round(representation_diff, 1), "%"),
+        hjust = hjust_value),
+    size = 3
+  ) +
+  # Scales
+  scale_fill_manual(
+    values = colors$palette,
+    name = "Representation"
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    limits = c(-23, 25)
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = "Over and Under-Representation of Asian Cuisines",
+    subtitle = "Difference between restaurant percentage and population percentage",
+    x = NULL,
+    y = "Representation Gap (%)"
+  ) +
+  # Theme
+  theme(
+    legend.position = "top",
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8),
+    panel.grid.major.y = element_blank(),
+    plot.title = element_text(size = 12, face = "bold"),
+    plot.subtitle = element_text(size = 9, color = "gray50")
+  )
+
+### |-  Plot 3  ----
+# title panel
+title_panel <- ggplot() + 
+  # Scales
+  xlim(0, 1) + ylim(0, 1) +
+  # Annotate
+  annotate(
+    "text", x = 0, y = 0.6, 
+    label = title_text,
+    hjust = 0, vjust = 0,
+    color = colors$title, size = 9, 
+    fontface = "bold", family = fonts$title
+  ) +
+  annotate(
+    "text", x = 0, y = 0.2, 
+    label = subtitle_text,
+    hjust = 0, vjust = 0,
+    size = 5, color = "gray50", family = fonts$subtitle
+  ) +
+  # Theme
+  theme_void() +
+  theme(
+    plot.margin = margin(20, 10, 10, 10),
+    plot.background  = element_rect(fill = colors$background, color = colors$background),
+    panel.background = element_rect(fill = colors$background, color = colors$background),
+  )
+
+### |-  Plot 4  ----
+# empty panel
+empty_panel <- ggplot() + 
+  # Theme
+  theme_void() 
+
+### |-  Plot 5  ----
+# insights panel
+insights_panel <- ggplot() + 
+  # Scales
+  xlim(0, 1) + ylim(0, 1) +  
+  # Annotate
+  annotate(
+    "text", x = 0.05, y = 0.95, 
+    label = "Key Insights:",
+    hjust = 0, vjust = 1,
+    size = 4.5, fontface = "bold"
+  ) +
+  annotate(
+    "text", x = 0.05, y = 0.82, 
+    label = "• Only 12% of all U.S. restaurants serve Asian food",
+    hjust = 0, vjust = 1,
+    size = 3.2
+  ) +
+  annotate(
+    "text", x = 0.05, y = 0.67, 
+    label = "• Chinese, Japanese, and Thai cuisines dominate the Asian restaurant\n  scene (78%) despite representing only one-third of Asian Americans",
+    hjust = 0, vjust = 1,
+    size = 3.2
+  ) +
+  annotate(
+    "text", x = 0.05, y = 0.47, 
+    label = "• Japanese (+21%) and Thai (+9%) cuisines have the highest\n  over-representation compared to their population shares",
+    hjust = 0, vjust = 1,
+    size = 3.2
+  ) +
+  annotate(
+    "text", x = 0.05, y = 0.32, 
+    label = "• Filipino cuisine shows the largest representation gap: only 1% of Asian\n  restaurants despite Filipinos comprising 20% of Asian Americans",
+    hjust = 0, vjust = 1,
+    size = 3.2
+  ) +
+  annotate(
+    "text", x = 0.05, y = 0.17, 
+    label = "• Indian cuisine shows the second-largest representation gap (-14%),\n  with far fewer restaurants than their population would suggest",
+    hjust = 0, vjust = 1,
+    size = 3.2
+  ) +
+  # Theme
+  theme_void() +
+  theme(
+    plot.margin = margin(0, 5, 0, 5),  
+    plot.background  = element_rect(fill = colors$background, color = colors$background),
+    panel.background = element_rect(fill = colors$background, color = colors$background),
+  )
+
+### |-  Final Plot  ----
+# combined plot
+combined_plot <- title_panel +   # P1
+  insights_panel +               # P2
+  composition_plt +              # P3
+  diverging_plt +                # P4
+  empty_panel +                  # P5
+  plot_layout(
+    design = "
+    AAAAA
+    BCCCC
+    BDDDD
+    EEEEE
+    ",
+    widths = c(4.8, 1, 1, 1, 1),
+    heights = c(0.8, 2, 2, 0.4)
+  ) 
+
+combined_plot <- combined_plot +
+  plot_annotation(
+    caption = caption_text,
+    theme = theme(
+          panel.spacing = unit(15, "pt"),
+          plot.title = element_text(
+            size = rel(1.5),
+            family = fonts$title,
+            face = "bold",
+            color = colors$title,
+            lineheight = 1.1,
+            margin = margin(t = 5, b = 5)
+          ),
+          plot.subtitle = element_text(
+            size = rel(0.85),
+            family = fonts$subtitle,
+            color = colors$subtitle,
+            lineheight = 1.2,
+            margin = margin(t = 5, b = 15)
+          ),
+          plot.caption = element_markdown(
+            size   = rel(0.65),
+            family = fonts$caption,
+            color  = colors$caption,
+            hjust  = 0.5,
+            margin = margin(t = 10)
+          )
+        )
+    )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  combined_plot, 
+  type = "makeovermonday", 
+  year = 2025,
+  week = 19,
+  width = 10, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_19.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_19.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data:
+
+  - Makeover Monday 2025 Week 19: [Asian Restaurant in the US](https://data.world/makeovermonday/2025-w19-asian-restaurants-in-the-us)
+  
+2. Article
+
+- Pew Research Center: [71% of Asian restaurants in the U.S. serve Chinese, Japanese or Thai food](https://www.pewresearch.org/short-reads/2023/05/23/71-of-asian-restaurants-in-the-u-s-serve-chinese-japanese-or-thai-food/)
+ 
+:::
