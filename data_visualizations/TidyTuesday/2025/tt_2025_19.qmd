@@ -1,0 +1,507 @@
+---
+title: "Volatility and Change Patterns in Mount Vesuvius Seismic Activity (2011-2023)"
+subtitle: "Analysis reveals dynamic behavior with high variability across different time scales"
+description: "This visualization examines seismic activity at Mount Vesuvius (2011-2023) using data from Italy's INGV. The analysis reveals a multi-layered temporal story: consecutive earthquakes follow a clustered timing pattern with a median 2.6-hour waiting time; monthly activity shows balanced volatility with nearly equal periods of increase and decrease; and beneath this short-term variability lies distinct multi-year cycles. By analyzing patterns across different time scales, we gain insight into how this famous volcano—currently in a quiescent state—displays both ordered and chaotic behavior simultaneously. This approach demonstrates how temporal volatility analysis can enhance our understanding of complex volcanic systems and potentially improve monitoring strategies."
+author: "Steven Ponce"
+date: "2025-05-10" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+"geology", "volcanology", "seismology", "time-series", "volcanic-activity", 
+"mount-vesuvius", "italy", "natural-hazards", "geophysics", "temporal-patterns",
+"data-visualization", "tidytuesday", "earthquake-analysis", "cyclical-patterns", 
+"volatility-analysis" 
+]
+image: "thumbnails/tt_2025_19.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_19.html"
+  description: "#TidyTuesday week 19: Mount Vesuvius seismic analysis reveals multi-scale patterns - clustered earthquake timing, balanced monthly volatility, and clear multi-year cycles beneath short-term chaos."
+
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![This visualization shows volatility and change patterns in Mount Vesuvius seismic activity from 2011 to 2023 through three related charts. The top chart displays waiting times between consecutive earthquakes on a logarithmic scale, showing that most events occur within 2-20 hours of each other, with a median of 2.6 hours. The middle chart shows month-to-month percentage changes in seismic activity, with nearly balanced increases (72 months, 50%) and decreases (73 months, 50%), suggesting a dynamic but stable volcanic system. The bottom chart presents long-term patterns with monthly counts, a 6-month moving average, and a trend line, revealing multi-year cycles despite short-term volatility.](tt_2025_19.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  scales,        # Scale Functions for Visualization
+  glue,          # Interpreted String Literals
+  patchwork      # The Composer of Plots
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  10,
+  height =  12,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 19)
+
+vesuvius_raw <- tt$vesuvius |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(vesuvius_raw)
+skimr::skim(vesuvius_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+vesuvius <- vesuvius_raw |>
+  mutate(
+    date = as.Date(time),
+    year = year(time),
+    month = month(time),
+    day = day(time),
+    hour = hour(time),
+    weekday = wday(time, label = TRUE),
+    # Create a month-year for time series
+    month_year = floor_date(time, "month"),
+  )
+
+# P1: Monthly event counts with  trend decomposition -----
+monthly_counts <- vesuvius |>
+  count(year, month) |>
+  mutate(date = make_date(year, month, 1))
+
+# Calculate a 6-month moving average
+monthly_counts <- monthly_counts |>
+  arrange(date) |>
+  mutate(moving_avg = zoo::rollmean(n, k = 6, fill = NA, align = "right"))
+
+# P2: Time-to-next events analysis -----
+events_ordered <- vesuvius |>
+  arrange(time) |>
+  mutate(
+    next_event_time = lead(time),
+    hours_to_next = as.numeric(difftime(next_event_time, time, units = "hours"))
+  ) |>
+  filter(!is.na(hours_to_next))
+
+# Calculate statistics
+median_time <- median(events_ordered$hours_to_next, na.rm = TRUE)
+mean_time <- mean(events_ordered$hours_to_next, na.rm = TRUE)
+cv <- sd(events_ordered$hours_to_next, na.rm = TRUE) / mean_time
+
+# P3: Event rate change analysis ----
+events_per_month <- vesuvius |>
+  count(year, month) |>
+  mutate(date = make_date(year, month, 1)) |>
+  arrange(date) |>
+  mutate(
+    prev_month = lag(n),
+    pct_change = (n - prev_month) / prev_month * 100,
+    change_type = ifelse(pct_change > 0, "Increase", "Decrease")
+  ) |>
+  filter(!is.na(pct_change)) |>
+  # Limit extreme values for better visualization (cap at ±200%)
+  mutate(pct_change = pmin(pmax(pct_change, -200), 200))
+
+# Calculate statistics
+increase_count <- sum(events_per_month$change_type == "Increase")
+decrease_count <- sum(events_per_month$change_type == "Decrease")
+total_months <- nrow(events_per_month)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = c(
+        "gray_line" = "#808080",
+        "moving_avg" = "#21908C", 
+        "trend_line" = "#440154",
+        "confidence" = "#440154",
+        "positive_change" = "#3B528B",
+        "negative_change" = "#5DC863",
+        "median_line" = "#FDE725",
+        "hist_bar" = "#21908CFF", 
+        "Decrease" = "#21908CFF", 
+        "Increase" = "#3B528B"
+    )
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("Volatility and Change Patterns in Mount Vesuvius Seismic Activity (2011-2023)")
+
+subtitle_text <- str_glue("Analysis reveals dynamic behavior with high variability across different time scales")
+
+# Create caption
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 19,
+  source_text =  "Italian Istituto Nazionale di Geofisica e Vulcanologia (INGV)"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.14), color  = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$subtitle, size = rel(0.78), margin = margin(b = 20)),
+
+    # Axis elements
+    axis.title = element_text(color = colors$text, face = "bold", size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+
+    # Grid elements
+    panel.grid.minor = element_line(color = "gray80", linewidth = 0.05),
+    panel.grid.major = element_line(color = "gray80", linewidth = 0.05),
+
+    # Legend elements
+    legend.position = "top",
+    legend.direction = "horizontal",
+    legend.title = element_text(family = fonts$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+
+    # Style facet labels
+    strip.text = element_text(size = rel(0.75), face = "bold",
+                              color = colors$title, margin = margin(b = 8, t = 8)
+    ),
+
+    # Add spacing
+    panel.spacing = unit(1.1, "lines"),
+    strip.background = element_rect(fill = "#e0e0e0", color = NA),
+
+    # Plot margins
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Plot  ----
+# P1: Monthly event counts with  trend decomposition -----
+p1 <- ggplot(monthly_counts, aes(x = date)) +
+  # Geoms
+  geom_hline(yintercept = seq(0, 200, by = 50), color = "gray90", linewidth = 0.3) +
+  geom_line(aes(y = n), color = colors$palette["gray_line"], linewidth = 0.5) +
+  geom_line(aes(y = moving_avg), color = colors$palette["moving_avg"], linewidth = 1.2) +
+  geom_smooth(aes(y = n),
+    method = "loess", span = 0.3, color = colors$palette["trend_line"],
+    se = TRUE, fill = colors$palette["confidence"], alpha = 0.15
+  ) +
+  # Annotate
+  annotate("rect", 
+    xmin = as.Date("2011-12-01"), xmax = as.Date("2014-01-01"), 
+    ymin = 100, ymax = 210, 
+    fill = "white", color = "gray80", alpha = 0.8
+    ) +
+  annotate("text",
+    x = as.Date("2012-01-01"), y = 190,
+    label = "Monthly counts", color = colors$palette["gray_line"], hjust = 0, size = 3.5, fontface = "plain"
+  ) +
+  annotate("text",
+    x = as.Date("2012-01-01"), y = 155,
+    label = "6-month average", color = colors$palette["moving_avg"], hjust = 0, size = 3.5, fontface = "plain"
+  ) +
+  annotate("text",
+    x = as.Date("2012-01-01"), y = 120,
+    label = "Long-term trend", color = colors$palette["trend_line"], hjust = 0, size = 3.5, fontface = "plain"
+  ) +
+  annotate("text",
+    x = as.Date("2023-01-01"), y = 20,
+    label = "Purple band shows 95% confidence interval", color = colors$palette["confidence"],
+    hjust = 0.5, size = 3, fontface = "italic"
+  ) +
+  # Scales
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(breaks = seq(0, 200, by = 50)) +
+  # Labs
+  labs(
+    title = "Long-term Patterns in Seismic Activity",
+    subtitle = "Monthly event counts with smoothing reveal cyclical patterns.\nDespite short-term volatility, seismic activity follows multi-year cycles",
+    x = NULL,
+    y = "Number of Events"
+  )
+
+# P2: Time-to-next events analysis -----
+p2 <- ggplot(events_ordered, aes(x = hours_to_next)) +
+  # Geoms
+  geom_histogram(
+    aes(y = after_stat(count)),
+    breaks = c(0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000),
+    fill = colors$palette["hist_bar"], color = "#333333", alpha = 0.9
+  ) +
+  geom_vline(
+    xintercept = median_time,
+    linetype = "dashed",
+    color = colors$palette["median_line"], 
+    linewidth = 1
+  ) +
+  # Annotate
+  annotate("label",
+    x = 200, y = 1000,
+    label = paste0(
+      "Median: ", round(median_time, 1), " hours\n",
+      "Mean: ", round(mean_time, 1), " hours\n",
+      "Coef. of Variation: ", round(cv, 2)
+    ),
+    color = "black", fill = "white", alpha = 0.8, size = 3.5, fontface = "plain"
+  ) +
+  # Scales
+  scale_x_log10(
+    breaks = c(0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000),
+    labels = c("0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "50", "100", "200", "500", "1000"),
+    limits = c(0.05, 2000)
+  ) +
+  # Labs
+  labs(
+    title = "Waiting Times Between Consecutive Events",
+    subtitle = "Distribution reveals characteristic timing between earthquakes.\nHigh CoV indicates clustered, non-random earthquake timing",
+    x = "Hours to Next Event (log scale)",
+    y = "Frequency"
+  )
+
+# P3: Event rate change analysis ----
+p3 <- ggplot(events_per_month, aes(x = date, y = pct_change, fill = change_type)) +
+  # Geoms
+  geom_hline(yintercept = 0, linetype = "solid", color = "black", linewidth = 0.7) +
+  geom_hline(yintercept = c(-50, 50, 100, -100), linetype = "dotted", color = "gray70") +
+  geom_col(width = 25) +
+
+  # Annotate 
+  annotate("rect",
+    xmin = as.Date("2022-04-01"), xmax = as.Date("2022-07-01"),
+    ymin = 175, ymax = 190,
+    fill = colors$palette["Increase"], 
+  ) +
+  annotate("text",
+    x = as.Date("2022-08-01"), y = 180,
+    label = paste0("Increases: ", increase_count, " months (", round(increase_count / total_months * 100), "%)"),
+    color = "black", hjust = 0, size = 3.5, fontface = "plain"
+  ) +
+  annotate("rect",
+    xmin = as.Date("2022-04-01"), xmax = as.Date("2022-07-01"),
+    ymin = -100, ymax = -85,
+    fill = colors$palette["Decrease"]
+  ) +
+  annotate("text",
+    x = as.Date("2022-08-01"), y = -95,
+    label = paste0("Decreases: ", decrease_count, " months (", round(decrease_count / total_months * 100), "%)"),
+    color = "black", hjust = 0, size = 3.5, fontface = "plain"
+  ) +
+  annotate("text",
+    x = median(events_per_month$date), y = -95,     
+    label = "Values capped at ±200% for visualization clarity",
+    color = "gray30", size = 3, fontface = "italic"
+ ) +
+  # Scales 
+  scale_fill_manual(
+    values = colors$palette,
+    name = "Change"
+  ) +
+  scale_x_date(
+    date_breaks = "2 year",
+    date_labels = "%Y",
+    limits = c(min(events_per_month$date), max(events_per_month$date))
+  ) +
+  scale_y_continuous(
+    breaks = c(-200, -100, -50, 0, 50, 100, 200),
+    labels = c("-200%", "-100%", "-50%", "0%", "+50%", "+100%", "+200%")
+  ) +
+  # Labs 
+  labs(
+    title = "Month-to-Month Volatility in Seismic Activity",
+    subtitle = "Percentage change shows high variability between consecutive months.\nNearly balanced increases/decreases suggest a dynamic but stable volcanic system",
+    x = NULL,
+    y = "Percent Change"
+  ) +
+  # Theme
+  theme(
+    plot.subtitle = element_text(lineheight = 1.2),
+    legend.position = "none"
+  )
+  
+# Combined Plot ----
+combined_plot <- (p2 / p3 / p1) +
+    plot_layout(
+        heights = c(0.9, 0.9, 1.3),  
+        ) 
+
+combined_plot <- combined_plot +    
+    plot_annotation(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text,
+        theme = theme(
+            plot.title = element_text(
+                size = rel(1.4),
+                family = fonts$title,
+                face = "bold",
+                color = colors$title,
+                lineheight = 1.1,
+                margin = margin(t = 5, b = 5)
+            ),
+            plot.subtitle = element_text(
+                size = rel(0.95),
+                family = fonts$subtitle,
+                color = alpha(colors$subtitle, 0.9),
+                lineheight = 1.2,
+                margin = margin(t = 5, b = 10)
+            ),
+            plot.caption = element_markdown(
+                size = rel(0.6),
+                family = fonts$caption,
+                color = colors$caption,
+                hjust = 0.5,
+                margin = margin(t = 10)
+            )
+        )
+    )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 19, 
+  width = 10,
+  height = 12
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_19.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_19.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 19: [Seismic Events at Mount Vesuvius](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-05-13)
+:::
