@@ -1,0 +1,431 @@
+---
+title: "Religious Representation Gap: Migrants vs. General Population"
+subtitle: "Christians are significantly overrepresented among global migrants, while Hindus and the religiously unaffiliated are underrepresented"
+description: "A visualization remake of Pew Research Center data exploring how religious groups are represented differently among migrants versus the general global population. This diverging bar chart highlights that Christians, Muslims, and Jews make up higher shares of migrants than of the general population, while Hindus and the religiously unaffiliated are notably underrepresented among migrants."
+author: "Steven Ponce"
+date: "2025-05-14" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+"religious representation", "migration", "demographics", "diverging bar chart", "Pew Research", "data journalism", "religious diversity", "global migration", "ggplot2", "data storytelling", "population studies"
+]
+image: "thumbnails/mm_2025_20.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:                     
+  permalink: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_20.html"
+  description: "MakeoverMonday week 20: Which religious groups are overrepresented among global migrants? My #MakeoverMonday visualization shows Christians make up 47% of migrants but only 30% of the general population, while Hindus and the unaffiliated are significantly underrepresented. #DataViz #RStats"
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+### Original
+
+The original visualization __Globally, Christians are the lartgest migran group__ comes from [The Religious Composition of the World’s Migrants: ](https://www.pewresearch.org/religion/2024/08/19/the-religious-composition-of-the-worlds-migrants/)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_20/original_chart.png)
+
+### Makeover
+
+![A diverging bar chart showing religious representation gaps between migrants and general population. Christians (+16.6), Muslims (+3.7), and Jewish (+0.9) are overrepresented among migrants (purple bars extending right), while Hindus (-10.2) and religiously unaffiliated (-10) are underrepresented (pink bars extending left). Buddhist representation is nearly equal (-0.1). Horizontal arrows indicate the direction of over- and underrepresentation.](mm_2025_20.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    lubridate,      # Make Dealing with Dates a Little Easier
+    paletteer       # Comprehensive Collection of Color Palettes
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+## Original Chart
+# The Religious Composition of the World’s Migrants
+# https://data.world/makeovermonday/2025w20-the-religious-composition-of-the-worlds-migrants
+
+## Article
+# Pew Research Center "The Religious Composition of the World’s Migrants"
+# https://www.pewresearch.org/religion/2024/08/19/the-religious-composition-of-the-worlds-migrants/
+
+migrants_raw  <- readxl::read_excel(
+  here::here('data/MakeoverMonday/2025/Incoming and Outgoing Migrant Counts.xlsx'),
+                                   sheet = 1) |> 
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(migrants_raw)
+skimr::skim(migrants_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+# Extract the global data for 2020 (most recent)
+migrants_global <- migrants_raw |>
+  filter(direction == "Incoming", year == "2020", country == "Global Total") |>
+  select(religion, migrant_percent = percent)
+
+# Derive general population data from on the chart
+general_pop <- tibble(
+  religion = c("Christian", "Muslim", "Jewish", "Buddhist", "Unaffiliated", "Hindu", "Other religions"),
+  general_percent = c(30, 25, 0.2, 4, 23, 15, 2.8)
+)
+
+# Join the datasets
+comparison_data <- migrants_global |>
+  filter(religion != "All") |>
+  mutate(religion = case_when(
+    religion == "Jew" ~ "Jewish",
+    religion == "Religiously unaffiliated" ~ "Unaffiliated",
+    TRUE ~ religion
+  )) |>
+  left_join(general_pop, by = "religion") |>
+  filter(!is.na(general_percent)) |>
+  mutate(
+    difference = migrant_percent - general_percent,
+    migrant_percent_display = round(migrant_percent, 1),
+    general_percent_display = round(general_percent, 1)
+  ) |>
+  mutate(
+    religion = fct_reorder(religion, difference),
+    abs_diff = abs(difference),
+    direction = ifelse(difference >= 0, "overrepresented", "underrepresented"),
+    percent_label = paste0(general_percent_display, "% → ", migrant_percent_display, "%")
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "overrepresented" =  "#6761A8",
+  "underrepresented" = "#CC3363"
+))
+  
+### |-  titles and caption ----
+title_text <- str_glue("Religious Representation Gap: Migrants vs. General Population")
+subtitle_text <- str_wrap("Christians are significantly overrepresented among global migrants,\nwhile Hindus and the religiously unaffiliated are underrepresented",
+                          width = 100)
+
+# Create caption
+caption_text <- create_mm_caption(
+    mm_year = 2025,
+    mm_week = 20,
+    source_text = "Pew Research Center"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Legend formatting
+    legend.position = "plot",
+    legend.title = element_text(face = "bold"),
+
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5), 
+    axis.ticks.length = unit(0.2, "cm"), 
+
+    # Axis formatting
+    axis.title.x = element_text(face = "bold", size = rel(0.85)),
+    axis.title.y = element_text(face = "bold", size = rel(0.85)),
+    axis.text.y = element_text(face = "bold", size = rel(0.85)),
+    
+    # Grid lines
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Initial Plot  ----
+p <- comparison_data |>
+  ggplot(aes(x = religion, y = difference, fill = direction)) +
+  # Geoms
+  geom_col(width = 0.7) +
+  geom_hline(yintercept = 0, color = "gray40", size = 0.5) +
+  geom_text( # primary labels: difference in percentage points
+    aes(
+      label = paste0(ifelse(difference >= 0, "+", ""), round(difference, 1), " pts"),
+      y = ifelse(difference >= 0,
+        difference + 0.8,
+        difference - 0.8
+      )
+    ),
+    hjust = ifelse(comparison_data$difference >= 0, 0, 1),
+    size = 4,
+    fontface = "bold"
+  ) +
+  geom_text( # secondary labels: comparison of percentages
+    aes(
+      label = percent_label,
+      y = ifelse(difference >= 0,
+        difference + 5.5,
+        difference - 5.5
+      )
+    ),
+    hjust = ifelse(comparison_data$difference >= 0, 0, 1),
+    size = 3.5,
+    color = "gray30"
+  ) +
+  # Scale
+  scale_fill_manual(
+    values = colors$palette
+  ) +
+  scale_y_continuous(
+    breaks = seq(-25, 30, 10),
+    limits = c(-25, 30),
+    expand = c(0, 0)
+  ) +
+  coord_flip(clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "Percentage Point Difference",
+    fill = NULL
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.9),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 30)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+
+### |-  Annotated Plot  ----
+p <- p +
+  annotate(
+    "label",
+    x = 5.2,
+    y = -24.5,
+    label = paste(
+      "Christians make up 30% of the general population but",
+      "46.6% of migrants, a difference of +16.6 percentage points.",
+      "This pattern may reflect historical migration flows and",
+      "religious persecution.",
+      sep = "\n"
+    ),
+    hjust = 0,
+    vjust = 0,
+    fill = NA,
+    color = "gray20",
+    size = 3.5,
+    fontface = "italic",
+    alpha = 0.9,
+    label.size = NA
+  ) +
+  annotate("segment",
+    x = 3.5, xend = 3.5,
+    y = 5, yend = 8,
+    arrow = arrow(length = unit(0.3, "cm"), type = "closed"),
+    color = colors$palette["overrepresented"],
+    size = 1
+  ) +
+  annotate("text",
+    x = 3.5, y = 15,
+    label = "Overrepresented",
+    color = colors$palette["overrepresented"],
+    fontface = "bold",
+    size = 4,
+    hjust = 0.5
+  ) +
+  annotate("segment",
+    x = 3.5, xend = 3.5,
+    y = -5, yend = -8,
+    arrow = arrow(length = unit(0.3, "cm"), type = "closed"),
+    color = colors$palette["underrepresented"],
+    size = 1
+  ) +
+  annotate("text",
+    x = 3.5, y = -15,
+    label = "Underrepresented",
+    color = colors$palette["underrepresented"],
+    fontface = "bold",
+    size = 4,
+    hjust = 0.5
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "makeovermonday", 
+  year = 2025,
+  week = 20,
+  width = 10, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_20.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_20.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1. Data:
+
+  - Makeover Monday 2025 Week 20: [The Religious Composition of the World’s Migrants](https://data.world/makeovermonday/2025w20-the-religious-composition-of-the-worlds-migrants)
+  
+2. Article
+
+- Pew Research Center: [The Religious Composition of the World’s Migrants](https://www.pewresearch.org/religion/2024/08/19/the-religious-composition-of-the-worlds-migrants/)
+ 
+:::
