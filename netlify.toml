@@ -1,11 +1,3 @@
-[[plugins]]
-package = "@quarto/netlify-plugin-quarto"
-  [plugins.inputs]
-  version = "latest"
-  cmd = "render"
-
 [build]
+  command = "echo 'Deployment handled by GitHub Actions'"
   publish = "_site"
-
-[context.branch-deploy]
-  command = "quarto render --to html --execute-daemon"
