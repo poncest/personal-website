@@ -1,18 +1,16 @@
 name: Render and Publish
-
 on:
   push:
     branches: main
   pull_request:
     branches: main
-
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
-
+        
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         
@@ -32,6 +30,15 @@ jobs:
       - name: Render Quarto Project
         run: |
           quarto render
+          
+      # Add debugging steps
+      - name: Check if _site exists
+        run: |
+          ls -la
+          echo "Does _site exist?"
+          if [ -d "_site" ]; then echo "Yes"; else echo "No"; fi
+          echo "Contents of _site directory (if it exists):"
+          if [ -d "_site" ]; then ls -la _site; else echo "_site directory does not exist"; fi
           
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v2
