@@ -1,0 +1,87 @@
+```{=html}
+<div class="theme-toggle" role="region" aria-label="Theme switcher">
+  <button 
+    id="theme-toggle-button"
+    class="btn btn-outline-secondary btn-sm"
+    aria-label="Toggle between light and dark theme"
+    aria-pressed="false"
+    onclick="toggleTheme()"
+  >
+    <i class="fas fa-moon" aria-hidden="true"></i>
+    <span class="visually-hidden">Current theme:</span>
+    <span class="theme-status visually-hidden">light</span>
+  </button>
+</div>
+
+<style>
+.theme-toggle {
+  margin-left: 1rem;
+}
+.theme-toggle button {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  border: 1px solid var(--body-color);
+  color: var(--body-color);
+}
+.theme-toggle button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+</style>
+
+<script>
+function toggleTheme() {
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  localStorage.setItem('theme', newTheme);
+  document.documentElement.setAttribute('data-theme', newTheme);
+  
+  // Update button icon and accessibility attributes
+  const button = document.querySelector('#theme-toggle-button');
+  const icon = button.querySelector('i');
+  const status = button.querySelector('.theme-status');
+  
+  icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+  status.textContent = newTheme;
+  button.setAttribute('aria-pressed', newTheme === 'dark');
+  button.setAttribute('aria-label', `Switch to ${newTheme === 'light' ? 'dark' : 'light'} theme`);
+  
+  // Announce theme change to screen readers
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', 'polite');
+  announcement.className = 'visually-hidden';
+  announcement.textContent = `Theme changed to ${newTheme} mode`;
+  document.body.appendChild(announcement);
+  
+  setTimeout(() => {
+  document.body.removeChild(announcement);
+  // Preserve URL parameters when reloading
+  const currentUrl = window.location.href;
+  location.href = currentUrl; // This preserves URL parameters
+}, 1000);
+
+document.addEventListener('DOMContentLoaded', () => {
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  const button = document.querySelector('#theme-toggle-button');
+  const icon = button.querySelector('i');
+  const status = button.querySelector('.theme-status');
+  
+  icon.className = currentTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+  status.textContent = currentTheme;
+  button.setAttribute('aria-pressed', currentTheme === 'dark');
+  button.setAttribute('aria-label', `Switch to ${currentTheme === 'light' ? 'dark' : 'light'} theme`);
+});
+</script>
+```
