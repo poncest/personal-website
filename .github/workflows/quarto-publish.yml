@@ -41,13 +41,17 @@ jobs:
           echo "Contents of _site directory (if it exists):"
           if [ -d "_site" ]; then ls -la _site; else echo "_site directory does not exist"; fi
           
-      - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2
+      # Replace the previous Deploy to Netlify step with these steps:
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
-          publish-dir: './_site'
-          production-deploy: ${{ github.ref == 'refs/heads/main' }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
+          node-version: '16'
+          
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+          
+      - name: Deploy to Netlify
+        run: netlify deploy --dir=_site --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
