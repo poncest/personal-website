@@ -25,33 +25,17 @@ jobs:
           packages:
             - any::rmarkdown
             - any::tidyverse
-            # Add other packages your site needs
             
       - name: Render Quarto Project
         run: |
           mkdir -p _site
           quarto render
           
-      # Add debugging steps
-      - name: Check if _site exists
-        run: |
-          ls -la
-          echo "Does _site exist?"
-          if [ -d "_site" ]; then echo "Yes"; else echo "No"; fi
-          echo "Contents of _site directory (if it exists):"
-          if [ -d "_site" ]; then ls -la _site; else echo "_site directory does not exist"; fi
-          
-      # Replace the previous Deploy to Netlify step with these steps:
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-          
       - name: Deploy to Netlify
-        run: netlify deploy --dir=_site --prod
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        uses: South-Paw/action-netlify-deploy@v1.2.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
+          build-dir: './_site'
+          comment-on-commit: true
