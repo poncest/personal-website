@@ -1,0 +1,412 @@
+---
+title: "Sydney Beaches: Water Quality Reliability"
+subtitle: "Reliability Index: % of samples meeting 'good' standards (≤ 40 CFU/100ml). 80% reliability is the recommended threshold for safe swimming. Showing top and bottom 5 beaches by type"
+description: "An analysis of water quality reliability across Sydney's beaches, based on data from the NSW State Government Beachwatch program. This visualization highlights which beaches consistently meet safety standards for swimming and which ones struggle with water quality issues. The stark contrast between ocean beaches (mostly meeting standards) and harbor/river locations (frequently below threshold) reveals important patterns in Sydney's water quality management."
+author: "Steven Ponce"
+date: "2025-05-18" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+"water quality", "Sydney", "beaches", "environmental data", "public health", "swimming safety", "enterococci", "bacteria levels", "environmental monitoring", "coastal management", "water pollution", "recreation safety", "harbor pollution", "ocean beaches", "urban waterways"
+]
+image: "thumbnails/tt_2025_20.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:
+  permalink: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_20.html"
+  description: "#TidyTuesday week 20: Exploring Sydney beaches water quality reliability - see which beaches are consistently safe for swimming and which fall below standards"
+
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+![Sydney Beaches: Water Quality Reliability chart showing the percentage of water samples meeting good standards (≤40 CFU/100ml) across different beach types. The chart is divided into three sections: Harbor/Bay/River Locations, Ocean Beaches, and Other Swimming Locations. Most ocean beaches exceed the 80% reliability threshold (shown by a dashed line), with Avalon reaching 97%. Harbor locations show mixed results, with many falling below the safe swimming threshold. The visualization highlights the contrast between consistently clean beaches and those that struggle to meet water quality standards.](tt_2025_20.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  scales,        # Scale Functions for Visualization
+  glue           # Interpreted String Literals
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  8,
+  height =  10,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 20)
+
+water_quality_raw <- tt$water_quality |> clean_names()
+weather_raw <- tt$weather |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(water_quality_raw)
+glimpse(weather_raw)
+skimr::skim(water_quality_raw)
+skimr::skim(weather_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+# Process and categorize raw water quality data
+water_quality_processed <- water_quality_raw |>
+    mutate(
+        bacteria_category = case_when(
+            enterococci_cfu_100ml <= 40 ~ "Good (<= 40 CFU)",
+            enterococci_cfu_100ml > 40 & enterococci_cfu_100ml <= 200 ~ "Moderate (41-200 CFU)",
+            enterococci_cfu_100ml > 200 ~ "Poor (> 200 CFU)",
+            TRUE ~ "Unknown"
+        ),
+        bacteria_category = factor(
+            bacteria_category,
+            levels = c("Good (<= 40 CFU)", "Moderate (41-200 CFU)", "Poor (> 200 CFU)", "Unknown")
+        )
+    )
+
+# Summarize water quality at the beach level
+beach_reliability <- water_quality_processed |>
+    group_by(swim_site, region) |>
+    summarise(
+        total_samples = n(),
+        good_samples = sum(enterococci_cfu_100ml <= 40, na.rm = TRUE),
+        reliability_index = good_samples / total_samples * 100,
+        .groups = "drop"
+    ) |>
+    filter(total_samples >= 50) |>
+    mutate(
+        reliability_rating = case_when(
+            is.na(reliability_index) ~ "Unknown",
+            reliability_index >= 90 ~ "Excellent (≥90%)",
+            reliability_index >= 80 ~ "Very Good (80-89%)",
+            reliability_index >= 70 ~ "Good (70-79%)",
+            reliability_index >= 60 ~ "Moderate (60-69%)",
+            reliability_index < 60 ~ "Needs Improvement (<60%)"
+        ),
+        reliability_rating = factor(
+            reliability_rating,
+            levels = c(
+                "Excellent (≥90%)", "Very Good (80-89%)", "Good (70-79%)",
+                "Moderate (60-69%)", "Needs Improvement (<60%)"
+            )
+        )
+    )
+
+# Classify beaches and select top/bottom per type
+beach_by_type <- beach_reliability |>
+    mutate(
+        beach_type = case_when(
+            grepl("Harbour|Harbor|Bay|River|Cove", swim_site) ~ "Harbor/Bay/River",
+            grepl("Beach|Ocean", swim_site) ~ "Ocean Beach",
+            TRUE ~ "Other"
+        )
+    ) |>
+    group_by(beach_type) |>
+    mutate(rank_in_type = min_rank(desc(reliability_index))) |>
+    filter(rank_in_type <= 5 | rank_in_type > n() - 5) |>
+    mutate(
+        status = if_else(reliability_index >= 80, "Meeting Standard", "Below Standard"),
+        short_name = swim_site |>
+            str_replace(" Beach$", "") |>
+            str_replace(" Harbour$", "") |>
+            str_replace(" Bay$", "") |>
+            str_replace(" Baths$", "") |>
+            str_replace(" Reserve$", "") |>
+            str_replace(" Pool$", ""),
+        short_name = reorder(short_name, reliability_index)
+    )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = c(
+        "Meeting Standard" = "#1b9e77", 
+        "Below Standard" = "#d95f02"
+    )
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("Sydney Beaches: Water Quality Reliability")
+
+subtitle_text <- str_glue(
+    "Reliability Index: % of samples meeting 'good' standards (≤ 40 CFU/100ml)\n",
+    "80% reliability is the recommended threshold for safe swimming\n",
+    "Showing top and bottom 5 beaches by type"
+)
+
+# Create caption
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 20,
+  source_text =  "BeachwatchNSW, Open-Meteo"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Axis elements
+    axis.title = element_text(color = colors$text, face = "bold", size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+
+    # Grid elements
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "red", linewidth = 0.05),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.direction = "horizontal",
+    legend.title = element_text(family = fonts$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+
+    # Style facet labels
+    strip.text = element_text(size = rel(0.75), face = "bold",
+                              color = colors$title, margin = margin(b = 5, t = 5)
+    ),
+
+    # Add spacing
+    panel.spacing = unit(1.1, "lines"),
+    strip.background = element_rect(fill = "#e0e0e0", color = NA),
+
+    # Plot margins
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+# Final plot -----
+p <- ggplot(beach_by_type, aes(x = reliability_index, y = short_name)) +
+  # Geoms
+  geom_col(aes(fill = status), width = 0.7) +
+  geom_text(aes(label = sprintf("%d%%", round(reliability_index))),
+    hjust = -0.2,
+    size = 3.5
+  ) +
+  geom_text(
+      data = tibble(
+          beach_type = "Harbor/Bay/River",
+          status = c("Meeting Standard", "Below Standard"),
+          x = 95,
+          y = c(7, 4),  
+          label = c("Meeting Standard", "Below Standard")
+      ),
+      aes(x = x, y = y, label = label, color = status),
+      hjust = 0,
+      size = 4,
+      fontface = "bold",
+      inherit.aes = FALSE
+  ) +
+  geom_vline(xintercept = 80, linetype = "dashed", color = "gray40", linewidth = 0.3) +
+
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  scale_color_manual(values = colors$palette) +
+  scale_x_continuous(
+    limits = c(0, 125),
+    breaks = c(0, 20, 40, 60, 80, 100),
+    labels = c("0%", "20%", "40%", "60%", "80%", "100%")
+  ) +
+  # Facets
+  facet_wrap(~beach_type,
+    scales = "free_y", ncol = 1,
+    labeller = labeller(beach_type = c(
+      "Harbor/Bay/River" = "Harbor/Bay/River Locations",
+      "Ocean Beach" = "Ocean Beaches",
+      "Other" = "Other Swimming Locations"
+    ))
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = NULL,
+    fill = "Status",
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 15)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    ),
+    legend.key = element_rect(fill = NA),
+    strip.text = element_markdown(
+      lineheight = 1.2,
+      padding = margin(5, 5, 5, 5)
+    )
+  ) 
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 20, 
+  width = 8,
+  height = 10
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_20.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_20.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 20: [Water Quality at Sydney Beaches](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-05-20)
+:::
