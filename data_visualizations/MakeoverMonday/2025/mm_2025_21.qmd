@@ -1,0 +1,494 @@
+---
+title: "The Enduring Legacy of PC Gaming Excellence"
+subtitle: "While consoles produce occasional standout hits, PC gaming demonstrates sustained quality and unmatched volume. PC games demonstrate sustained excellence, while console games include some standout titles"
+description: "Analysis of Metacritic's best-rated games data showing PC gaming's dominance in both quantity and sustained quality across three decades compared to console platforms."
+author: "Steven Ponce"
+date: "2025-05-19" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+"games", "metacritic", "treemap", "gaming industry", "PC gaming", "console gaming", "ggplot2", "data analysis", "metascore", "video games"
+]
+image: "thumbnails/mm_2025_21.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+filters:
+  - social-share
+share:                     
+  permalink: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_21.html"
+  description: "MakeoverMonday week 21: Visualizing Metacritic's best games data to reveal PC gaming's enduring excellence and dominance in top-rated titles."
+  twitter: true
+  linkedin: true
+  email: true
+  facebook: false
+  reddit: false
+  stumble: false
+  tumblr: false
+  mastodon: true
+  bsky: true
+---
+
+### Original
+
+The original visualization **Best Games of All Time** comes from [Metacritic](https://www.metacritic.com/browse/game/)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_21/original_chart.png)
+
+### Makeover
+
+![This data visualization compares top-rated games across platforms. Left panel shows a treemap where PC dominates with 212 games versus various console platforms (PlayStation, Xbox, Nintendo). Right panel displays a scatter plot of Metacritic scores (90-100) from 1990s-2025, showing PC games (blue dots) consistently achieving high ratings across decades, with several standout titles above 97 points, while console games (gray dots) have occasional high-performers but less consistent excellence.](mm_2025_21.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,      # Easily Install and Load the 'Tidyverse'
+    ggtext,         # Improved Text Rendering Support for 'ggplot2'
+    showtext,       # Using Fonts More Easily in R Graphs
+    scales,         # Scale Functions for Visualization
+    glue,           # Interpreted String Literals
+    here,           # A Simpler Way to Find Your Files
+    lubridate,      # Make Dealing with Dates a Little Easier
+    ggrepel,        # Automatically Position Non-Overlapping Text Labels with ggplot2
+    treemapify,     # Draw Treemaps in 'ggplot2'
+    marquee,        # Markdown Parser and Renderer for R Graphic
+    patchwork       # The Composer of Plots
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  12,
+    height =  8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+## Original Chart
+# Metacritic Best Games of All Time
+# https://data.world/makeovermonday/2025w21-metacritic-best-games-of-all-time
+
+## Article
+# Metacritic Best Games of All Time
+# https://www.metacritic.com/browse/game/
+
+metacritic_top_games_raw <- read_csv(
+  here::here('data/MakeoverMonday/2025/metacritic_top_games.csv')) |> 
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(metacritic_top_games_raw)
+skimr::skim(metacritic_top_games_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+# Split the platforms into separate rows
+games_platforms <- metacritic_top_games_raw |>
+  separate_rows(platforms, sep = ", ") |>
+  mutate(
+    platform_type = case_when(
+      platforms %in% c("PC") ~ "PC",
+      platforms %in% c("iOS (iPhone/iPad)") ~ "Mobile",
+      TRUE ~ "Console"
+    ),
+    release_year = year(release_date),
+    decade = paste0(floor(release_year / 10) * 10, "s"),
+    publisher_group = ifelse(publisher %in% c("Nintendo", "Rockstar Games"), publisher, "Other")
+  )
+
+# Comprehensive tidy dataset
+games_tidy <- metacritic_top_games_raw |>
+  mutate(
+    release_year = year(release_date),
+    decade = paste0(floor(release_year / 10) * 10, "s"),
+    genre_primary = case_when(
+      str_detect(genre, "Action") ~ "Action",
+      str_detect(genre, "Shooter") ~ "Shooter",
+      str_detect(genre, "Platform") ~ "Platformer",
+      str_detect(genre, "Sports") ~ "Sports",
+      str_detect(genre, "Fighting") ~ "Fighting",
+      TRUE ~ genre
+    ),
+    # Short title for visualization
+    short_title = case_when(
+      str_length(title) > 20 ~ paste0(str_sub(title, 1, 17), "..."),
+      TRUE ~ title
+    )
+  )
+
+# P1. treemap data----
+treemap_data <- games_platforms |>
+  count(platforms) |>
+  mutate(
+    platform_group = case_when(
+      platforms == "PC" ~ "PC",
+      TRUE ~ "Console"
+    ),
+    platform_label = paste0(platforms, "\n(", n, ")")
+  )
+
+# P2. dot plot data -----
+dotplot_data <- games_tidy |>
+  mutate(
+    platform_group = case_when(
+      str_detect(platforms, "PC") ~ "PC",
+      TRUE ~ "Console"
+    ),
+    is_top_game = metascore >= 97,
+    should_label = case_when(
+      # Only label the very top PC games
+      (platform_group == "PC" & metascore >= 97) ~ TRUE,
+      # Only label the very top Console games
+      (platform_group == "Console" & metascore >= 98) ~ TRUE,
+      TRUE ~ FALSE
+    )
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "PC" = "#1F77B4",     
+  "Console" = "#A9A9A9"
+))
+  
+### |-  titles and caption ----
+title_text <- str_glue("The Enduring Legacy of PC Gaming Excellence")
+subtitle_text <- "While consoles produce occasional standout hits, PC gaming demonstrates sustained quality and unmatched volume\n
+{#1F77B4 **_PC games_**} demonstrate sustained excellence, while {#A9A9A **_console games_**} include some standout titles"
+
+# Create caption
+caption_text <- create_mm_caption(
+    mm_year = 2025,
+    mm_week = 21,
+    source_text = "Metacritic"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+
+    # Legend formatting
+    legend.position = "plot",
+    legend.title = element_text(face = "bold"),
+
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5), 
+    axis.ticks.length = unit(0.2, "cm"), 
+
+    # Axis formatting
+    axis.title.x = element_text(face = "bold", size = rel(0.85)),
+    axis.title.y = element_text(face = "bold", size = rel(0.85)),
+    axis.text.y = element_text(face = "bold", size = rel(0.85)),
+    
+    # Grid lines
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+# P1. Treemap ----
+p1 <- ggplot(treemap_data, aes(area = n, fill = platform_group, label = platform_label)) +
+  # Geoms
+  geom_treemap(
+    color = "white",
+    size = 1.5
+  ) +
+  geom_treemap_text(
+    aes(label = platforms),
+    colour = "white",
+    place = "centre",
+    size = 11,
+    fontface = "bold",
+    padding.y = grid::unit(4, "mm")
+  ) +
+  geom_treemap_text(
+    aes(label = paste0("n = ", n)),
+    colour = "white",
+    place = "bottom",
+    size = 8,
+    padding.y = grid::unit(4, "mm")
+  ) +
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  coord_equal() +
+  # Labs
+  labs(
+    title = "PC: The Single Most Prolific Platform for Top-Rated Games",
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 15)
+    )
+  )
+
+# P2. dot plot -----
+p2 <- ggplot(dotplot_data, aes(x = release_date, y = metascore)) +
+  # Geoms
+  geom_hline(yintercept = c(90, 95), linetype = "dashed", color = "gray80", alpha = 0.7) +
+  # Annotate
+  annotate("rect",
+    xmin = as.Date("1997-01-01"), xmax = as.Date("2000-01-01"),
+    ymin = 89.5, ymax = 100, fill = "gray90", alpha = 0.5
+  ) +
+  annotate("rect",
+    xmin = as.Date("2000-01-01"), xmax = as.Date("2010-01-01"),
+    ymin = 89.5, ymax = 100, fill = "gray85", alpha = 0.5
+  ) +
+  annotate("rect",
+    xmin = as.Date("2010-01-01"), xmax = as.Date("2021-01-01"),
+    ymin = 89.5, ymax = 100, fill = "gray90", alpha = 0.5
+  ) +
+  annotate("text",
+    x = as.Date("1998-07-01"), y = 90.5, label = "1990s",
+    color = "gray50", size = 3, fontface = "bold", alpha = 0.7
+  ) +
+  annotate("text",
+    x = as.Date("2005-01-01"), y = 90.5, label = "2000s",
+    color = "gray50", size = 3, fontface = "bold", alpha = 0.7
+  ) +
+  annotate("text",
+    x = as.Date("2015-01-01"), y = 90.5, label = "2010s",
+    color = "gray50", size = 3, fontface = "bold", alpha = 0.7
+  ) +
+
+  # Geoms
+  geom_point(
+    aes(
+      color = platform_group,
+      alpha = if_else(platform_group == "PC", 0.9, 0.6)
+    ),
+    size = 3,
+    stroke = 0.2
+  ) +
+  geom_text_repel(
+    data = dotplot_data |> filter(should_label),
+    aes(label = short_title, color = platform_group),
+    size = 2.8,
+    fontface = "bold",
+    box.padding = 0.5,
+    point.padding = 0.3,
+    force = 2,
+    segment.color = "gray60",
+    segment.size = 0.2,
+    segment.alpha = 0.8,
+    max.overlaps = 15,
+    seed = 42
+  ) +
+  # Scales
+  scale_color_manual(values = colors$palette) +
+  scale_alpha_identity() +
+  scale_x_date(
+    date_breaks = "5 years",
+    date_labels = "%Y",
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  scale_y_continuous(
+    breaks = seq(90, 100, by = 2.5),
+    limits = c(89.5, 100),
+    labels = function(x) paste0(x)
+  ) +
+  # Labs
+  labs(
+    title = "PC Games Show Consistent Quality Across Three Decades",
+    x = "Release Year",
+    y = "Metascore"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 15)
+    )
+  )
+
+# Combined Plot ----
+combined_plot <- (p1 | plot_spacer() | p2) +
+  plot_layout(
+    widths = c(1, 0.005, 1),
+    guides = "collect"
+  ) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_markdown(
+        size = rel(2.4),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_marquee(
+        size = rel(1),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 0.9,
+        margin = margin(t = 5, b = 10)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.6),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0.5,
+        margin = margin(t = 10)
+      ),
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "makeovermonday", 
+  year = 2025,
+  week = 21,
+  width = 12, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_21.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_21.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+-   Makeover Monday 2025 Week 21: [Metacritic Best Games of All Time](https://data.world/makeovermonday/2025w21-metacritic-best-games-of-all-time)
+
+2.  Article
+ 
+-   Metacritic: [Best Games of All Time](https://www.metacritic.com/browse/game/)
+:::
