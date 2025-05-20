@@ -183,22 +183,22 @@ save_plot_patchwork <- function(plot,
       res = 320, 
       type = "cairo"
     )
-  
-  showtext::showtext_begin()
-  showtext::showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
-  
-  # Draw plot
-  grid::grid.draw(plot_grob)
-  
-  # Cleanup
-  showtext::showtext_end()
-  dev.off()
-  
-  # Create thumbnail using magick
-  magick::image_read(main_file) |> 
-    magick::image_resize("400") |> 
-    magick::image_write(thumb_file)
-  
+    
+    showtext::showtext_begin()
+    showtext::showtext_opts(dpi = 320, regular.wt = 300, bold.wt = 800)
+    
+    # Draw plot
+    grid::grid.draw(plot_grob)
+    
+    # Cleanup
+    showtext::showtext_end()
+    dev.off()
+    
+    # Create thumbnail using magick
+    magick::image_read(main_file) |> 
+      magick::image_resize("400") |> 
+      magick::image_write(thumb_file)
+    
   }, error = function(e) {
     dev.off()
     stop("Error saving plot: ", e$message)
