@@ -1,0 +1,415 @@
+---
+title: "Client Contact Program: Uneven Success Demands Strategic Response"
+subtitle: "Overall program succeeded, but stark performance gaps require immediate resource reallocation"
+description: "A strategic data visualization exercise demonstrating how to select and combine chart types for maximum business impact. Using client contact program data, this analysis shows how diverging bar charts paired with slope charts can drive executive decision-making by highlighting performance gaps that demand immediate resource reallocation and accountability discussions."
+author: "Steven Ponce"
+date: "2025-05-23"
+categories: ["SWDchallenge", "Exercise", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "patchwork", "diverging-charts", "slope-charts", "business-analytics",
+  "executive-reporting", "performance-analysis", "chart-selection",
+  "strategic-visualization", "ggplot2", "data-storytelling",
+  "concierge-services", "client-management", "resource-allocation",
+  "accountability-metrics", "visual-hierarchy", "color-strategy"
+]
+image: "thumbnails/swd_2025_05-Ex_0058.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                          
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+### Original
+
+The goal of this exercise is to learn how to select and combine the most effective chart types that drive specific business decisions rather than just displaying data.
+
+In essence, it's about becoming a strategic data storyteller who can:
+
+- Evaluate multiple visualization options critically
+- Choose charts that support clear business actions
+- Combine visualizations to tell a complete, compelling story
+- Transform raw data into executive-ready insights that drive immediate decisions
+
+The exercise teaches you that chart selection is a strategic business skill, not just a technical one!
+
+![Original chart](https://stwd-prod-static-back.s3.amazonaws.com/media/Screenshot_2025-05-19_at_14.44.08.png){#fig-1}
+
+
+Additional information can be found [HERE](https://community.storytellingwithdata.com/exercises/which-chart-shows-it-best)
+
+
+### Makeover
+
+![Combined chart showing client contact program results. Top panel: horizontal bar chart with Executive Services showing +20 percentage point improvement (blue), Travel & Experiences +8pp (dark gray), Elite Access +2pp (light gray), and Lifestyle Services -3pp decline (red). Bottom panel: slope chart showing performance trends from before to after the program, with Executive Services rising steeply from 69% to 89% (blue line), while Lifestyle Services declined from 75% to 72% (red line). Gray lines show Travel & Experiences and Elite Access with modest improvements. A 90% target line is marked.](swd_2025_03-Ex_0058.png){#fig-1}
+
+
+### <mark> __Steps to Create this Graphic__ </mark>
+
+#### 1. Load Packages & Setup 
+
+```{r}
+#| label: load
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+tidyverse,         # Easily Install and Load the 'Tidyverse'
+  ggtext,            # Improved Text Rendering Support for 'ggplot2'
+  showtext,          # Using Fonts More Easily in R Graphs
+  scales,            # Scale Functions for Visualization
+  glue,              # Interpreted String Literals
+  patchwork          # The Composer of Plots 
+) 
+
+### |- figure size ---- 
+camcorder::gg_record( 
+  dir    = here::here("temp_plots"), 
+  device = "png",
+  width  = 8,
+  height = 8,
+  units  = "in",
+  dpi    = 320)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data 
+
+```{r}
+#| label: read
+
+raw_data <- readxl::read_excel(
+  here::here("data", "SWDchallenge", "2025", "swdexercise058 DATA.xlsx"),
+  sheet   = "MAIN",
+  range   = "B4:D9",
+  trim_ws = TRUE
+) |>
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(raw_data)
+```
+
+#### 4. Tidy Data 
+
+```{r}
+#| label: tidy
+
+tidy_data <- raw_data |>
+  filter(category != "Total") |>
+  pivot_longer(cols = c(last_quarter, this_quarter), 
+               names_to = "period", 
+               values_to = "contact_rate") |>
+  mutate(
+    period = case_when(
+      period == "last_quarter" ~ "Before Program",
+      period == "this_quarter" ~ "After Program"
+    ),
+    period = factor(period, levels = c("Before Program", "After Program"))
+  ) |> 
+  mutate(
+    category_short = case_when(
+      category == "Elite access & bespoke requests" ~ "Elite Access",
+      category == "Travel & experiences" ~ "Travel & Experiences", 
+      category == "Executive services" ~ "Executive Services",
+      category == "Lifestyle services" ~ "Lifestyle Services",
+      TRUE ~ category
+    )
+  )
+
+change_data <- raw_data |>  
+  filter(category != "Total") |>
+  mutate(
+    change = this_quarter - last_quarter,
+    # Shorter category names for better display
+    category_short = case_when(
+      category == "Elite access & bespoke requests" ~ "Elite Access",
+      category == "Travel & experiences" ~ "Travel & Experiences", 
+      category == "Executive services" ~ "Executive Services",
+      category == "Lifestyle services" ~ "Lifestyle Services",
+      TRUE ~ category
+    ),
+    strategic_color = case_when(
+      change >= 0.15 ~ "exceptional",     
+      change >= 0.05 ~ "strong",        
+      change >= -0.01 ~ "stable",       
+      TRUE ~ "concerning"               
+    ),
+    action_needed = case_when(
+      change >= 0.15 ~ "Recognize & Scale",
+      change >= 0.05 ~ "Reinforce Success", 
+      change >= -0.01 ~ "Monitor Closely",
+      TRUE ~ "Immediate Intervention"
+    )
+  )
+```
+
+
+#### 5. Visualization Parameters 
+
+```{r}
+#| label: params
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "exceptional"= "#1f77b4", "strong"= "#969696", "stable" = "#bdbdbd", "concerning" = "#d62728",
+    "Executive services"= "#1f77b4", "Travel & experiences"= "#969696", 
+    "Elite access & bespoke requests" = "#bdbdbd", "Lifestyle services" = "#d62728"
+  )
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("Client Contact Program: Uneven Success Demands Strategic Response")
+subtitle_text <- str_glue("Overall program succeeded, but stark performance gaps require immediate\nresource reallocation")
+
+# Create caption
+caption_text <- create_swd_exe_caption(
+  year = 2025,
+  month = "May",
+  source_text =  "Let's Practice! Exercise 5.8"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling 
+    plot.title = element_text(face = "bold", family = fonts$title, color = colors$title, size = rel(1.14), margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, color = colors$text, size = rel(0.78), margin = margin(b = 20)),
+    
+    # Axis elements
+    axis.title = element_text(color = colors$text, size = rel(0.8)),
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    
+    # Grid elements
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "grey95", linewidth = 0.1),
+    
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$text, size = rel(0.8)),
+    legend.text = element_text(family = fonts$text, size = rel(0.7)),
+    
+    # Plot margins 
+    plot.margin = margin(t = 10, r = 15, b = 10, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+# P1. Diverging Chart ----
+p1 <- ggplot(change_data, aes(
+  x = reorder(category_short, change),
+  y = change, fill = strategic_color
+)) +
+  geom_hline(yintercept = 0, color = "gray40", linewidth = 0.5, alpha = 0.8) +
+  geom_col(width = 0.7, alpha = 0.9) +
+  geom_text(aes(label = paste0(ifelse(change > 0, "+", ""), round(change * 100, 1), "pp")),
+    hjust = ifelse(change_data$change > 0, -0.1, 1.1),
+    size = 4.2, fontface = "bold", color = "black"
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = function(x) paste0(ifelse(x > 0, "+", ""), x * 100, "pp"),
+    breaks = seq(-0.1, 0.20, 0.05),
+    expand = expansion(mult = c(0.15, 0.15))
+  ) +
+  scale_fill_manual(values = colors$palette) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = "Executive Services Soars (+20pp), Lifestyle Services Stumbles (-3pp)",
+    subtitle = "Performance gaps this wide demand immediate strategic intervention",
+    x = "",
+    y = "Change in Contact Rate"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(size = rel(1), face = "bold", color = colors$title, family = fonts$title),
+    plot.subtitle = element_text(size = rel(0.71), color = colors$subtitle, family = fonts$subtitle),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+  )
+
+# P2. Slope Chart ----
+p2 <- ggplot(tidy_data, aes(x = period, y = contact_rate, group = category_short, color = category)) +
+  # Geoms
+  geom_hline(yintercept = 0.90, linetype = "dashed", color = "gray40", alpha = 0.6, size = 0.5) +
+  geom_line(
+    aes(size = ifelse(category_short == "Executive Services", 3,
+      ifelse(category_short == "Lifestyle Services", 2.0, 1.0)
+    )),
+    alpha = 0.9
+  ) +
+  geom_point(aes(size = ifelse(category_short %in% c("Executive Services", "Lifestyle Services"), 3, 2))) +
+  geom_text(
+    data = tidy_data |>
+      filter(
+        period == "After Program",
+        category_short %in% c("Executive Services", "Lifestyle Services")
+      ),
+    aes(label = category_short),
+    hjust = -0.1, vjust = 0.5, size = 3.2, color = "black"
+  ) +
+  # Annotate
+  annotate("text",
+    x = 1.5, y = 0.92, label = "90% Target",
+    size = 3, color = "gray40", fontface = "italic"
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    limits = c(0.65, 1.0),
+    breaks = seq(0.70, 1.0, 0.10)
+  ) +
+  scale_x_discrete(expand = expansion(mult = c(0.1, 0.35))) +
+  scale_color_manual(values = colors$palette) +
+  scale_size_identity() +
+  labs(
+    title = "The Journey: Dramatic Trajectories Reveal Strategic Opportunities",
+    subtitle = "Steepest slopes indicate departments to celebrate and investigate",
+    x = "",
+    y = "Client Contact Rate"
+  ) +
+  # Theme
+  theme(
+    legend.position = "none",
+    plot.title = element_text(size = rel(1), face = "bold", color = colors$title, family = fonts$title),
+    plot.subtitle = element_text(size = rel(0.71), color = colors$subtitle, family = fonts$subtitle),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "gray60", linewidth = 0.25),
+  )
+
+# Combined Plot -----
+combined_plot <- (p1 / p2) +
+  plot_layout(heights = c(1, 1.1))
+
+combined_plot <- combined_plot +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.25),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_text(
+        size = rel(0.9),
+        family = fonts$subtitle,
+        color = colors$subtitle,
+        lineheight = 1.2,
+        margin = margin(t = 5, b = 10)
+      ),
+      plot.caption = element_markdown(
+        size   = rel(0.6),
+        family = fonts$caption,
+        color  = colors$caption,
+        hjust  = 0.5,
+        margin = margin(t = 10)
+      ),
+      plot.margin = margin(t = 20, r = 10, b = 20, l = 10),
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+save_plot_patchwork(
+  combined_plot, 
+  type = 'swd', 
+  year = 2025, 
+  month = 05, 
+  exercise = 058,
+  width = 8, 
+  height = 8
+  )
+```
+
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+#### 9. GitHub Repository
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+ 
+The complete code for this analysis is available in [`swd_2025_05 - Ex_058.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2025/swd_2025_05-Ex_058.qmd).
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+::: {.callout-tip collapse="true"}
+##### Expand for References
+ 
+Data Sources:
+
+1. Data Sources:
+
+   - Storytelling with Data Exercise | which chart shows it best?: [Download the data](https://docs.google.com/spreadsheets/d/125uh8nYavGu-tYc3tlulDIchmoVZQqBk/edit?gid=1444625075#gid=1444625075)
+
+
+:::

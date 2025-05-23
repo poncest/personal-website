@@ -7,8 +7,9 @@ save_plot <- function(plot,
                       month = NULL,
                       date = NULL,
                       name = NULL, 
-                      height = 8, 
-                      width = 10) {
+                      exercise = NULL,
+                      height = NULL, 
+                      width = NULL) {
   
   # Match argument and error handling
   type <- match.arg(type)
@@ -42,7 +43,11 @@ save_plot <- function(plot,
     tidytuesday = sprintf("tt_%d_%02d.png", year, week),
     makeovermonday = sprintf("mm_%d_%02d.png", year, week),
     `30daychartchallenge` = sprintf("30dcc_%d_%02d.png", year, day),
-    swd = sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m"))),
+    swd = if (!is.null(exercise)) {
+      sprintf("swd_%d_%02d-Ex_%04d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")), exercise)
+    } else {
+      sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")))
+    },
     standalone = if (!is.null(name)) {
       paste0(name, ".png")
     } else {
@@ -91,8 +96,9 @@ save_plot_patchwork <- function(plot,
                                 month = NULL,
                                 date = NULL,
                                 name = NULL, 
-                                height = 10, 
-                                width = 16) {
+                                exercise = NULL, 
+                                height = NULL, 
+                                width = NULL) {
   
   # Match argument and error handling
   type <- match.arg(type)
@@ -137,7 +143,11 @@ save_plot_patchwork <- function(plot,
     tidytuesday = sprintf("tt_%d_%02d.png", year, week),
     makeovermonday = sprintf("mm_%d_%02d.png", year, week),
     `30daychartchallenge` = sprintf("30dcc_%d_%02d.png", year, day),
-    swd = sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m"))),
+    swd = if (!is.null(exercise)) {
+      sprintf("swd_%d_%02d-Ex_%04d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")), exercise)
+    } else {
+      sprintf("swd_%d_%02d.png", year, month %||% as.numeric(format(Sys.Date(), "%m")))
+    },
     standalone = if (!is.null(name)) {
       paste0(name, ".png")
     } else {
