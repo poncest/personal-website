@@ -39,27 +39,24 @@ The goal of this exercise is to learn how to select and combine the most effecti
 
 In essence, it's about becoming a strategic data storyteller who can:
 
-- Evaluate multiple visualization options critically
-- Choose charts that support clear business actions
-- Combine visualizations to tell a complete, compelling story
-- Transform raw data into executive-ready insights that drive immediate decisions
+-   Evaluate multiple visualization options critically
+-   Choose charts that support clear business actions
+-   Combine visualizations to tell a complete, compelling story
+-   Transform raw data into executive-ready insights that drive immediate decisions
 
 The exercise teaches you that chart selection is a strategic business skill, not just a technical one!
 
 ![Original chart](https://stwd-prod-static-back.s3.amazonaws.com/media/Screenshot_2025-05-19_at_14.44.08.png){#fig-1}
 
-
 Additional information can be found [HERE](https://community.storytellingwithdata.com/exercises/which-chart-shows-it-best)
-
 
 ### Makeover
 
-![Combined chart showing client contact program results. Top panel: horizontal bar chart with Executive Services showing +20 percentage point improvement (blue), Travel & Experiences +8pp (dark gray), Elite Access +2pp (light gray), and Lifestyle Services -3pp decline (red). Bottom panel: slope chart showing performance trends from before to after the program, with Executive Services rising steeply from 69% to 89% (blue line), while Lifestyle Services declined from 75% to 72% (red line). Gray lines show Travel & Experiences and Elite Access with modest improvements. A 90% target line is marked.](swd_2025_05-Ex_0058.png){#fig-1}
+![Combined chart showing client contact program results. Top panel: horizontal bar chart with Executive Services showing +20 percentage point improvement (blue), Travel & Experiences +8pp (dark gray), Elite Access +2pp (light gray), and Lifestyle Services -3pp decline (red). Bottom panel: slope chart showing performance trends from before to after the program, with Executive Services rising steeply from 69% to 89% (blue line), while Lifestyle Services declined from 75% to 72% (red line). Gray lines show Travel & Experiences and Elite Access with modest improvements. A 90% target line is marked.](swd_2025_05-Ex_0058.png){#fig-2}
 
+### <mark> **Steps to Create this Graphic** </mark>
 
-### <mark> __Steps to Create this Graphic__ </mark>
-
-#### 1. Load Packages & Setup 
+#### 1. Load Packages & Setup
 
 ```{r}
 #| label: load
@@ -90,7 +87,7 @@ source(here::here("R/utils/image_utils.R"))
 source(here::here("R/themes/base_theme.R"))
 ```
 
-#### 2. Read in the Data 
+#### 2. Read in the Data
 
 ```{r}
 #| label: read
@@ -116,7 +113,7 @@ raw_data <- readxl::read_excel(
 glimpse(raw_data)
 ```
 
-#### 4. Tidy Data 
+#### 4. Tidy Data
 
 ```{r}
 #| label: tidy
@@ -170,8 +167,7 @@ change_data <- raw_data |>
   )
 ```
 
-
-#### 5. Visualization Parameters 
+#### 5. Visualization Parameters
 
 ```{r}
 #| label: params
@@ -234,7 +230,6 @@ weekly_theme <- extend_weekly_theme(
 # Set theme
 theme_set(weekly_theme)
 ```
-
 
 #### 6. Plot
 
@@ -378,7 +373,6 @@ save_plot_patchwork(
   )
 ```
 
-
 #### 8. Session Info
 
 ::: {.callout-tip collapse="true"}
@@ -392,24 +386,22 @@ sessionInfo()
 ```
 :::
 
-
 #### 9. GitHub Repository
+
 ::: {.callout-tip collapse="true"}
 ##### Expand for GitHub Repo
- 
-The complete code for this analysis is available in [`swd_2025_05 - Ex_058.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2025/swd_2025_05-Ex_058.qmd).
-For the full repository, [click here](https://github.com/poncest/personal-website/).
+
+The complete code for this analysis is available in [`swd_2025_05 - Ex_058.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2025/swd_2025_05-Ex_058.qmd). For the full repository, [click here](https://github.com/poncest/personal-website/).
 :::
 
 #### 10. References
+
 ::: {.callout-tip collapse="true"}
 ##### Expand for References
- 
+
 Data Sources:
 
-1. Data Sources:
+1.  Data Sources:
 
-   - Storytelling with Data Exercise | which chart shows it best?: [Download the data](https://docs.google.com/spreadsheets/d/125uh8nYavGu-tYc3tlulDIchmoVZQqBk/edit?gid=1444625075#gid=1444625075)
-
-
+    -   Storytelling with Data Exercise \| which chart shows it best?: [Download the data](https://docs.google.com/spreadsheets/d/125uh8nYavGu-tYc3tlulDIchmoVZQqBk/edit?gid=1444625075#gid=1444625075)
 :::
