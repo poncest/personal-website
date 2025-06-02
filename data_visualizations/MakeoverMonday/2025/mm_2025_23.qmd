@@ -1,12 +1,14 @@
 ---
 title: "The Stakes for U.S. Truck Manufacturing Under Shifting Federal Policy"
 subtitle: "Employment impact analysis across clean vehicle scenarios and policy retreat alternatives"
-description: "PLACEHOLDER-1."
+description: "Analysis of how federal clean vehicle policies could create up to 19,122 manufacturing jobs or eliminate 3,332 jobs under policy retreat. Using EPI economic modeling data, this dual-chart visualization reveals the employment consequences of different policy scenarios across assembly and supply chain sectors in America's truck manufacturing industry."
 author: "Steven Ponce"
 date: "2025-06-02" 
 categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
 tags: [
-"PLACEHOLDER-2"
+"economic-policy", "manufacturing-jobs", "clean-vehicles", "employment-analysis", 
+  "heatmap", "waterfall-chart", "policy-impact", "truck-manufacturing", "ggplot2", 
+  "patchwork", "federal-policy", "EPI-data", "supply-chain", "union-wages"
 ]
 image: "thumbnails/mm_2025_23.png"
 format:
@@ -30,18 +32,17 @@ execute:
   message: false
   warning: false
   eval: true
-
 ---
 
 ### Original
 
-The original visualization **Best Games of All Time** comes from [Metacritic](https://www.metacritic.com/browse/game/)
+The original visualization **Figure B: Change in employment from baseline scenario, Job-years, 2024–2032** comes from [Economic Policy Institute+](https://www.epi.org/publication/future-clean-trucks-buses/)
 
-![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/master/2025/Week_21/original_chart.png)
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_23/original_chart.png)
 
 ### Makeover
 
-![This data visualization compares top-rated games across platforms. Left panel shows a treemap where PC dominates with 212 games versus various console platforms (PlayStation, Xbox, Nintendo). Right panel displays a scatter plot of Metacritic scores (90-100) from 1990s-2025, showing PC games (blue dots) consistently achieving high ratings across decades, with several standout titles above 97 points, while console games (gray dots) have occasional high-performers but less consistent excellence.](mm_2025_23.png){#fig-1}
+![Dual-chart visualization showing U.S. truck manufacturing employment impacts. The top heatmap displays five policy scenarios (rows) versus three job categories (columns), with green indicating job gains and red showing losses. The policy Retreat row shows red losses (-596 to -3,332 jobs), while other scenarios show green gains. The bottom waterfall chart shows progressive job creation from baseline through four positive scenarios, building from +11,182 to +19,122 total jobs, with a separate red bar showing -3,332 job loss under the Policy Retreat alternative.](mm_2025_23.png){#fig-1}
 
 ### <mark> **Steps to Create this Graphic** </mark>
 
@@ -62,11 +63,7 @@ suppressPackageStartupMessages({
     showtext,       # Using Fonts More Easily in R Graphs
     scales,         # Scale Functions for Visualization
     glue,           # Interpreted String Literals
-    here,           # A Simpler Way to Find Your Files
     lubridate,      # Make Dealing with Dates a Little Easier
-    ggrepel,        # Automatically Position Non-Overlapping Text Labels with ggplot2
-    treemapify,     # Draw Treemaps in 'ggplot2'
-    marquee,        # Markdown Parser and Renderer for R Graphic
     patchwork       # The Composer of Plots
   )
 })
@@ -75,8 +72,8 @@ suppressPackageStartupMessages({
 camcorder::gg_record(
     dir    = here::here("temp_plots"),
     device = "png",
-    width  =  12,
-    height =  8,
+    width  =  10,
+    height =  12,
     units  = "in",
     dpi    = 320
 )
@@ -97,15 +94,19 @@ source(here::here("R/themes/base_theme.R"))
 #| warning: false
 
 ## Original Chart
-# Metacritic Best Games of All Time
-# https://data.world/makeovermonday/2025w21-metacritic-best-games-of-all-time
+# Change in employment from baseline scenario, Job-years, 2024–2032, Figure B
+# https://www.epi.org/publication/future-clean-trucks-buses/
 
 ## Article
-# Metacritic Best Games of All Time
-# https://www.metacritic.com/browse/game/
+# What future will U.S. truck manufacturing have under Trump?
+# https://www.epi.org/publication/future-clean-trucks-buses/
 
-metacritic_top_games_raw <- read_csv(
-  here::here('data/MakeoverMonday/2025/metacritic_top_games.csv')) |> 
+## Data
+# What future will U.S. truck manufacturing have under Trump?
+# https://data.world/makeovermonday/what-future-will-us-truck-manufacturing-have-under-trump
+
+truck_manufacturing_raw <- readxl::read_excel(
+  here::here('data/MakeoverMonday/2025/US truck manufacturing under Trump.xlsx')) |> 
   janitor::clean_names()
 ```
 
@@ -118,8 +119,8 @@ metacritic_top_games_raw <- read_csv(
 #| results: 'hide'
 #| warning: false
 
-glimpse(metacritic_top_games_raw)
-skimr::skim(metacritic_top_games_raw)
+glimpse(truck_manufacturing_raw)
+skimr::skim(truck_manufacturing_raw)
 ```
 
 #### 4. Tidy Data
@@ -128,67 +129,103 @@ skimr::skim(metacritic_top_games_raw)
 #| label: tidy
 #| warning: false
 
-### |-  tidy data ----
-# Split the platforms into separate rows
-games_platforms <- metacritic_top_games_raw |>
-  separate_rows(platforms, sep = ", ") |>
+# P1. heatmap data----
+heatmap_data <- truck_manufacturing_raw |>
   mutate(
-    platform_type = case_when(
-      platforms %in% c("PC") ~ "PC",
-      platforms %in% c("iOS (iPhone/iPad)") ~ "Mobile",
-      TRUE ~ "Console"
+    scenario_clean = case_when(
+      str_detect(scenario, "policy retreat") ~ "Policy Retreat",
+      str_detect(scenario, "union wages") ~ "Clean + Market + Union",
+      str_detect(scenario, "50% clean.*10% market") ~ "Clean + Market Share",
+      str_detect(scenario, "Baseline.*10%") ~ "Baseline + Market",
+      str_detect(scenario, "50% clean") ~ "50% Clean Vehicles",
+      TRUE ~ scenario
     ),
-    release_year = year(release_date),
-    decade = paste0(floor(release_year / 10) * 10, "s"),
-    publisher_group = ifelse(publisher %in% c("Nintendo", "Rockstar Games"), publisher, "Other")
-  )
-
-# Comprehensive tidy dataset
-games_tidy <- metacritic_top_games_raw |>
+    # Order scenarios logically
+    scenario_factor = factor(scenario_clean,
+      levels = c(
+        "50% Clean Vehicles",
+        "Baseline + Market",
+        "Clean + Market Share",
+        "Clean + Market + Union",
+        "Policy Retreat"
+      )
+    )
+  ) |>
+  # Transform to long format
+  select(scenario_factor, assembly, supply_chain, total) |>
+  pivot_longer(
+    cols = -scenario_factor,
+    names_to = "job_category",
+    values_to = "jobs"
+  ) |>
+  # Create clean category labels
   mutate(
-    release_year = year(release_date),
-    decade = paste0(floor(release_year / 10) * 10, "s"),
-    genre_primary = case_when(
-      str_detect(genre, "Action") ~ "Action",
-      str_detect(genre, "Shooter") ~ "Shooter",
-      str_detect(genre, "Platform") ~ "Platformer",
-      str_detect(genre, "Sports") ~ "Sports",
-      str_detect(genre, "Fighting") ~ "Fighting",
-      TRUE ~ genre
+    job_category_clean = case_when(
+      job_category == "assembly" ~ "Assembly",
+      job_category == "supply_chain" ~ "Supply Chain",
+      job_category == "total" ~ "Total"
     ),
-    # Short title for visualization
-    short_title = case_when(
-      str_length(title) > 20 ~ paste0(str_sub(title, 1, 17), "..."),
-      TRUE ~ title
+    job_category_factor = factor(job_category_clean,
+      levels = c("Assembly", "Supply Chain", "Total")
+    ),
+    # Create scaled values for color intensity (-1 to 1 scale)
+    jobs_scaled = case_when(
+      jobs < 0 ~ pmax(jobs / abs(min(jobs)), -1), # negative values
+      jobs > 0 ~ pmin(jobs / max(jobs), 1), # positive values
+      TRUE ~ 0
+    ),
+    # Text color based on intensity
+    text_color = ifelse(abs(jobs_scaled) > 0.6, "white", "black"),
+    # Formatted labels
+    jobs_label = case_when(
+      jobs == 0 ~ "0",
+      jobs > 0 ~ paste0("+", comma(jobs, accuracy = 1)),
+      jobs < 0 ~ comma(jobs, accuracy = 1)
     )
   )
 
-# P1. treemap data----
-treemap_data <- games_platforms |>
-  count(platforms) |>
+# P2. waterfall chart data -----
+waterfall_data <- tibble(
+  category = c(
+    "Baseline", "50% Clean Vehicles", "Add Market Share",
+    "Add Union Wages", "Policy Retreat Alternative"
+  ),
+  # Calculate incremental values
+  value = c(
+    0, # Baseline starting point
+    truck_manufacturing_raw$total[1], # 50% clean vehicles: 11,182
+    truck_manufacturing_raw$total[2] - truck_manufacturing_raw$total[1], # Market share increment: 13,272 - 11,182 = 2,090
+    truck_manufacturing_raw$total[4] - truck_manufacturing_raw$total[3], # Union wages increment: 19,122 - 15,441 = 3,681
+    truck_manufacturing_raw$total[5] # Policy retreat: -3,332 (standalone negative scenario)
+  ),
+  type = c("baseline", "positive", "positive", "positive", "negative")
+) |>
+  # Calculate cumulative totals and bar positioning
   mutate(
-    platform_group = case_when(
-      platforms == "PC" ~ "PC",
-      TRUE ~ "Console"
+    cumulative = case_when(
+      category == "Policy Retreat Alternative" ~ value,
+      TRUE ~ cumsum(value)
     ),
-    platform_label = paste0(platforms, "\n(", n, ")")
-  )
-
-# P2. dot plot data -----
-dotplot_data <- games_tidy |>
-  mutate(
-    platform_group = case_when(
-      str_detect(platforms, "PC") ~ "PC",
-      TRUE ~ "Console"
+    # Calculate where each bar should start and end
+    ymin = case_when(
+      category == "Baseline" ~ 0,
+      category == "Policy Retreat Alternative" ~ 0,
+      TRUE ~ lag(cumulative, default = 0)
     ),
-    is_top_game = metascore >= 97,
-    should_label = case_when(
-      # Only label the very top PC games
-      (platform_group == "PC" & metascore >= 97) ~ TRUE,
-      # Only label the very top Console games
-      (platform_group == "Console" & metascore >= 98) ~ TRUE,
-      TRUE ~ FALSE
-    )
+    ymax = case_when(
+      category == "Policy Retreat Alternative" ~ value,
+      TRUE ~ cumulative
+    ),
+    # Labels
+    category_label = case_when(
+      category == "Baseline" ~ "Baseline\n(Starting Point)",
+      category == "50% Clean Vehicles" ~ "50% Clean\nVehicles",
+      category == "Add Market Share" ~ "Increase\nMarket Share",
+      category == "Add Union Wages" ~ "Add Union\nWages",
+      category == "Policy Retreat Alternative" ~ "Policy Retreat\n(Alternative Path)"
+    ),
+    category = factor(category, levels = category),
+    category_label = factor(category_label, levels = category_label)
   )
 ```
 
@@ -202,20 +239,20 @@ dotplot_data <- games_tidy |>
 ### |-  plot aesthetics ----
 # Get base colors with custom palette
 colors <- get_theme_colors(palette = c(
-  "PC" = "#1F77B4",     
-  "Console" = "#A9A9A9"
+  "#DC143C", "#FFFFFF",  "#2E8B57",                                         # heatmap    
+  "baseline" = "#708090", "positive" = "#2E8B57", "negative" = "#DC143C"    # waterfall chart
 ))
   
 ### |-  titles and caption ----
-title_text <- str_glue("The Enduring Legacy of PC Gaming Excellence")
-subtitle_text <- "While consoles produce occasional standout hits, PC gaming demonstrates sustained quality and unmatched volume\n
-{#1F77B4 **_PC games_**} demonstrate sustained excellence, while {#A9A9A **_console games_**} include some standout titles"
+title_text <- str_glue("The Stakes for U.S. Truck Manufacturing Under Shifting Federal Policy")
+subtitle_text <- str_glue("Employment impact analysis across clean vehicle scenarios and policy retreat alternatives")
+
 
 # Create caption
 caption_text <- create_mm_caption(
     mm_year = 2025,
     mm_week = 23,
-    source_text = "Metacritic"
+    source_text = "<br>EPI analysis of S&P Global (2024), IMPLAN (2024), and FRED data | Job-years, 2024-2032"
 )
 
 ### |-  fonts ----
@@ -264,151 +301,201 @@ theme_set(weekly_theme)
 #| label: plot
 #| warning: false
 
-# P1. Treemap ----
-p1 <- ggplot(treemap_data, aes(area = n, fill = platform_group, label = platform_label)) +
+# P1. Heatmap ----
+p1 <- heatmap_data |>
+  ggplot(aes(x = job_category_factor, y = scenario_factor)) +
+
   # Geoms
-  geom_treemap(
+  geom_tile(aes(fill = jobs_scaled),
     color = "white",
-    size = 1.5
+    linewidth = 1.5,
+    alpha = 0.9
   ) +
-  geom_treemap_text(
-    aes(label = platforms),
-    colour = "white",
-    place = "centre",
-    size = 11,
+  geom_text(aes(label = jobs_label, color = text_color),
     fontface = "bold",
-    padding.y = grid::unit(4, "mm")
+    size = 4.2
   ) +
-  geom_treemap_text(
-    aes(label = paste0("n = ", n)),
-    colour = "white",
-    place = "bottom",
-    size = 8,
-    padding.y = grid::unit(4, "mm")
-  ) +
+
   # Scales
-  scale_fill_manual(values = colors$palette) +
-  coord_equal() +
+  scale_fill_gradient2(
+    low = colors$palette[1],
+    mid = colors$palette[2],
+    high = colors$palette[3],
+    midpoint = 0,
+    name = "Job Impact\nIntensity",
+    labels = c("High Loss", "Neutral", "High Gain"),
+    breaks = c(-1, 0, 1),
+    guide = guide_colorbar(
+      title.position = "top",
+      title.hjust = 0.5,
+      barwidth = 1.2,
+      barheight = 8,
+      frame.colour = "gray70",
+      ticks.colour = "gray70"
+    )
+  ) +
+  scale_color_identity() +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+
   # Labs
   labs(
-    title = "PC: The Single Most Prolific Platform for Top-Rated Games",
+    subtitle = "Job breakdown shows potential gains and losses across Assembly and Supply Chain sectors",
+    x = "Job Category",
+    y = "Policy Scenario"
   ) +
+
   # Theme
+  theme_minimal(base_size = 11) +
   theme(
-    plot.title = element_text(
-      size = rel(1),
-      family = fonts$title,
+    plot.subtitle = element_text(
+      size = 12,
+      color = "gray40",
+      margin = margin(b = 15)
+    ),
+    axis.title = element_text(
+      size = 10,
       face = "bold",
-      color = colors$title,
-      lineheight = 1.1,
-      margin = margin(t = 5, b = 15)
-    )
+      color = "gray30"
+    ),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.text = element_text(
+      size = 9,
+      color = "gray20",
+      face = "bold"
+    ),
+    legend.position = "right",
+    legend.title = element_text(
+      size = 9,
+      face = "bold",
+      color = "gray30"
+    ),
+    legend.text = element_text(
+      size = 8,
+      color = "gray40"
+    ),
+    legend.margin = margin(l = 15),
+    panel.grid = element_blank(),
+    plot.margin = margin(10, 15, 15, 15),
+    plot.background = element_rect(fill = colors$background, color = NA),
+    panel.background = element_rect(fill = colors$background, color = NA)
   )
 
-# P2. dot plot -----
-p2 <- ggplot(dotplot_data, aes(x = release_date, y = metascore)) +
-  # Geoms
-  geom_hline(yintercept = c(90, 95), linetype = "dashed", color = "gray80", alpha = 0.7) +
-  # Annotate
-  annotate("rect",
-    xmin = as.Date("1997-01-01"), xmax = as.Date("2000-01-01"),
-    ymin = 89.5, ymax = 100, fill = "gray90", alpha = 0.5
-  ) +
-  annotate("rect",
-    xmin = as.Date("2000-01-01"), xmax = as.Date("2010-01-01"),
-    ymin = 89.5, ymax = 100, fill = "gray85", alpha = 0.5
-  ) +
-  annotate("rect",
-    xmin = as.Date("2010-01-01"), xmax = as.Date("2021-01-01"),
-    ymin = 89.5, ymax = 100, fill = "gray90", alpha = 0.5
-  ) +
-  annotate("text",
-    x = as.Date("1998-07-01"), y = 90.5, label = "1990s",
-    color = "gray50", size = 3, fontface = "bold", alpha = 0.7
-  ) +
-  annotate("text",
-    x = as.Date("2005-01-01"), y = 90.5, label = "2000s",
-    color = "gray50", size = 3, fontface = "bold", alpha = 0.7
-  ) +
-  annotate("text",
-    x = as.Date("2015-01-01"), y = 90.5, label = "2010s",
-    color = "gray50", size = 3, fontface = "bold", alpha = 0.7
-  ) +
+# P2. waterfall chart -----
+p2 <- waterfall_data |>   
+  ggplot(aes(x = category_label)) +
 
   # Geoms
-  geom_point(
+  geom_segment(
+    data = waterfall_data[2:4, ],
     aes(
-      color = platform_group,
-      alpha = if_else(platform_group == "PC", 0.9, 0.6)
+      x = as.numeric(category_label) + 0.45,
+      xend = as.numeric(category_label) + 1 - 0.45,
+      y = ymax,
+      yend = ymax
     ),
-    size = 3,
-    stroke = 0.2
+    linetype = "dashed", alpha = 0.6, linewidth = 0.8, color = "gray50"
   ) +
-  geom_text_repel(
-    data = dotplot_data |> filter(should_label),
-    aes(label = short_title, color = platform_group),
-    size = 2.8,
-    fontface = "bold",
-    box.padding = 0.5,
-    point.padding = 0.3,
-    force = 2,
-    segment.color = "gray60",
-    segment.size = 0.2,
-    segment.alpha = 0.8,
-    max.overlaps = 15,
-    seed = 42
+  geom_rect(
+    aes(
+      xmin = as.numeric(category_label) - 0.35,
+      xmax = as.numeric(category_label) + 0.35,
+      ymin = ymin,
+      ymax = ymax,
+      fill = type
+    ),
+    alpha = 0.9, color = "white", linewidth = 0.5
   ) +
+  geom_text(
+    aes(
+      y = (ymin + ymax) / 2,
+      label = ifelse(value == 0, "0",
+        paste0(ifelse(value > 0, "+", ""), comma(value, accuracy = 1))
+      )
+    ),
+    fontface = "bold", size = 4, color = "white"
+  ) +
+  geom_text(
+    data = filter(waterfall_data, type != "baseline" & type != "negative"),
+    aes(
+      y = ymax + 500,
+      label = paste("Total:", comma(cumulative, accuracy = 1))
+    ),
+    fontface = "bold", size = 3.5, color = "gray30"
+  ) +
+  geom_hline(yintercept = 0, color = "black", linewidth = 1, alpha = 0.8) +
+
   # Scales
-  scale_color_manual(values = colors$palette) +
-  scale_alpha_identity() +
-  scale_x_date(
-    date_breaks = "5 years",
-    date_labels = "%Y",
-    expand = expansion(mult = c(0.02, 0.02))
-  ) +
+  scale_fill_manual(values = colors$palette, guide = "none") +
   scale_y_continuous(
-    breaks = seq(90, 100, by = 2.5),
-    limits = c(89.5, 100),
-    labels = function(x) paste0(x)
+    labels = function(x) {
+      case_when(
+        x >= 0 ~ paste0("+", comma(x)),
+        x < 0 ~ comma(x),
+        TRUE ~ as.character(x)
+      )
+    },
+    breaks = pretty_breaks(n = 6),
+    expand = expansion(mult = c(0.15, 0.1))
   ) +
+  scale_x_discrete() +
+
   # Labs
   labs(
-    title = "PC Games Show Consistent Quality Across Three Decades",
-    x = "Release Year",
-    y = "Metascore"
+    subtitle = "Policy scenarios build progressively from baseline to maximum employment potential",
+    x = NULL,
+    y = "Change in Employment (Job-years)"
   ) +
+
   # Theme
+  theme_minimal(base_size = 11) +
   theme(
-    plot.title = element_text(
-      size = rel(1),
-      family = fonts$title,
+    plot.subtitle = element_text(
+      size = 12,
+      color = "gray40",
+      margin = margin(b = 15)
+    ),
+    axis.title.y = element_text(
+      size = 10,
       face = "bold",
-      color = colors$title,
-      lineheight = 1.1,
-      margin = margin(t = 5, b = 15)
-    )
+      color = "gray30",
+      margin = margin(r = 15)
+    ),
+    axis.text.x = element_text(
+      size = 9,
+      face = "bold",
+      color = "gray20",
+      lineheight = 1.1
+    ),
+    axis.text.y = element_text(
+      size = 9,
+      color = "gray30"
+    ),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.5),
+    plot.margin = margin(15, 15, 10, 15),
+    plot.background = element_rect(fill = colors$background, color = NA),
+    panel.background = element_rect(fill = colors$background, color = NA)
   )
 
 # Combined Plot ----
-combined_plot <- (p1 | plot_spacer() | p2) +
-  plot_layout(
-    widths = c(1, 0.005, 1),
-    guides = "collect"
-  ) +
+combined_plot <- p1 / p2 +
   plot_annotation(
     title = title_text,
     subtitle = subtitle_text,
     caption = caption_text,
     theme = theme(
       plot.title = element_markdown(
-        size = rel(2.4),
+        size = rel(1.6),
         family = fonts$title,
         face = "bold",
         color = colors$title,
         lineheight = 1.1,
         margin = margin(t = 5, b = 5)
       ),
-      plot.subtitle = element_marquee(
+      plot.subtitle = element_text(
         size = rel(1),
         family = fonts$subtitle,
         color = alpha(colors$subtitle, 0.9),
@@ -422,6 +509,7 @@ combined_plot <- (p1 | plot_spacer() | p2) +
         hjust = 0.5,
         margin = margin(t = 10)
       ),
+     plot.margin = margin(25, 25, 25, 25),
     )
   )
 ```
@@ -437,9 +525,9 @@ save_plot_patchwork(
   plot = combined_plot, 
   type = "makeovermonday", 
   year = 2025,
-  week = 21,
-  width = 12, 
-  height = 8
+  week = 23,
+  width = 10, 
+  height = 12
   )
 ```
 
@@ -473,9 +561,9 @@ For the full repository, [click here](https://github.com/poncest/personal-websit
 
 1.  Data:
 
--   Makeover Monday 2025 Week 21: [Metacritic Best Games of All Time](https://data.world/makeovermonday/2025w21-metacritic-best-games-of-all-time)
+-   Makeover Monday 2025 Week 23: [What future will U.S. truck manufacturing have under Trump?](https://data.world/makeovermonday/what-future-will-us-truck-manufacturing-have-under-trump)
 
 2.  Article
- 
--   Metacritic: [Best Games of All Time](https://www.metacritic.com/browse/game/)
+
+-   Economic Policy Institute: [What future will U.S. truck manufacturing have under Trump?](https://www.epi.org/publication/future-clean-trucks-buses/)
 :::
