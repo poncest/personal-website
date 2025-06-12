@@ -1,0 +1,358 @@
+---
+title: "Diversity in Federal Judicial Appointments Has Increased Over Time"
+subtitle: "Number of appointments by gender across racial groups, 1960-present (note: different scales)"
+description: "Visualization showing the growth of diversity in federal judicial appointments from 1960-present. Analysis reveals significant increases in female representation across all racial groups, demonstrating progress toward a more diverse federal judiciary."
+author: "Steven Ponce"
+date: "2025-06-03" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "federal-judiciary",
+  "judicial-appointments", 
+  "diversity-analysis",
+  "gender-representation",
+  "racial-diversity",
+  "data-storytelling",
+  "ggplot2",
+  "faceted-visualization",
+  "government-data",
+  "civil-rights",
+  "historical-trends",
+  "bar-charts"
+]
+image: "thumbnails/tt_2025_23.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Stacked bar chart showing federal judicial appointments 1960-present by race and gender. Demonstrates significant increases in both racial diversity and female representation across all groups, with White appointments showing the largest absolute numbers but all groups showing growing gender diversity over time.](tt_2025_23.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  scales,        # Scale Functions for Visualization
+  glue           # Interpreted String Literals
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  8,
+  height =  8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 23)
+
+appointments_raw <- tt$judges_appointments |> clean_names()
+people_raw <- tt$judges_people |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(appointments_raw)
+skimr::skim(appointments_raw)
+
+glimpse(people_raw)
+skimr::skim(people_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+# Joining the datasets first
+judges_data <- appointments_raw |>
+  left_join(people_raw, by = "judge_id") |>
+  mutate(
+    nomination_date = mdy(nomination_date),
+    commission_date = mdy(commission_date),
+    senate_confirmation_date = mdy(senate_confirmation_date),
+    nomination_year = year(nomination_date)
+  )
+
+# Prepare the data
+plot_data <- judges_data |>
+  filter(
+    !is.na(nomination_year), !is.na(gender), !is.na(race),
+    nomination_year >= 1960
+  ) |>
+  mutate(
+    race_simplified = case_when(
+      str_detect(race, "White") ~ "White",
+      str_detect(race, "Black|African") ~ "Black",
+      str_detect(race, "Hispanic|Latino") ~ "Hispanic",
+      str_detect(race, "Asian") ~ "Asian",
+      TRUE ~ "Other"
+    ),
+    decade = floor(nomination_year / 10) * 10
+  ) |>
+  count(decade, gender, race_simplified) |>
+  group_by(decade, race_simplified) |>
+  mutate(
+    total = sum(n),
+    female_count = ifelse(gender == "F", n, 0),
+    female_label_y = ifelse(gender == "F", total - n / 2, NA),
+    race_simplified = factor(race_simplified, 
+                             levels = c("White", "Black", "Asian", "Hispanic", "Other"))
+  ) |>
+  ungroup()
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = c("F" = "#8E44AD", "M" = "#2C3E50")
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("Diversity in Federal Judicial Appointments Has Increased Over Time")
+
+subtitle_text <- str_glue("Number of appointments by gender across racial groups, 1960-present (note: different scales)")
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 23,
+  source_text =  "Web site of the Federal Judicial Center, via the historydata R package"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+    
+    # Grid elements
+    panel.grid.major.y = element_line(color = 'gray50', linewidth = 0.05),
+    panel.grid.minor = element_blank(), 
+    panel.grid.major.x = element_blank(),
+
+    # Legend elements
+    # legend.position = "plot",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+
+    # Plot margins
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+# Final plot -----
+p <- plot_data |>
+  ggplot(aes(x = decade, y = n, fill = gender)) +
+  # Geoms
+  geom_bar(stat = "identity", position = "stack", alpha = 0.85) +
+  geom_text(aes(y = total + (total * 0.08), label = total),
+    position = position_identity(),
+    size = 3.2,
+    color = "black",
+    fontface = "bold",
+    family = "Arial",
+    data = plot_data |> filter(gender == "F", total > 3)
+  ) +
+  geom_text(aes(y = female_label_y, label = female_count),
+    position = position_identity(),
+    size = 3,
+    color = "white", 
+    fontface = "bold",
+    family = "Arial",
+    data = plot_data |> filter(gender == "F", female_count > 3)
+  ) +
+    
+  # Scales
+  scale_fill_manual(
+    values = colors$palette,
+    labels = c("F" = "Female", "M" = "Male")
+  ) +
+  scale_x_continuous(
+    breaks = seq(1960, 2020, 20),
+    labels = c("1960s", "1980s", "2000s", "2020+")
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Decade",
+    y = "",
+    fill = "Gender",
+  ) +
+  # Facets
+  facet_wrap(~race_simplified, scales = "free_y", ncol = 3) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.75),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    ),
+    strip.text = element_text(size = rel(0.78), face = "bold"),
+    panel.spacing = unit(1.1, "lines"),
+
+    # Legend
+    legend.position = "inside",
+    legend.position.inside = c(0.82, 0.15),
+    legend.title = element_text(face = "bold", size = 10),
+    legend.text = element_text(size = 9),
+    legend.background = element_rect(fill = NA, color = "gray90", linewidth = 0.5),
+    legend.margin = margin(5, 5, 5, 5),
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 23, 
+  width = 8,
+  height = 8
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_23.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_23.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 23: \[U.S. Judges and the historydata R package)\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-06-10
+:::
