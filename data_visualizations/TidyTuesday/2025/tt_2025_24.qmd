@@ -1,0 +1,401 @@
+---
+title: "The API Graveyard: A Tale of Digital Neglect"
+subtitle: "40% of APIs are never updated after being added to the catalog"
+description: "A TidyTuesday analysis revealing that 40% of APIs are never updated after publication. Using APIs.guru data, this visualization shows maintenance patterns across providers and the timeline of API updates from 2016-2022."
+author: "Steven Ponce"
+date: "2025-06-17" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "APIs", "Software Maintenance", "Technical Debt", "Digital Infrastructure",
+  "Data Analysis", "ggplot2", "APIs.guru", "Software Engineering",
+  "Tech Industry", "Data Storytelling", "R", "Scatter Plot", "Bar Chart",
+  "Open Source", "Developer Tools", "Software Lifecycle", "Code Maintenance",
+  "Tech Trends"
+]
+image: "thumbnails/tt_2025_24.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+!["Two-chart visualization showing API maintenance crisis. Top scatter plot reveals 40% of APIs (1,011 red dots at bottom) are never updated after publication, while 60% (1,518 gray dots) receive updates over time from 2016-2022. Bottom bar chart shows provider-specific abandonment rates, with companies like Xero.com, Vtex.local, and government sites showing 100% abandonment, while Amazon has the lowest rate at 21.8%."](tt_2025_24.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,  # Easily Install and Load the 'Tidyverse'
+  ggtext,     # Improved Text Rendering Support for 'ggplot2'
+  showtext,   # Using Fonts More Easily in R Graphs
+  janitor,    # Simple Tools for Examining and Cleaning Dirty Data
+  scales,     # Scale Functions for Visualization
+  glue,       # Interpreted String Literals
+  patchwork   # The Composer of Plots
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  =  8,
+  height =  10,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 24)
+
+info_raw <- tt$api_info |> clean_names()
+apis_raw <- tt$apisguru_apis |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(info_raw)
+glimpse(apis_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  tidy data ----
+apis_minimal <- apis_raw |>
+  left_join(info_raw, by = "name") |>
+  select(name, added, updated, provider_name) |>
+  mutate(
+    added_date = as_date(added),
+    updated_date = as_date(updated)
+  ) |>
+  filter(!is.na(added_date), !is.na(updated_date))
+
+# P1. The API Graveyard Data ----
+maintenance_analysis <- apis_minimal |>
+  mutate(
+    days_between_add_update = as.numeric(updated_date - added_date),
+    same_day_update = days_between_add_update == 0,
+    days_for_viz = ifelse(days_between_add_update == 0, 0.5, days_between_add_update)
+  ) |>
+  filter(days_between_add_update >= 0)
+
+# Calculate key statistics
+total_apis <- nrow(maintenance_analysis)
+never_updated_count <- sum(maintenance_analysis$same_day_update)
+never_updated_pct <- round(never_updated_count / total_apis * 100, 1)
+updated_count <- total_apis - never_updated_count
+updated_pct <- round(updated_count / total_apis * 100, 1)
+
+# P2. Provider Analysis ----
+provider_analysis <- apis_minimal |>
+  mutate(
+    days_between_add_update = as.numeric(updated_date - added_date),
+    same_day_update = days_between_add_update == 0
+  ) |>
+  filter(days_between_add_update >= 0) |>
+  group_by(provider_name) |>
+  filter(n() >= 3) |>
+  summarise(
+    total_apis = n(),
+    never_updated_apis = sum(same_day_update),
+    abandonment_rate = round((never_updated_apis / total_apis) * 100, 1),
+    .groups = "drop"
+  ) |>
+  filter(abandonment_rate > 0) |>
+  arrange(desc(abandonment_rate)) |>
+  head(15) |> # Top 15 by abandonment rate
+  mutate(
+    provider_clean = str_trunc(str_to_title(provider_name), 35),
+    provider_clean = fct_reorder(provider_clean, abandonment_rate)
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c("#95A5A6", "#E74C3C", "#7F8C8D")
+)
+
+### |-  titles and caption ----
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 24,
+  source_text =  "APIs.guru"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+
+    # Grid elements
+    panel.grid.major.y = element_line(color = "gray50", linewidth = 0.05),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+
+    # Plot margins
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+# P1. The API Graveyard Plot ----
+p1 <- maintenance_analysis |>
+  ggplot(aes(x = added_date, y = days_for_viz)) +
+  # Geoms
+  geom_point(
+    data = maintenance_analysis |> filter(!same_day_update),
+    color = colors$palette[1], size = 1.5, alpha = 0.6
+  ) +
+  geom_point(
+    data = maintenance_analysis |> filter(same_day_update),
+    color = colors$palette[2], size = 2.5, alpha = 0.9
+  ) +
+  # Scales
+  scale_y_log10(
+    labels = comma_format(),
+    limits = c(0.1, NA),
+    breaks = c(0.5, 1, 10, 100, 1000)
+  ) +
+  # Annotations
+  annotate("text",
+    x = as.Date("2016-06-01"), y = 12,
+    label = paste0("Gray dots: Updated after addition\n(", updated_count, " APIs • ", updated_pct, "%)"),
+    color = colors$palette[1], size = 3.5, fontface = "bold",
+    hjust = 0, vjust = 0
+  ) +
+  annotate("text",
+    x = as.Date("2016-06-01"), y = 0.9,
+    label = paste0("Red dots: Never updated\n(", never_updated_count, " APIs • ", never_updated_pct, "%)"),
+    color = colors$palette[2], size = 3.5, fontface = "bold",
+    hjust = 0, vjust = 0
+  ) +
+  # Labs
+  labs(
+    title = "<span style='color:#E74C3C'>**The API Graveyard**</span>: A Tale of Digital Neglect",
+    subtitle = paste0("**", never_updated_pct, "%** of APIs are <span style='color:#E74C3C'>**never updated**</span> after being added to the catalog<br><br>",
+                      "<span style='color:#1a1a1a; font-size:14px'>**Days Since Last Update (log scale)**</span>"),
+    x = "Date Added to APIs.guru",
+    y = NULL,
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(1.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 0, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  )
+
+# P2. Provider Responsibility Breakdown Plot ----
+p2 <- provider_analysis |>
+  ggplot(aes(x = provider_clean, y = abandonment_rate)) +
+  # Geoms
+  geom_col(fill = colors$palette[2], alpha = 0.7, width = 0.7) +
+  geom_text(aes(label = paste0(abandonment_rate, "% •  (", never_updated_apis, "/", total_apis, ")")),
+    hjust = -0.1, size = 3, color = "gray50", fontface = "bold"
+  ) +
+  # Scales
+  scale_y_continuous(
+    limits = c(0, 124),
+    expand = c(0, 0)
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = "**API Maintenance Patterns by Provider**",
+    subtitle = "Providers with the highest rates of APIs that were never updated after initial publication",
+    x = NULL,
+    y = "% of APIs Never Updated After Addition",
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(1.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_text(size = 9),
+    plot.caption = element_text(size = 8, color = colors$palette[3])
+  )
+
+
+# Final plot -----
+combined_plot <- p1 / p2 +
+  plot_layout(heights = c(1.2, 1))
+
+combined_plot <- combined_plot +
+  plot_annotation(
+    caption = caption_text,
+    theme = theme(
+      plot.caption = element_markdown(
+        size = rel(0.6),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0.5,
+        margin = margin(t = 10)
+      )
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 24, 
+  width  =  8,
+  height =  10
+)
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_24.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_24.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 24: [API Specs](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-06-17
+:::
