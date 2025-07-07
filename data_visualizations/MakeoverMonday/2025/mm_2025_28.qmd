@@ -1,0 +1,382 @@
+---
+title: "Science, Health, and History: The Big Three of Misconceptions"
+subtitle: "These three domains account for 44% of all debunked myths"
+description: "An analysis of 97 common misconceptions reveals that Science, Health, and History dominate the landscape of debunked myths."
+author: "Steven Ponce"
+date: "2025-07-07" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+  "treemap",
+  "misconceptions", 
+  "myths",
+  "debunking",
+  "information-is-beautiful",
+  "ggplot2",
+  "treemapify",
+  "data-storytelling",
+  "science-communication",
+  "misinformation",
+  "categorical-data",
+  "hierarchical-visualization",
+]
+image: "thumbnails/mm_2025_28.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+### Original
+
+The original visualization **Common MythConceptions** comes from [EInformation is Beutiful](https://informationisbeautiful.net/visualizations/common-mythconceptions/)
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_28/original_chart.png)
+
+### Makeover
+
+![Treemap of 97 debunked misconceptions by category. Science, Health, and History are the three largest categories, accounting for 44% of all myths, with the remaining categories shown as smaller gray sections.](mm_2025_28.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+  tidyverse,      # Easily Install and Load the 'Tidyverse'
+  ggtext,         # Improved Text Rendering Support for 'ggplot2'
+  showtext,       # Using Fonts More Easily in R Graphs
+  scales,         # Scale Functions for Visualization
+  glue,           # Interpreted String Literals
+  lubridate,      # Make Dealing with Dates a Little Easier
+  treemapify      # Draw Treemaps in 'ggplot2' 
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  10,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+myth_conceptions_raw<- read_csv(
+  here::here('data/MakeoverMonday/2025/KIB - Common MythConceptions (public).csv')) |> 
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(myth_conceptions_raw)
+skimr::skim(myth_conceptions_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# Helper
+format_numbers_smart <- function(x) {
+  case_when(
+    x >= 1000000 ~ paste0(round(x / 1000000, 1), "M"),
+    x >= 1000 ~ paste0(round(x / 1000, 0), "K"),
+    x < 1000 & x > 0 ~ as.character(round(x, 0)),
+    TRUE ~ "0"
+  )
+}
+
+# Clean and prepare data
+myths_clean <- myth_conceptions_raw |>
+  rename(
+    misconception = no_no_no_common_misconceptions,
+    correction = remaining_text,
+    search_volume = google_hits,
+    noise_in_search = lot_of_noise_i_e_myth_busting_in_search_result
+  ) |>
+  filter(!is.na(misconception))
+
+# Treemap data
+treemap_data <- myths_clean |>
+  filter(!is.na(category)) |>
+  group_by(category) |>
+  summarise(
+    count = n(),
+    total_hits = sum(search_volume, na.rm = TRUE),
+    avg_hits = mean(search_volume, na.rm = TRUE),
+    avg_word_count = mean(word_count, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    category_clean = case_when(
+      category == "science" ~ "Science",
+      category == "health" ~ "Health",
+      category == "nature" ~ "Nature",
+      category == "history" ~ "History",
+      category == "physics" ~ "Physics",
+      category == "religion" ~ "Religion",
+      category == "cooking" ~ "Cooking",
+      category == "mind" ~ "Psychology",
+      category == "body" ~ "Human Body",
+      category == "drugs" ~ "Substances",
+      category == "food" ~ "Food & Nutrition",
+      category == "technology - inventions" ~ "Technology",
+      category == "science/nature" ~ "Science/Nature",
+      TRUE ~ str_to_title(category)
+    ),
+    category_type = case_when(
+      category == "science" ~ "Major: Science",
+      category == "health" ~ "Major: Health",
+      category == "history" ~ "Major: History",
+      TRUE ~ "Minor Categories"
+    ),
+    label_text_hierarchical = paste0(
+      toupper(category_clean), "\n",
+      "\n",
+      count, " myth", if_else(count == 1, "", "s"), "\n",
+      format_numbers_smart(avg_hits), " avg searches"
+    )
+  ) |>
+  filter(count > 0) |>
+  arrange(desc(count))
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "Major: Science" = "#273F4F",
+  "Major: Health" = "#447D9B", 
+  "Major: History" = "#FE7743",
+  "Minor Categories" = "#bababa"
+))
+
+### |-  titles and caption ----
+title_text <- str_glue("Science, Health, and History: The Big Three of Misconceptions")
+subtitle_text <- str_glue("These three domains account for **44%** of all debunked myths • Numbers show average Google searches per myth")
+
+# Create caption
+caption_text <- create_mm_caption(
+  mm_year = 2025,
+  mm_week = 29,
+  source_text = "<br>EPI analysis of S&P Global (2024), IMPLAN (2024), and FRED data | Job-years, 2024-2032"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    
+    # Legend formatting
+    legend.position = "plot",
+    legend.title = element_text(face = "bold"),
+    
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5), 
+    axis.ticks.length = unit(0.2, "cm"), 
+    
+    # Axis formatting
+    axis.title.x = element_text(face = "bold", size = rel(0.85)),
+    axis.title.y = element_text(face = "bold", size = rel(0.85)),
+    axis.text.y = element_text(face = "bold", size = rel(0.85)),
+    
+    # Grid lines
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+# Plot ----
+p <- ggplot(
+  treemap_data,
+  aes(
+    area = count, fill = category_type,
+    label = label_text_hierarchical
+  )
+) +
+  # Geoms
+  geom_treemap(
+    color = "white",
+    size = 2.5,
+    alpha = 0.92
+  ) +
+  geom_treemap_text(
+    family = "Arial",
+    colour = "white",
+    place = "centre",
+    size = 11,
+    fontface = "bold",
+    min.size = 8,
+    reflow = TRUE,
+    padding.y = grid::unit(4, "mm"),
+    padding.x = grid::unit(3, "mm")
+  ) +
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  coord_equal() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      hjust = 0.5,
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.9),
+      hjust = 0.5,
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 0.9,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = 2025,
+  week = 28,
+  width = 10, 
+  height = 10
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`mm_2025_28.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_28.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+-   Makeover Monday 2025 Week 28: [Common MythConceptions](https://data.world/makeovermonday/2025week-28-common-misconception)
+
+2.  Article
+
+-   Information is Beautiful: [Common MythConceptions](https://informationisbeautiful.net/visualizations/common-mythconceptions/)
+:::
