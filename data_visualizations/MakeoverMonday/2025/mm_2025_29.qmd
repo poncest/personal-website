@@ -1,12 +1,26 @@
 ---
 title: "Mass Deportations Would Devastate Employment Across Multiple States"
 subtitle: "Projected employment impacts 2025-2029 vs. 2024 baseline"
-description: "PLACEHOLDER-1."
+description: "A MakeoverMonday data visualization reimagining the Economic Policy Institute's analysis of projected employment impacts from mass deportations. Using R and ggplot2, I transformed a basic heat map into a compelling two-chart story showing both the scale of job losses by state and the impact on different worker types. Features include color-coded impact tiers, strategic labeling, and unified design system for publication-ready visualizations."
 author: "Steven Ponce"
 date: "2025-07-15" 
 categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
 tags: [
-  "PLACEHOLDER-2",
+ "employment",
+  "deportations", 
+  "immigration policy",
+  "economic analysis",
+  "ggplot2",
+  "patchwork",
+  "data storytelling",
+  "bar charts",
+  "dumbbell charts",
+  "choropleth alternative",
+  "Economic Policy Institute",
+  "labor market",
+  "policy visualization",
+  "state-level data",
+  "worker demographics"
 ]
 image: "thumbnails/mm_2025_29.png"
 format:
@@ -40,7 +54,7 @@ The original visualization Figure B, **Trump's deportations will reduce employme
 
 ### Makeover
 
-![Two side-by-side charts showing projected employment impacts from mass deportations 2025-2029. Left chart: horizontal bar chart ranking top 20 states by total job losses, with California leading at 1.1M jobs, followed by Texas at 865K. Color coding indicates impact tiers, ranging from 500K+ jobs (red) to under 100K (gray). Right chart: Dumbbell plot showing the same 20 states, with blue and red dots representing job losses for U.S.-born and immigrant workers, respectively. This demonstrates that both worker types are affected in every state. Data source: Economic Policy Institute.](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_29//2025_29.png){#fig-1}
+![Two side-by-side charts showing projected employment impacts from mass deportations 2025-2029. Left chart: horizontal bar chart ranking top 20 states by total job losses, with California leading at 1.1M jobs, followed by Texas at 865K. Color coding indicates impact tiers, ranging from 500K+ jobs (red) to under 100K (gray). Right chart: Dumbbell plot showing the same 20 states, with blue and red dots representing job losses for U.S.-born and immigrant workers, respectively. This demonstrates that both worker types are affected in every state. Data source: Economic Policy Institute.](mm_2025_29.png){#fig-1}
 
 ### <mark> **Steps to Create this Graphic** </mark>
 
@@ -173,9 +187,8 @@ colors <- get_theme_colors(palette = list(
 ))
 
 ### |-  titles and caption ----
-title_text <- str_glue("Mass Deportations Would Devastate Employment Across Multiple States")
-subtitle_text <- str_glue("Projected employment impacts 2025-2029 vs. 2024 baseline")
-
+title_text <- paste0("Mass Deportations Would Devastate Employment Across Multiple States")
+subtitle_text <- paste0("Projected employment impacts 2025-2029 vs. 2024 baseline")
 
 # Create caption
 caption_text <- create_mm_caption(
@@ -364,7 +377,7 @@ spacer <- ggplot() +
 
 # Use it between charts
 combined_plots <- (p1 + spacer + p2) +
-  plot_layout(widths = c(1, 0.2, 1.1))
+  plot_layout(widths = c(1, 0.2, 1.1)) 
 
 combined_plots <- combined_plots +
   plot_annotation(
@@ -372,18 +385,18 @@ combined_plots <- combined_plots +
     subtitle = subtitle_text,
     caption = caption_text,
     theme = theme(
-      plot.title = element_markdown(
-        size = rel(1.8),
+      plot.title = element_text(
+        size = rel(1.6),
         family = fonts$title,
         face = "bold",
-        hjust = 0.5,
+        hjust = 0.,
         color = colors$title,
         lineheight = 1.1,
         margin = margin(t = 5, b = 5)
       ),
       plot.subtitle = element_markdown(
-        size = rel(1.2),
-        hjust = 0.5,
+        size = rel(1.1),
+        hjust = 0,
         family = fonts$subtitle,
         color = alpha(colors$subtitle, 0.9),
         lineheight = 0.9,
