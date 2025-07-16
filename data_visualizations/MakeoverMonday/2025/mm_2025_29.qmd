@@ -46,15 +46,57 @@ execute:
   eval: true
 ---
 
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 29
+project_file <- "mm_2025_29.qmd"
+project_image <- "mm_2025_29.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2025wk-29-trumps-deportations-will-reduce-employment"
+data_secondary <- "https://www.epi.org/publication/trumps-deportation-agenda-will-destroy-millions-of-jobs-both-immigrants-and-u-s-born-workers-would-suffer-job-losses-particularly-in-construction-and-child-care/"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_29/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.epi.org"
+org_secondary <- "https://data.world/makeovermonday"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
 ### Original
 
-The original visualization Figure B, **Trump's deportations will reduce employment in every state. Overall and construction employment losses for 4 million national deportations over four years, by state** comes from [Economic Policy Instritute](https://www.epi.org/publication/trumps-deportation-agenda-will-destroy-millions-of-jobs-both-immigrants-and-u-s-born-workers-would-suffer-job-losses-particularly-in-construction-and-child-care/)
+The original visualization Figure B, **Trump's deportations will reduce employment in every state. Overall and construction employment losses for 4 million national deportations over four years, by state** comes from `r create_link("Economic Policy Institute", data_secondary)`
 
-![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_29/original_chart.png)
+![Original visualization](`r chart_original`)
 
 ### Makeover
 
-![Two side-by-side charts showing projected employment impacts from mass deportations 2025-2029. Left chart: horizontal bar chart ranking top 20 states by total job losses, with California leading at 1.1M jobs, followed by Texas at 865K. Color coding indicates impact tiers, ranging from 500K+ jobs (red) to under 100K (gray). Right chart: Dumbbell plot showing the same 20 states, with blue and red dots representing job losses for U.S.-born and immigrant workers, respectively. This demonstrates that both worker types are affected in every state. Data source: Economic Policy Institute.](mm_2025_29.png){#fig-1}
+![Two side-by-side charts showing projected employment impacts from mass deportations 2025-2029. Left chart: horizontal bar chart ranking top 20 states by total job losses, with California leading at 1.1M jobs, followed by Texas at 865K. Color coding indicates impact tiers, ranging from 500K+ jobs (red) to under 100K (gray). Right chart: Dumbbell plot showing the same 20 states, with blue and red dots representing job losses for U.S.-born and immigrant workers, respectively. This demonstrates that both worker types are affected in every state. Data source: Economic Policy Institute.](`r project_image`){#fig-1}
 
 ### <mark> **Steps to Create this Graphic** </mark>
 
@@ -188,13 +230,13 @@ colors <- get_theme_colors(palette = list(
 
 ### |-  titles and caption ----
 title_text <- paste0("Mass Deportations Would Devastate Employment Across Multiple States")
-subtitle_text <- paste0("Projected employment impacts 2025-2029 vs. 2024 baseline")
+subtitle_text <- paste0("Projected employment impacts ", current_year, "-", current_year + 4, " vs. ", current_year - 1, " baseline")
 
 # Create caption
 caption_text <- create_mm_caption(
-   mm_year = 2025,
-  mm_week = 29,
-  source_text = "<br>Economic Policy Institute (July 2025) | Projections based on 1M annual deportations vs. 330K baseline"
+   mm_year = current_year,
+  mm_week = current_week,
+  source_text = paste0("<br>Economic Policy Institute (July ", current_year, ") | Projections based on 1M annual deportations vs. 330K baseline")
 )
 
 
@@ -423,8 +465,8 @@ combined_plots <- combined_plots +
 save_plot_patchwork(
   plot = combined_plots, 
   type = "makeovermonday", 
-  year = 2025,
-  week = 29,
+  year = current_year,
+  week = current_week,
   width = 12, 
   height = 8
   )
@@ -448,9 +490,9 @@ sessionInfo()
 ::: {.callout-tip collapse="true"}
 ##### Expand for GitHub Repo
 
-The complete code for this analysis is available in [`mm_2025_29.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/2025/mm_2025_29.qmd).
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
 
-For the full repository, [click here](https://github.com/poncest/personal-website/).
+For the full repository, `r create_link("click here", repo_main)`.
 :::
 
 #### 10. References
@@ -460,9 +502,9 @@ For the full repository, [click here](https://github.com/poncest/personal-websit
 
 1.  Data:
 
--   Makeover Monday 2025 Week 29: [Figure B, Trump's deportations will reduce employment in every state](https://data.world/makeovermonday/2025wk-29-trumps-deportations-will-reduce-employment)
+-   Makeover Monday `r current_year` Week `r current_week`: `r create_link("Figure B, Trump's deportations will reduce employment in every state", data_main)`
 
 2.  Article
 
--   Economic Policy Institute: [Trump’s deportation agenda will destroy millions of jobs](https://www.epi.org/publication/trumps-deportation-agenda-will-destroy-millions-of-jobs-both-immigrants-and-u-s-born-workers-would-suffer-job-losses-particularly-in-construction-and-child-care/)
+-   `r create_link("Economic Policy Institute: Trump's deportation agenda will destroy millions of jobs", data_secondary)`
 :::
