@@ -1,0 +1,571 @@
+---
+title: "Global Convergence in Electricity Access, 2000-2023"
+subtitle: "Evidence shows countries starting with less electricity access are improving faster"
+description: "Analysis of World Bank electricity access data (2000-2023) revealing global convergence: countries starting with lowest access (<25%) achieved the most dramatic improvements (50-70+ percentage points), while high-access countries showed minimal change."
+author: "Steven Ponce"
+date: "2025-08-11" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+  "electricity-access",
+  "world-bank-data", 
+  "convergence-analysis",
+  "development-economics",
+  "scatter-plot",
+  "time-series",
+  "cohort-analysis",
+  "global-development",
+  "energy-access",
+  "data-transformation",
+  "ggplot2",
+  "sustainable-development",
+  "makeover",
+  "economic-convergence",
+  "patchwork"
+]
+image: "thumbnails/mm_2025_33.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 33
+project_file <- "mm_2025_33.qmd"
+project_image <- "mm_2025_33.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2025w33-access-to-electricity-of-population"
+data_secondary <- "https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS?view=map"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_33/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS?view=map"
+org_secondary <- "https://data.worldbank.org/"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization **Access to Electricity** comes from `r create_link("World Bank Group", data_secondary)`
+
+<!-- ![Original visualization](`r chart_original`) -->
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_33/original_chart.png)
+
+### Makeover
+
+![Two-panel chart showing global convergence in electricity access from 2000 to 2023. Top panel: The scatter plot reveals that countries with the lowest access (\<25%) achieved the greatest improvements (50-70+ percentage points), while countries starting near universal access showed minimal change. Bottom panel: The line chart shows the progress of five cohorts over time, with very low starters (red line) rising from \~15% to 50% access, demonstrating a catch-up effect. Data shows evidence of global convergence as access gaps narrow.](mm_2025_33.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,  # Easily Install and Load the 'Tidyverse'
+    ggtext,     # Improved Text Rendering Support for 'ggplot2'
+    showtext,   # Using Fonts More Easily in R Graphs
+    scales,     # Scale Functions for Visualization
+    glue,       # Interpreted String Literals
+    patchwork   # The Composer of Plots
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  =  10,
+    height =  12,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+access_electricity_raw <- read_csv(
+  here::here('data/MakeoverMonday/2025/Access to Electricity.csv')) |> 
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(access_electricity_raw)
+skimr::skim(access_electricity_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+access_electricity_tidy <- access_electricity_raw |>
+  # Remove completely empty year columns (1960-1989, 2024)
+  select(-c(x1960:x1989, x2024)) |>
+  pivot_longer(
+    cols = starts_with("x"),
+    names_to = "year",
+    values_to = "access_rate",
+    names_prefix = "x" # Remove the "x" prefix
+  ) |>
+  mutate(year = as.numeric(year)) |>
+  filter(!is.na(access_rate)) |>
+  rename(
+    country = country_name,
+    code = country_code,
+    indicator = indicator_name,
+    indicator_id = indicator_code
+  ) |>
+  arrange(country, year)
+
+# convergence analysis data
+convergence_data <- access_electricity_tidy |>
+  filter(year %in% c(2000, 2023)) |>
+  group_by(country) |>
+  filter(n() == 2) |>
+  summarise(
+    access_2000 = access_rate[year == 2000],
+    access_2023 = access_rate[year == 2023],
+    improvement = access_2023 - access_2000,
+    .groups = "drop"
+  ) |>
+  filter(!is.na(access_2000), !is.na(access_2023)) |>
+  mutate(
+    cohort = case_when(
+      access_2000 < 25 ~ "Very Low Start (<25%)",
+      access_2000 < 50 ~ "Low Start (25-50%)",
+      access_2000 < 75 ~ "Medium Start (50-75%)",
+      access_2000 < 95 ~ "High Start (75-95%)",
+      TRUE ~ "Universal Start (≥95%)"
+    )
+  )
+
+# Countries with dramatic improvements (>= 50 percentage points)
+# from Very Low Start only
+top_improvers <- convergence_data |>
+  filter(cohort == "Very Low Start (<25%)", improvement >= 50) |>
+  arrange(desc(improvement))
+
+# Define the logical 
+cohort_levels <- c(
+  "Very Low Start (<25%)",
+  "Low Start (25-50%)",
+  "Medium Start (50-75%)",
+  "High Start (75-95%)",
+  "Universal Start (≥95%)"
+)
+
+# cohort analysis data
+cohort_analysis <- access_electricity_tidy |>
+  filter(year == 2000) |>
+  mutate(
+    starting_cohort = case_when(
+      access_rate < 25 ~ "Very Low Start (<25%)",
+      access_rate < 50 ~ "Low Start (25-50%)",
+      access_rate < 75 ~ "Medium Start (50-75%)",
+      access_rate < 95 ~ "High Start (75-95%)",
+      TRUE ~ "Universal Start (≥95%)"
+    ),
+    # Order factor levels for meaningful legend ordering (low to high)
+    starting_cohort = factor(starting_cohort, levels = cohort_levels)
+  ) |>
+  select(country, starting_cohort) |>
+  inner_join(access_electricity_tidy, by = "country") |>
+  filter(year >= 2000) |>
+  group_by(starting_cohort, year) |>
+  summarise(
+    median_access = median(access_rate, na.rm = TRUE),
+    q25 = as.numeric(quantile(access_rate, 0.25, na.rm = TRUE)),  
+    q75 = as.numeric(quantile(access_rate, 0.75, na.rm = TRUE)), 
+    countries = n(),
+    .groups = "drop"
+  ) |>
+  filter(countries >= 3)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = list(
+  "Very Low Start (<25%)" = "#8B0000",    
+  "Low Start (25-50%)" = "#FF8C00",       
+  "Medium Start (50-75%)" = "#006400",   
+  "High Start (75-95%)" = "#1E90FF",      
+  "Universal Start (≥95%)" = "#4B0082"    
+))
+
+### |-  titles and caption ----
+title_text <- str_glue("Global convergence in electricity access, 2000-2023")
+
+subtitle_text <- str_glue(
+  "Evidence shows countries starting with less electricity access are improving faster"
+)
+
+# Create caption
+caption_text <- create_mm_caption(
+  mm_year = current_year,
+  mm_week = current_week,
+  source_text = paste0("World Bank Group")
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title = element_text(
+      size = rel(1.4), family = fonts$title, face = "bold",
+      color = colors$title, lineheight = 1.1, hjust = 0,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.9), family = fonts$subtitle, face = "italic",
+      color = alpha(colors$subtitle, 0.9), lineheight = 1.1,
+      margin = margin(t = 0, b = 20)
+    ),
+
+    # Legend formatting
+    legend.position = "right",
+    legend.justification = "top",
+    legend.margin = margin(l = 12, b = 5),
+    legend.key.size = unit(0.8, "cm"),
+    legend.box.margin = margin(b = 10),
+    legend.title = element_text(face = "bold"),
+
+    # Axis formatting
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5),
+    axis.ticks.length = unit(0.2, "cm"),
+    axis.title.x = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10)
+    ),
+    axis.title.y = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(r = 10)
+    ),
+    axis.text.x = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+    axis.text.y = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+
+    # Grid lines
+    panel.grid.minor = element_line(color = "#ecf0f1", linewidth = 0.2),
+    panel.grid.major = element_line(color = "#ecf0f1", linewidth = 0.4),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- P1  scatter plot----
+p1 <- ggplot(convergence_data, aes(x = access_2000, y = improvement)) +
+  # Geoms
+  geom_vline(
+    xintercept = 25,
+    linetype = "dashed",
+    color = "#E8516F",
+    alpha = 0.6,
+    linewidth = 0.5
+  ) +
+  geom_point(
+    aes(color = cohort),
+    size = 2.8,
+    alpha = 0.85,
+    stroke = 0
+  ) +
+  ggrepel::geom_text_repel(
+    data = top_improvers,
+    aes(label = country),
+    vjust = 1.3,
+    hjust = 0.5,
+    size = 3,
+    family = "sans",
+    color = alpha(colors$text, 0.9),
+    fontface = "bold",
+    show.legend = FALSE,
+    box.padding = 0.5,        
+    point.padding = 0.3,      
+    segment.color = alpha(colors$text, 0.6),  
+    segment.size = 0.3,       
+    max.overlaps = Inf,      
+    min.segment.length = 0.1, 
+    seed = 42                
+  ) +
+  # Scales
+  scale_x_continuous(
+    labels = percent_format(scale = 1),
+    name = "Access Rate in 2000",
+    breaks = seq(0, 100, 20),
+    limits = c(-5, 100),
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  scale_y_continuous(
+    name = "Improvement (percentage points)",
+    breaks = seq(-30, 100, 20),
+    limits = c(-30, 100),
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  scale_color_manual(
+    values = colors$palette,
+    name = "Starting Level\n(2000)"
+  ) +
+  # Labs
+  labs(
+    title = "Convergence in electricity access",
+    subtitle = "Lower starting access rates correlate with greater improvements (2000-2023)"
+  ) +
+  # Theme
+  theme(
+    legend.position = "none"
+  )
+
+### |- P2  line chart----
+p2 <- ggplot(cohort_analysis, aes(x = year, y = median_access, color = starting_cohort)) +
+  # Geoms
+  geom_ribbon(
+    aes(ymin = q25, ymax = q75, fill = starting_cohort),
+    alpha = 0.15,
+    color = NA
+  ) +
+  geom_line(
+    linewidth = 1.2,
+    alpha = 0.9
+  ) +
+  geom_hline(
+    yintercept = c(50, 75, 90),
+    linetype = "dotted",
+    color = "#bdc3c7",
+    alpha = 0.7,
+    linewidth = 0.4
+  ) +
+  # Scales
+  scale_x_continuous(
+    name = "Year",
+    breaks = seq(2000, 2025, 5),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  scale_y_continuous(
+    labels = percent_format(scale = 1),
+    name = "Median Access Rate",
+    breaks = seq(0, 100, 25),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  scale_color_manual(
+    values = unlist(colors$palette),
+    name = "Starting Level\n(2000)"
+  ) +
+  scale_fill_manual(
+    values = colors$palette,
+    name = "Starting Level\n(2000)"
+  ) +
+  # Labs
+  labs(
+    title = "Progress by starting access level",
+    subtitle = "Median access rates over time, grouped by 2000 baseline levels"
+  ) +
+  # Theme
+  theme(
+    legend.position = "right",
+    legend.justification = "top"
+  ) +
+  guides(
+    color = guide_legend(
+      title.position = "top",
+      title.hjust = 0.5,
+      override.aes = list(linewidth = 2, alpha = 1)
+    ),
+    fill = "none"
+  )
+
+### |-  combined plot ----
+combined_plots <- p1 / p2 +
+  plot_layout(heights = c(1, 1)) 
+
+combined_plots <- combined_plots +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.7),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_markdown(
+        size = rel(0.95),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 0.9,
+        margin = margin(t = 5, b = 0)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.65),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0.5,
+        margin = margin(t = 10)
+      )
+    )
+  )
+
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 10, 
+  height = 12
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+-   Makeover Monday `r current_year` Week `r current_week`: `r create_link("Access to Electricity", data_main)`
+
+2.  Article
+
+-   `r create_link("Access to electricity", data_secondary)`
+:::
