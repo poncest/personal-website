@@ -1,0 +1,346 @@
+---
+title: "Height Distribution: Scottish Munros vs. Munro Tops"
+subtitle: "Peak-count pyramid by elevation band (2021)"
+description: "Population pyramid showing height distribution of Scottish Munros vs Munro Tops (2021). Munros dominate higher elevations (1100m+) while Munro Tops are more common in lower ranges, with peak distribution at 950-1000m. "
+author: "Steven Ponce"
+date: "2025-08-12" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "scottish-mountains",
+  "munros", 
+  "elevation-analysis",
+  "population-pyramid",
+  "ggplot2",
+  "height-distribution",
+  "geographic-data",
+  "mountain-classification",
+  "database-british-irish-hills",
+  "pyramid-chart",
+  "data-exploration",
+  "scotland"
+]
+image: "thumbnails/tt_2025_33.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Population pyramid showing height distribution of Scottish Munros vs Munro Tops in 2021. Green bars (right) represent 282 Munros, brown bars (left) represent 226 Munro Tops. The chart reveals that Munros dominate higher elevations above 1100m, while Munro Tops are more prevalent in lower ranges. The largest groups are found at elevations of 950-1000m (78 Munros, 73 Munro Tops) and 900-950m (68 Munros, 71 Munro Tops), indicating a relatively even distribution at lower elevations.)](tt_2025_33.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,   # Easily Install and Load the 'Tidyverse'
+    ggtext,      # Improved Text Rendering Support for 'ggplot2'
+    showtext,    # Using Fonts More Easily in R Graphs
+    janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+    scales,      # Scale Functions for Visualization
+    glue         # Interpreted String Literals
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 33)
+
+munros <- tt$scottish_munros |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(munros)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+breaks <- seq(900, 1350, 50)
+labels <- paste0(seq(900, 1300, 50), "–", seq(950, 1350, 50), " m")
+
+pyramid_data <- munros |>
+  filter(!is.na(height_m), !is.na(x2021)) |>
+  mutate(
+      # Bins cut
+    height_bin = cut(height_m,
+      breaks = breaks, labels = labels,
+      include.lowest = TRUE, right = FALSE
+    ),
+    x2021 = factor(x2021, levels = c("Munro", "Munro Top"))
+  ) |>
+  filter(!is.na(height_bin)) |>
+  count(height_bin, x2021, name = "n") |>
+  # Complete the data to show all combinations, filling with 0
+  complete(height_bin, x2021, fill = list(n = 0)) |>
+  # Label placement
+  mutate(
+    n_signed = if_else(x2021 == "Munro", n, -n),
+    big_bar = abs(n_signed) >= 8,
+    tiny_bar = abs(n_signed) <= 3,
+    label_pos = case_when(
+      big_bar ~ n_signed / 2,
+      n_signed > 0 & tiny_bar ~ n_signed + 4.5,
+      n_signed > 0 ~ n_signed + 3,
+      n_signed < 0 & tiny_bar ~ n_signed - 4.5,
+      TRUE ~ n_signed - 3
+    ),
+    label_hjust = if_else(big_bar, 0.5, if_else(n_signed > 0, 0, 1)),
+    label_text = if_else(n > 0, as.character(abs(n_signed)), ""),
+    label_col = if_else(big_bar, "white", "gray20")
+  )
+
+# symmetric limits (nice round)
+lim <- ceiling((max(pyramid_data$n) + 2) / 10) * 10
+
+# totals for subtitle 
+totals <- pyramid_data |>
+  group_by(x2021) |>
+  summarise(N = sum(n), .groups = "drop") |>
+  pivot_wider(names_from = x2021, values_from = N)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = c("Munro" = "#4B5945", "Munro Top" = "#9A7E6F")
+    )
+
+### |- titles and caption ----
+title_text <- str_glue("Height Distribution: Scottish Munros vs. Munro Tops")
+
+subtitle_text <- str_glue(
+    "Peak-count pyramid by elevation band (2021) — ",
+    "<span style='color:{colors$palette['Munro']}'><b>Munros</b></span> (n = {totals$Munro}) vs ",
+    "<span style='color:{colors$palette['Munro Top']}'><b>Munro Tops</b></span> (n = {totals$`Munro Top`})"
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 33,
+    source_text = "Database of British and Irish hills"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Text styling
+        plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.2), color  = colors$title, margin = margin(b = 10)),
+        plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.78), margin = margin(b = 20)),
+        
+        # Axis elements
+        axis.line = element_blank(), 
+        axis.ticks = element_blank(), 
+        
+        # Grid elements
+        panel.grid.major.x = element_line(color = "gray90",linetype = "solid", linewidth = 0.3),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        
+        # Axis elements
+        axis.text = element_text(color = colors$text, size = rel(0.7)),
+        axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+        axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+        
+        # Legend elements
+        legend.position = "plot",
+        legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+        legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+        legend.margin = margin(t = 15),
+        
+        # Plot margin
+        plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+    )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  final plot ----
+p <- ggplot(pyramid_data, aes(x = height_bin, y = n_signed, fill = x2021)) +
+  # Geoms
+  geom_col(width = 0.78, color = "white", linewidth = 0.3, alpha = 0.92) +
+  geom_hline(yintercept = 0, color = "#5f6b73", linewidth = 0.6) +
+  geom_text(
+    aes(y = label_pos, label = label_text, hjust = label_hjust, color = label_col),
+    fontface = "bold", size = 3.2
+  ) +
+  # Scales
+  scale_color_identity() +
+  scale_fill_manual(values = colors$palette, guide = "none") +
+  scale_y_continuous(
+    limits = c(-lim, lim),
+    breaks = seq(-lim, lim, 20),
+    labels = function(x) abs(x),
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Height range (m)",
+    y = "Number of peaks"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.65),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.85),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 0, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 1,
+      margin = margin(t = 10)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 33, 
+  width  = 8,
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_33.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_33.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 33: \[Scottish Munros\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-08-19)
+:::
