@@ -1,0 +1,479 @@
+---
+title: "The Global Passport Divide: Regional Inequality in Visa-Free Access"
+subtitle: "Europe dominates global passport power while Africa, Asia, and Middle East lag significantly behind."
+description: "Analysis of 2024 Henley Passport Index data revealing global passport power inequality. European passports provide 91 more visa-free destinations than the global median, while African, Asian, and Middle Eastern passports face significant restrictions. Visualizes both regional performance gaps and underlying compositional differences across passport strength tiers."
+author: "Steven Ponce"
+date: "2025-09-08" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "passport-power",
+  "global-mobility",
+  "travel-freedom", 
+  "henley-passport-index",
+  "visa-free-access",
+  "regional-inequality",
+  "diverging-bar-chart",
+  "stacked-bar-chart",
+  "ggplot2",
+  "patchwork",
+  "post-covid-analysis",
+  "geopolitics",
+  "international-relations",
+  "migration-policy",
+  "data-storytelling"
+]
+image: "thumbnails/tt_2025_36.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Two-panel chart showing global passport power inequality in 2024. Top panel: horizontal bar chart displaying regional differences from global median visa-free access, with Europe leading at +91 destinations above the median, followed by the Caribbean (+53) and the Americas (+44), while Africa (-36), Asia (-31), and the Middle East (-27) fall below the median. Bottom panel: stacked horizontal bar chart showing regional composition by performance tiers, revealing Europe has 29 Global Elite countries and 7 Strong Performers. In comparison, Africa is dominated by 43 Emerging Markets countries and 8 Restricted Access countries. Charts demonstrate Europe's passport dominance, alongside significant disadvantages in Africa, Asia, and the Middle East.](tt_2025_36.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,   # Easily Install and Load the 'Tidyverse'
+    ggtext,      # Improved Text Rendering Support for 'ggplot2'
+    showtext,    # Using Fonts More Easily in R Graphs
+    janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+    scales,      # Scale Functions for Visualization
+    glue,        # Interpreted String Literals,
+    patchwork    # The Composer of Plots
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 11,
+  height = 12,
+  units  = "in",
+  dpi    = 300
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 36)
+
+country_lists <- tt$country_lists |> clean_names()
+rank_by_year <- tt$rank_by_year |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(country_lists)
+glimpse(rank_by_year)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+#' On 5 May 2023, the World Health Organization (WHO) officially declared 
+#' that COVID-19 was no longer a Public Health Emergency of International 
+#' Concern (PHEIC).
+
+# Calculate regional performance vs global median for 2024
+regional_gaps_2024 <- rank_by_year |>
+  filter(year == 2024) |>
+  mutate(
+    global_median_2024 = median(visa_free_count, na.rm = TRUE)
+  ) |>
+  group_by(region) |>
+  summarise(
+    regional_median = median(visa_free_count, na.rm = TRUE),
+    global_median = first(global_median_2024),
+    countries_count = n(),
+    .groups = "drop"
+  ) |>
+  mutate(
+    gap_from_global = regional_median - global_median,
+    performance_category = ifelse(gap_from_global >= 0, "Above Global Median", "Below Global Median"),
+    region_clean = case_when(
+      region == "NORTH_AMERICA" ~ "Americas",
+      region == "SOUTH_AMERICA" ~ "Americas",
+      region == "CENTRAL_AMERICA" ~ "Americas",
+      region == "EUROPE" ~ "Europe",
+      region == "ASIA" ~ "Asia",
+      region == "AFRICA" ~ "Africa",
+      region == "MIDDLE_EAST" ~ "Middle East",
+      region == "OCEANIA" ~ "Oceania",
+      region == "CARIBBEAN" ~ "Caribbean",
+      TRUE ~ str_to_title(str_replace_all(region, "_", " "))
+    )
+  ) |>
+  # Combine Americas if they exist separately
+  group_by(region_clean) |>
+  summarise(
+    gap_from_global = weighted.mean(gap_from_global, countries_count),
+    countries_count = sum(countries_count),
+    performance_category = ifelse(gap_from_global >= 0, "Above Global Median", "Below Global Median"),
+    .groups = "drop"
+  ) |>
+  arrange(desc(gap_from_global))
+
+# Create performance clusters for 2024
+performance_clusters_2024 <- rank_by_year |>
+  filter(year == 2024) |>
+  mutate(
+    region_clean = case_when(
+      region == "NORTH_AMERICA" ~ "Americas",
+      region == "SOUTH_AMERICA" ~ "Americas",
+      region == "CENTRAL_AMERICA" ~ "Americas",
+      region == "EUROPE" ~ "Europe",
+      region == "ASIA" ~ "Asia",
+      region == "AFRICA" ~ "Africa",
+      region == "MIDDLE_EAST" ~ "Middle East",
+      region == "OCEANIA" ~ "Oceania",
+      region == "CARIBBEAN" ~ "Caribbean",
+      TRUE ~ str_to_title(str_replace_all(region, "_", " "))
+    ),
+    performance_cluster = case_when(
+      visa_free_count >= 180 ~ "Global Elite (180+)",
+      visa_free_count >= 150 ~ "Strong Performers (150-179)",
+      visa_free_count >= 100 ~ "Middle Powers (100-149)",
+      visa_free_count >= 50 ~ "Emerging Markets (50-99)",
+      TRUE ~ "Restricted Access (<50)"
+    ),
+    performance_cluster = factor(performance_cluster, levels = c(
+      "Global Elite (180+)", "Strong Performers (150-179)",
+      "Middle Powers (100-149)", "Emerging Markets (50-99)",
+      "Restricted Access (<50)"
+    ))
+  )
+
+# Calculate cluster composition by region
+cluster_composition <- performance_clusters_2024 |>
+  count(region_clean, performance_cluster, .drop = FALSE) |>
+  group_by(region_clean) |>
+  mutate(
+    total_countries = sum(n),
+    proportion = n / total_countries,
+    percentage = round(proportion * 100, 1)
+  ) |>
+  ungroup() |>
+  filter(total_countries > 0) |>
+  arrange(region_clean, performance_cluster)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get basic theme colors
+colors <- get_theme_colors(
+  palette = c(
+    "Above Global Median" = "#2A9D8F",
+    "Below Global Median" = "#E76F51",
+    "Global Elite (180+)" = "#264653",
+    "Strong Performers (150-179)" = "#2A9D8F",
+    "Middle Powers (100-149)" = "#457B9D",
+    "Emerging Markets (50-99)" = "#F4A261",
+    "Restricted Access (<50)" = "#E76F51"
+  )
+)
+
+### |- titles and caption ----
+title_text <- str_glue("The Global Passport Divide: Regional Inequality in Visa-Free Access")
+
+subtitle_text <- str_glue(
+  "Europe dominates global passport power while Africa, Asia, and Middle East lag significantly behind"
+)
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 36,
+  source_text = "Henley Passport Index Data"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.2), color = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.78), margin = margin(b = 20)),
+
+    # Axis elements
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+
+    # Grid elements
+    panel.grid.major = element_line(color = "gray90", linetype = "solid", linewidth = 0.3),
+    # panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+
+    # Legend elements
+    legend.position = "bottom",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  P1: Regional power gaps ----
+p1 <- regional_gaps_2024 |>
+  mutate(
+    region_clean = fct_reorder(region_clean, gap_from_global),
+    label_position = ifelse(gap_from_global >= 0, gap_from_global + 2, gap_from_global - 2),
+    label_hjust = ifelse(gap_from_global >= 0, 0, 1)
+  ) |>
+  ggplot(aes(x = region_clean, y = gap_from_global, fill = performance_category)) +
+  # Geoms
+  geom_col(width = 0.75, alpha = 0.9) +
+  geom_hline(yintercept = 0, color = "#212121", size = 0.8) +
+  geom_text(
+    aes(
+      y = label_position,
+      label = paste0(ifelse(gap_from_global >= 0, "+", ""), round(gap_from_global, 0)),
+      hjust = label_hjust
+    ),
+    color = colors$text,
+    family = fonts$text,
+    fontface = "bold",
+    size = 4
+  ) +
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  scale_y_continuous(
+    limits = c(-50, 100),
+    breaks = seq(-60, 100, 25),
+    expand = c(0.02, 0)
+  ) +
+  coord_flip() +
+  # Labs
+  labs(
+    title = "Regional Passport Performance vs Global Median (2024)",
+    subtitle = str_glue(
+      "Difference in median visa-free access from global median\n",
+      "Positive values indicate above-average regional performance"
+    ),
+    fill = "Performance Category:",
+    x = NULL,
+    y = "Difference from Global Median (Visa-Free Destinations)"
+  ) +
+  # Theme
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "grey90", size = 0.5)
+  )
+
+### |- P2: Performance cluster composition ----
+p2 <- cluster_composition |>
+  left_join(
+    regional_gaps_2024 |> select(region_clean, gap_from_global),
+    by = "region_clean"
+  ) |>
+  mutate(
+    region_clean = fct_reorder(region_clean, gap_from_global),
+    label_text = ifelse(n > 0, as.character(n), "")
+  ) |>
+  ggplot(aes(x = proportion, y = region_clean, fill = performance_cluster)) +
+  # Geoms
+  geom_col(position = "fill", alpha = 0.9, width = 0.75) +
+  geom_text(
+    aes(label = label_text),
+    position = position_fill(vjust = 0.5),
+    color = "white",
+    family = fonts$text,
+    fontface = "bold",
+    size = 3.5
+  ) +
+  # Scales
+  scale_fill_manual(values = colors$palette) +
+  scale_x_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = c(0, 0)
+  ) +
+  # Labs
+  labs(
+    title = "Regional Composition by Passport Performance Clusters (2024)",
+    subtitle = str_glue(
+      "Proportion of countries in each performance tier by region\n",
+      "Numbers show count of countries in each cluster"
+    ),
+    fill = "Performance\nCluster:",
+    x = "Proportion of Regional Countries",
+    y = NULL,
+  ) +
+  # Theme
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "grey90", size = 0.5),
+  ) +
+  # Guides
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+
+### |-  Combined plots ----
+combined_plots <- p1 / p2 +
+  plot_layout(heights = c(1, 1))
+
+combined_plots <- combined_plots +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.5),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_text(
+        size = rel(0.80),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 1.2,
+        margin = margin(t = 5, b = 10)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.5),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0.5,
+        margin = margin(t = 10)
+      )
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 36, 
+  width  = 10,
+  height = 12
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_36.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_36.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 36: \[Henley Passport Index Data\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-09-09)
+:::
