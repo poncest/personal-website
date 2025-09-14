@@ -1,0 +1,368 @@
+---
+title: "Recipe Complexity Correlates with Higher Ratings"
+subtitle: "Analysis of 14,426 AllRecipes.com recipes shows consistent rating patterns"
+description: "A heat map analysis revealing that recipe complexity—measured by ingredient count and cooking time—correlates with higher user ratings across 14,426 AllRecipes.com recipes. The visualization shows a clear pattern where more complex recipes consistently achieve better ratings."
+author: "Steven Ponce"
+date: "2025-09-14" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "recipe-analysis",
+  "heat-map", 
+  "correlation-analysis",
+  "cooking-data",
+  "food-ratings",
+  "complexity-patterns",
+  "allrecipes",
+  "ggplot2",
+  "data-mining"
+]
+image: "thumbnails/tt_2025_37.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Heat map showing recipe ratings by complexity, with cooking time on y-axis (≤30 min to 4+ hours) and ingredient count on x-axis (1-5 to 20+ ingredients). Color scale from dark blue (4.45 rating) to light green (4.63 rating) reveals higher ratings for recipes with more ingredients and longer cooking times. Each cell shows the average rating and recipe count from 14,426 AllRecipes.com recipes.](tt_2025_37.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,   # Easily Install and Load the 'Tidyverse'
+    ggtext,      # Improved Text Rendering Support for 'ggplot2'
+    showtext,    # Using Fonts More Easily in R Graphs
+    janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+    scales,      # Scale Functions for Visualization
+    glue,        # Interpreted String Literals,
+    viridis      # Colorblind-Friendly Color Maps for R
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 8,
+  units  = "in",
+  dpi    = 300
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 37)
+
+all_recipes <- tt$all_recipes |> clean_names()
+cuisines <- tt$cuisines |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(all_recipes)
+glimpse(cuisines)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+complexity_analysis <- all_recipes |>
+  # Drop rows with missing key fields
+  filter(
+    !is.na(ingredients),
+    !is.na(prep_time),
+    !is.na(cook_time),
+    !is.na(avg_rating)
+  ) |>
+  mutate(
+    # Count ingredients (#commas + 1)
+    ingredient_count = str_count(ingredients, ",") + 1,
+
+    # Bin total time (minutes)
+    total_time_binned = cut(
+      total_time,
+      breaks = c(0, 30, 60, 120, 240, Inf),
+      labels = c("≤30 min", "31-60 min", "1-2 hours", "2-4 hours", "4+ hours"),
+      include.lowest = TRUE
+    ),
+
+    # Bin ingredient count
+    ingredient_binned = cut(
+      ingredient_count,
+      breaks = c(0, 5, 10, 15, 20, Inf),
+      labels = c("1-5", "6-10", "11-15", "16-20", "20+"),
+      include.lowest = TRUE
+    )
+  ) |>
+  # Keep only rows with valid bins
+  filter(!is.na(total_time_binned), !is.na(ingredient_binned)) |>
+  # Aggregate by bins
+  group_by(total_time_binned, ingredient_binned) |>
+  summarise(
+    avg_rating = mean(avg_rating, na.rm = TRUE),
+    recipe_count = n(),
+    median_rating = median(avg_rating, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  # Keep cells with ≥10 recipes
+  filter(recipe_count >= 10)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get basic theme colors
+colors <- get_theme_colors()
+
+### |- titles and caption ----
+title_text <- str_glue("Recipe Complexity Correlates with Higher Ratings")
+
+subtitle_text <- str_glue(
+  "Analysis of **14,426 AllRecipes.com recipes** shows consistent rating patterns<br><br>",
+  "Cells show average rating and recipe count• Color scale = observed range: 4.45-4.63"
+)
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 37,
+  source_text = "tastyR (AllRecipes.com)"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.2), color = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.78), margin = margin(b = 20)),
+
+    # Axis elements
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+
+    # Grid elements
+    panel.grid.major = element_line(color = "gray90", linetype = "solid", linewidth = 0.3),
+    # panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+
+    # Legend elements
+    legend.position = "right",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+
+# Viz parameters for heatmap color scale 
+
+# Min and max observed average ratings
+r_min <- min(complexity_analysis$avg_rating, na.rm = TRUE)
+r_max <- max(complexity_analysis$avg_rating, na.rm = TRUE)
+
+# Padding to avoid clipping at legend edges
+pad   <- 0.005
+
+# Scale limits (min/max + padding)
+limits <- c(r_min - pad, r_max + pad)
+
+# Midpoint (useful for diverging palettes)
+r_mid <- mean(limits)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Final plot ----
+p <- complexity_analysis |>
+  ggplot(aes(x = ingredient_binned, y = total_time_binned, fill = avg_rating)) +
+
+  # Geoms
+  geom_tile(color = "white", linewidth = 0.6) +
+  geom_text(
+    aes(
+      label = paste0(sprintf("%.2f", avg_rating), "\n(n=", comma(recipe_count), ")"),
+      color = ifelse(avg_rating <= r_mid, "white", "#1a1a1a")
+    ),
+    fontface = "bold", size = 3.2, lineheight = 0.9, show.legend = FALSE
+  ) +
+
+  # Scales
+  scale_color_identity() +
+  scale_fill_viridis_c(
+    option = "mako",
+    limits = limits,
+    oob = squish,
+    breaks = pretty_breaks(4),
+    labels = number_format(accuracy = 0.01),
+    name = "Average Rating"
+  ) +
+
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Number of Ingredients",
+    y = "Total Cooking Time",
+  ) +
+
+  # Theme
+  theme(
+    panel.grid = element_blank(),
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.key.width = unit(0.7, "cm"),
+    legend.key.height = unit(1.0, "cm"),
+    plot.title = element_text(
+      size = rel(1.4),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.80),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 37, 
+  width  = 8,
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_37.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_37.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 36: \[Allrecipes Data\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-09-16
+:::
