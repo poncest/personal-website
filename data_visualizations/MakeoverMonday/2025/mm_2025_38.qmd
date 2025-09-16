@@ -1,0 +1,441 @@
+---
+title: "The Great Generational Divide in 'Childish' Perceptions"
+subtitle: "Difference between 65+ and 18-34 age groups reveals surprising patterns: while older Britons typically view more activities as childish, Star Wars and Disney Films show the opposite trend"
+description: "Analysis of YouGov survey data revealing how British attitudes toward 'kidult' activities vary dramatically by age. While older adults typically view more hobbies as childish, entertainment franchises like Star Wars and Disney Films show surprising reversals, suggesting cultural legitimization over time."
+date: "2025-09-16" 
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+  "generational-differences",
+  "cultural-trends", 
+  "survey-analysis",
+  "british-culture",
+  "entertainment",
+  "diverging-bars",
+  "ggplot2",
+  "data-storytelling",
+  "age-demographics",
+  "pop-culture"
+]
+image: "thumbnails/mm_2025_38.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 38
+project_file <- "mm_2025_38.qmd"
+project_image <- "mm_2025_38.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/do-younger-britons-see-kidult-hobbies-as-less-childish"
+data_secondary <- "https://data.world/makeovermonday/do-younger-britons-see-kidult-hobbies-as-less-childish"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_38/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://yougov.co.uk/society/articles/52851-which-kidult-hobbies-and-practices-do-britons-think-are-really-for-children"
+org_secondary <- "https://yougov.co.uk"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization **Do younger Britons see 'kidult' hobbies as less childish?Do younger Britons see 'kidult' hobbies as less childish?** comes from `r create_link("Which ‘kidult’ hobbies and practices do Britons think are really for children?", data_secondary)`
+
+<!-- ![Original visualization](`r chart_original`) -->
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_38/original_chart.png)
+
+### Makeover
+
+![Diverging bar chart showing generational differences in viewing activities as childish. Comic Books have the largest gap at +28 percentage points, with older adults more likely to see it as childish. Most activities follow this pattern, but Star Wars (-3 pts) and Disney Films (-6 pts) diverge in the opposite direction, with younger people more likely to view them as childish than older adults.](mm_2025_38.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+  tidyverse,  # Easily Install and Load the 'Tidyverse'
+  ggtext,     # Improved Text Rendering Support for 'ggplot2'
+  showtext,   # Using Fonts More Easily in R Graphs
+  scales,     # Scale Functions for Visualization
+  glue        # Interpreted String Literals
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 10,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+kidult_hobbies_raw <- readxl::read_excel(
+  here::here('data/MakeoverMonday/2025/pct saying kidult hobbies are entirely or mostly for children.xlsx')) |> 
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(kidult_hobbies_raw)
+skimr::skim_without_charts(kidult_hobbies_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+kidult_hobbies_long <- kidult_hobbies_raw |>
+  pivot_longer(
+    cols = -age_group,
+    names_to = "hobby",
+    values_to = "percentage"
+  ) |>
+  mutate(
+    hobby_clean = str_replace_all(hobby, "_", " ") |>
+      str_to_title() |>
+      str_replace("D D", "(D&D)") |>
+      str_replace("Dungeons And Dragons", "Dungeons & Dragons"),
+    age_group = factor(age_group, levels = c("18-34", "35-49", "50-64", "65+"))
+  )
+
+# plot data
+plot_data <- kidult_hobbies_long |>
+  filter(age_group %in% c("18-34", "65+")) |>
+  pivot_wider(names_from = age_group, values_from = percentage, names_prefix = "age_") |>
+  mutate(
+    age_gap = `age_65+` - `age_18-34`,
+    gap_direction = ifelse(age_gap > 0, "Older view as more childish", "Younger view as more childish"),
+    abs_gap = abs(age_gap),
+    # Add category for story-telling
+    activity_type = case_when(
+      hobby_clean %in% c("Comic Books", "Receiving Birthday Presents", "Advent Calendars") ~ "Traditional Childhood",
+      hobby_clean %in% c("Star Wars", "Disney Films") ~ "Entertainment Reversal",
+      hobby_clean %in% c("Stuffed Animals", "Dressing Up In Costumes") ~ "Physical Play",
+      TRUE ~ "Other"
+    )
+  ) |>
+  arrange(desc(age_gap))
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(palette = c(
+  "#2c3e50", "#e17055"
+))   
+
+### |-  titles and caption ----
+title_text <- str_glue("The Great Generational Divide in 'Childish' Perceptions")
+
+subtitle_text <-str_glue(
+  "Difference between 65+ and 18-34 age groups reveals surprising patterns: while older Britons\n",
+  "typically view more activities as childish, Star Wars and Disney Films show the opposite trend"
+)
+
+# Create caption
+caption_text <- create_mm_caption(
+  mm_year = current_year,
+  mm_week = current_week,
+  source_text = paste0("YouGov")
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Legend formatting
+    legend.position = "plot",
+    legend.justification = "top",
+    legend.margin = margin(l = 12, b = 5),
+    legend.key.size = unit(0.8, "cm"),
+    legend.box.margin = margin(b = 10),
+    legend.title = element_text(face = "bold"),
+
+    # Axis formatting
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5),
+    # axis.ticks.length = unit(0.2, "cm"),
+    axis.title.x = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10)
+    ),
+    axis.title.y = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(r = 10)
+    ),
+    axis.text.x = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+    axis.text.y = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+
+    # Grid lines
+    panel.grid.minor = element_line(color = "#ecf0f1", linewidth = 0.2),
+    panel.grid.major = element_line(color = "#ecf0f1", linewidth = 0.4),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- final plot ----
+p <- ggplot(plot_data, aes(x = age_gap, y = reorder(hobby_clean, age_gap))) +
+
+  # Annotate
+  annotate("rect",
+    xmin = -15, xmax = 0, ymin = -Inf, ymax = Inf,
+    fill = colors$palette[2], alpha = 0.08
+  ) +
+  annotate("text",
+    x = -7.5, y = 8.5, label = "Younger see as\nMORE childish",
+    size = 3.5, color = colors$palette[2], fontface = "bold",
+    family = fonts$text,
+    hjust = 0.5, vjust = 0.5, alpha = 0.7
+  ) +
+  annotate("text",
+    x = 15, y = 8.5, label = "Older see as\nMORE childish",
+    family = fonts$text,
+    size = 3.5, color = colors$palette[1], fontface = "bold",
+    hjust = 0.5, vjust = 0.5, alpha = 0.7
+  ) +
+
+  # Geoms
+  geom_col(aes(fill = gap_direction), alpha = 0.85, width = 0.75) +
+  geom_text(
+    aes(
+      label = ifelse(abs(age_gap) >= 3,
+        paste0(ifelse(age_gap > 0, "+", ""), round(age_gap, 0)), ""
+      ),
+      x = age_gap + ifelse(age_gap > 0, 1.2, -1.2)
+    ),
+    size = 3.2, fontface = "bold", color = colors$text,
+    hjust = ifelse(plot_data$age_gap > 0, 0, 1)
+  ) +
+  geom_vline(xintercept = 0, color = "gray20", linewidth = 1, alpha = 0.8) +
+
+  # Scales
+  scale_fill_manual(
+    values = c(
+      "Older view as more childish" = colors$palette[1],
+      "Younger view as more childish" = colors$palette[2]
+    ),
+    name = "Generation Gap Direction"
+  ) +
+  scale_x_continuous(
+    labels = function(x) paste0(ifelse(x > 0, "+", ""), x, " pts"),
+    breaks = seq(-15, 30, 5),
+    limits = c(-15, 33),
+    expand = expansion(mult = c(0.02, 0.02)),
+    position = "top"
+  ) +
+  scale_y_discrete() +
+
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Percentage Point Difference (65+ minus 18-34)",
+    y = NULL,
+  ) +
+
+  # Theme
+  theme(
+    # Grid
+    panel.grid.major.x = element_line(color = "gray80", linewidth = 0.15),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+
+    # Legend
+    legend.position = "none",
+    axis.title.x.top = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10, b = 10)
+    ),
+    plot.title = element_text(
+      size = rel(1.85),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.90),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.6),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 15)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 10, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+-   Makeover Monday `r current_year` Week `r current_week`: `r create_link("Which ‘kidult’ hobbies do Britons think are for children?", data_main)`
+
+2.  Article
+
+-   `r create_link("Which ‘kidult’ hobbies do Britons think are for children?", data_secondary)`
+:::
