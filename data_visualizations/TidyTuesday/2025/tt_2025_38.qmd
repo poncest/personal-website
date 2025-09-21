@@ -1,0 +1,467 @@
+---
+title: "Chess Dreams and Breakthroughs: A Global Perspective"
+subtitle: "Individual excellence emerges from active engagement within strong chess ecosystems"
+description: "Analysis of FIDE chess ratings data revealing patterns in player activity, breakthrough performances, and global chess ecosystems. Explores how individual excellence emerges from engagement within strong national chess federations."
+author: "Steven Ponce"
+date: "2025-09-21" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "chess",
+  "FIDE",
+  "sports analytics",
+  "rating systems",
+  "data cleaning",
+  "ggplot2",
+  "patchwork",
+  "professional visualization",
+  "international federations",
+  "player performance",
+  "statistical analysis"
+]
+image: "thumbnails/tt_2025_38.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Multi-panel visualization showing chess player activity and achievements from FIDE data (August-September 2025). The top panel displays four histograms of game activity levels, showing that most players are casual (1-3 games) while fewer are highly active (16+ games). Bottom left shows top 20 rating improvements, led by Plzak, David, with +362 points, with a median of 255.5. Bottom right shows countries with the most titled players, led by Germany (1,004), Spain (702), and Russia (469), with a median of 391 players.](tt_2025_38.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,   # Easily Install and Load the 'Tidyverse'
+  ggtext,      # Improved Text Rendering Support for 'ggplot2'
+  showtext,    # Using Fonts More Easily in R Graphs
+  janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+  scales,      # Scale Functions for Visualization
+  glue,        # Interpreted String Literals,
+  patchwork    # The Composer of Plots
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 12,
+  height = 12,
+  units  = "in",
+  dpi    = 300
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 38)
+
+fide_ratings_august <- tt$fide_ratings_august |> clean_names()
+fide_ratings_september <- tt$fide_ratings_september |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(fide_ratings_august)
+glimpse(fide_ratings_september)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# helper function
+clean_fide_data <- function(data, min_rating = 1000, max_rating = 3500) {
+  data |>
+    group_by(id) |>
+    slice_max(rating, n = 1, with_ties = FALSE) |>
+    ungroup() |>
+    filter(!is.na(rating), rating >= min_rating, rating <= max_rating, !is.na(id)) |>
+    mutate(
+      name = str_squish(name),
+      fed = str_squish(fed),
+      sex = factor(sex, levels = c("M", "F")),
+      title = na_if(str_squish(title), ""),
+      wtitle = na_if(str_squish(wtitle), ""),
+      rating = as.numeric(rating),
+      games = as.numeric(games),
+      k = as.numeric(k),
+      bday = as.numeric(bday)
+    ) |>
+    filter(!is.na(name), !is.na(fed))
+}
+
+# Data prep
+fide_august_clean <- clean_fide_data(fide_ratings_august)
+fide_september_clean <- clean_fide_data(fide_ratings_september)
+
+# Rating comparison
+cur_year <- 2025
+
+rating_comparison <- fide_august_clean |>
+  select(id, name, fed, sex, title, wtitle, bday,
+    rating_aug = rating, games_aug = games
+  ) |>
+  inner_join(
+    fide_september_clean |>
+      select(id, rating_sep = rating, games_sep = games),
+    by = "id"
+  ) |>
+  mutate(
+    rating_change = rating_sep - rating_aug,
+    total_games = games_aug + games_sep,
+    has_title = !is.na(title) | !is.na(wtitle),
+    current_age = ifelse(!is.na(bday), cur_year - bday, NA_real_)
+  ) |>
+  filter(total_games > 0)
+
+# Activity (cap at 30 to keep facets readable)
+activity_data <- fide_september_clean |>
+  filter(games > 0, games <= 30) |>
+  mutate(activity_level = case_when(
+    games <= 3 ~ "Low (1–3)",
+    games <= 7 ~ "Moderate (4–7)",
+    games <= 15 ~ "High (8–15)",
+    TRUE ~ "Very High (16+)"
+  )) |>
+  mutate(
+    activity_level = factor(activity_level,
+      levels = c(
+        "Low (1–3)",
+        "Moderate (4–7)",
+        "High (8–15)",
+        "Very High (16+)"
+      )
+    )
+  )
+
+# Federations (titled players)
+federation_data <- fide_september_clean |>
+  filter(!is.na(title) | !is.na(wtitle)) |>
+  count(fed, name = "titled_players") |>
+  arrange(desc(titled_players)) |>
+  slice_head(n = 15)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get basic theme colors
+colors <- get_theme_colors(
+  palette = list(
+    ink = "#243245",
+    text = "#435369",
+    grid = "#E4E9F0",
+    edge = "#C9D3E1",
+    bg = "#F7FAFC",
+    panel = "#FFFFFF",
+    p1 = "#00A0E3", 
+    p2 = "#2B3FB7",
+    p3 = "#0B1F2A"
+  )
+)
+
+### |- titles and caption ----
+title_text <- str_glue("Chess Dreams and Breakthroughs: A Global Perspective")
+
+subtitle_text <- str_glue(
+  "Individual excellence emerges from active engagement within strong chess ecosystems"
+)
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 38,
+  source_text = "Data: FIDE Rating Lists (Aug–Sep 2025)"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.2), color = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.78), margin = margin(b = 20)),
+
+    # Axis elements
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+
+    # Grid elements
+    panel.grid.major = element_line(color = "gray90", linetype = "solid", linewidth = 0.3),
+    # panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+
+# helpers for medians & formatting
+num_lab <- label_number(accuracy = 1, big.mark = ",")
+add_median <- function(y, label) {
+  list(
+    geom_hline(yintercept = y, linetype = "22", linewidth = 0.5, color = "gray50"),
+    annotate(
+      "label",
+      x = Inf, y = y, hjust = 1, vjust = -0.2,
+      label = label, size = 3, label.size = 0,
+      family = fonts$text, fill = colors$palette$panel, color = colors$palette$text
+    )
+  )
+}
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  P1: Breakthroughs — top 20 improvers ----
+break_df <- rating_comparison |>
+  filter(rating_change > 0) |>
+  arrange(desc(rating_change)) |>
+  slice_head(n = 20) |>
+  mutate(name_short = str_trunc(name, 28))
+
+med_improve <- median(break_df$rating_change)
+
+p1 <-
+  ggplot(break_df, aes(x = reorder(name_short, rating_change), y = rating_change)) +
+  # geoms
+  geom_col(fill = colors$palette$p2, width = 0.7, alpha = 0.95) +
+  geom_text(aes(label = paste0("+", rating_change)),
+    hjust = -0.15, family = fonts$text, color = colors$palette$text, size = 3.2
+  ) +
+  add_median(med_improve, paste0("Median ", med_improve)) +
+  # scales
+  scale_x_discrete() +
+  scale_y_continuous(labels = num_lab, expand = expansion(mult = c(0, 0.10))) +
+  coord_flip(clip = "off") +
+  labs(
+    title = "Chess Rating Breakthroughs",
+    subtitle = "Top 20 rating gains, August to September 2025",
+    x = NULL, y = "Rating improvement (Elo)"
+  ) +
+  # theme
+  theme(
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(10, 20, 10, 10)
+  )
+
+### |-  P2: Activity — faceted histograms ----
+p2 <-
+  ggplot(activity_data, aes(games)) +
+  # geoms
+  geom_histogram(bins = 18, fill = colors$palette$p1, color = "white", linewidth = 0.25, alpha = 0.95) +
+  # scales
+  scale_x_continuous(breaks = pretty_breaks(4)) +
+  scale_y_continuous(labels = num_lab) +
+  # labs
+  labs(
+    title = "Player Activity Patterns",
+    subtitle = "Distribution of games played in September 2025 by activity level",
+    x = "Games played (September)", y = "Number of players"
+  ) +
+  # facets
+  facet_wrap(~activity_level, ncol = 4, scales = "free_y") +
+  # theme
+  theme(
+    strip.text = element_text(face = "bold", color = colors$palette$ink),
+    strip.background = element_rect(fill = colors$palette$bg, color = colors$palette$edge),
+    panel.grid.major.x = element_line(color = colors$palette$grid),
+    plot.margin = margin(10, 10, 5, 10)
+  )
+
+### |-  P3:  Federations — titled players (top 15) ----
+med_titled <- median(federation_data$titled_players)
+
+p3 <-
+  ggplot(federation_data, aes(x = reorder(fed, titled_players), y = titled_players)) +
+  # geoms
+  geom_col(fill = alpha(colors$palette$p3, 0.92), width = 0.7) +
+  geom_text(aes(label = num_lab(titled_players)),
+    hjust = -0.15,
+    family = fonts$text, color = colors$palette$text, size = 3.2
+  ) +
+  add_median(med_titled, paste0("Median ", med_titled)) +
+  # scales
+  scale_x_discrete() +
+  scale_y_continuous(labels = num_lab, expand = expansion(mult = c(0, 0.10))) +
+  coord_flip(clip = "off") +
+  # labs
+  labs(
+    title = "Chess Federation Powerhouses",
+    subtitle = "Countries with the most titled players",
+    x = NULL, y = "Number of titled players"
+  ) +
+  # theme
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(10, 20, 10, 10)
+  )
+
+### |-  Combined plots ----
+combined_plots <- p2 / (p1 | p3) +
+  plot_layout(heights = c(1.1, 1.3))
+
+combined_plots <- combined_plots +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.8),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_markdown(
+        size = rel(0.95),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 1.2,
+        margin = margin(t = 5, b = 10)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.65),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0.5,
+        margin = margin(t = 10)
+      )
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 38, 
+  width  = 12,
+  height = 12
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_38.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_38.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 38: \[FIDE Chess Player Ratings\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-09-23
+:::
