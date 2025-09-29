@@ -1,0 +1,406 @@
+---
+itle: "Lake Hornborgasjön cranes: seasonal peaks and long-term growth"
+subtitle: "Spring migration dominates the daily peaks; annual totals are much higher today than in the 1990s"
+description: "Analyzing 30 years of crane observations at Sweden's Lake Hornborgasjön reveals dramatic population growth and distinct seasonal patterns, with spring migration attracting 3x more cranes than in the 1990s."
+date: "2025-09-21" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "ggplot2",
+  "wildlife",
+  "migration",
+  "time-series",
+  "ecological-data",
+  "Sweden",
+  "conservation",
+  "seasonal-patterns",
+  "population-trends",
+  "environmental-science"
+]
+image: "thumbnails/tt_2025_39.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Two-panel chart showing Lake Hornborgasjön crane observations from 1994 to 2024. The top panel displays seasonal patterns with spring migration (blue, peaking around 10,000 cranes in April) significantly higher than fall migration (orange, peaking around 9,000 in October). The bottom panel shows cumulative annual observations, colored from purple (1990s) to orange (2020s), demonstrating population growth from approximately 77,000 cranes in 1994 to over 427,000 in 2024, a more than threefold increase over 30 years.](tt_2025_39.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,   # Easily Install and Load the 'Tidyverse'
+  ggtext,      # Improved Text Rendering Support for 'ggplot2'
+  showtext,    # Using Fonts More Easily in R Graphs
+  janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+  scales,      # Scale Functions for Visualization
+  glue,        # Interpreted String Literals,
+  ggrepel,     # Automatically Position Non-Overlapping Text Labels with'ggplot2'
+  patchwork    # The Composer of Plots
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 12,
+  height = 12,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 39)
+
+cranes_raw <- tt$cranes |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(cranes_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# Clean & tag season
+cranes <- cranes_raw |>
+  mutate(
+    year = year(date),
+    month = month(date, label = TRUE, abbr = TRUE),
+    day_of_year = yday(date),
+    season = case_when(
+      month(date) %in% 3:5 ~ "Spring",
+      month(date) %in% 9:11 ~ "Fall",
+      TRUE ~ "Other"
+    )
+  ) |>
+  filter(!is.na(observations)) |>
+  mutate(season = factor(season, levels = c("Spring", "Fall", "Other")))
+
+# P1: Seasonal slice (Spring & Fall only)
+season_df <- cranes |> filter(season %in% c("Spring", "Fall"))
+
+# P1 labels: find peak (median across days) per season for direct labeling
+labs_df <- season_df |>
+  group_by(season, day_of_year) |>
+  summarise(obs = median(observations), .groups = "drop") |>
+  group_by(season) |>
+  slice_max(obs, n = 1, with_ties = FALSE)
+
+# P2: Choose highlight years (earliest, midpoint actual year, latest)
+yrs <- sort(unique(cranes$year))
+mid_year <- yrs[ceiling(length(yrs) / 2)]
+highlight_years <- c(first(yrs), mid_year, last(yrs))
+
+# P2: Build cumulative-by-year data and flag highlighted years
+cum_df <- cranes |>
+  arrange(year, date) |>
+  group_by(year) |>
+  mutate(cumulative = cumsum(observations)) |>
+  ungroup() |>
+  mutate(is_hi = year %in% highlight_years)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get basic theme colors
+colors <- get_theme_colors(
+  palette = c(
+      Spring = "#0072B2", Fall = "#E69F00",
+      "1994" = "#6A51A3", "2009" = "#1F78B4", "2024" = "#FDB863"
+      )
+)
+
+### |- titles and caption ----
+title_text <- str_glue("Lake Hornborgasjön cranes: seasonal peaks and long-term growth")
+
+subtitle_text <- str_glue(
+  "Spring migration dominates the daily peaks; annual totals are much higher today than in the 1990s"
+)
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 39,
+  source_text = "Hornborgasjön Field Station"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.4), color = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.9), margin = margin(b = 20)),
+
+    # Axis elements
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+
+    # Grid elements
+    panel.grid.major = element_line(color = "gray90", linetype = "solid", linewidth = 0.3),
+    # panel.grid.major.y = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank(),
+
+    # Axis elements
+    axis.text = element_text(color = colors$text, size = rel(0.7)),
+    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
+    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  P1: season plot ----
+p1 <-
+  ggplot(season_df, aes(day_of_year, observations, color = season)) +
+  # Geoms
+  geom_point(alpha = 0.18, size = 1) +
+  geom_smooth(
+    method = "gam",
+    formula = y ~ s(x, bs = "cs", k = 20),
+    se = TRUE, alpha = 0.12, linewidth = 1.6
+  ) +
+  geom_label_repel(
+    data = labs_df,
+    aes(day_of_year, obs, label = paste0(season, " migration")),
+    nudge_y = 2000,
+    direction = "y",
+    seed = 42,
+    size = 3.8,
+    fill = "white",
+    label.size = 0,
+    segment.color = "grey60"
+  ) +
+  # Scales
+  scale_color_manual(values = colors$palette) +
+  scale_y_continuous(labels = label_number(big.mark = ",")) +
+  scale_x_continuous(
+    breaks = c(60, 91, 121, 244, 274, 305),
+    labels = c("Mar", "Apr", "May", "Sep", "Oct", "Nov"),
+    limits = c(55, 310) # trims dead space
+  ) +
+  # Labs
+  labs(
+    title = "Spring migration attracts the largest flocks",
+    subtitle = "Daily counts (1994–2024) show spring peaks are earlier and consistently higher than fall",
+    x = NULL, y = "Number of cranes observed",
+  ) +
+  # Theme
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+  )
+
+
+### |-  P2: Cumulative line chart ----
+p2 <-
+  ggplot(cum_df, aes(day_of_year, cumulative, group = year)) +
+  # Geoms
+  geom_line(
+    data = ~ filter(.x, !is_hi),
+    color = "grey85", linewidth = 0.7, alpha = 0.9
+  ) +
+  geom_line(
+    data = ~ filter(.x, is_hi),
+    aes(color = factor(year)), linewidth = 1.4
+  ) +
+  geom_text(
+    data = cum_df |>
+      filter(is_hi) |>
+      group_by(year) |>
+      slice_max(day_of_year, n = 1, with_ties = FALSE),
+    aes(label = paste0(year, ": ", scales::label_number(big.mark = ",")(cumulative))),
+    hjust = -0.05, vjust = 0.5, size = 3.4
+  ) +
+  # Scales
+  scale_color_manual(values = colors$palette) +
+  scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  scale_x_continuous(
+    breaks = c(60, 121, 182, 244, 305, 365),
+    labels = c("Mar", "May", "Jul", "Sep", "Nov", "Dec"), limits = c(55, 365)
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = "Annual crane observations have more than tripled since the 1990s",
+    subtitle = "Recent years now exceed 400K cranes compared with ~75K in the mid-1990s",
+    x = NULL, y = "Cumulative number of cranes",
+  ) +
+  # Theme
+  theme(
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(10, 40, 10, 10),
+  )
+
+### |-  Combined plots ----
+combined_plots <- (p1 / p2) +
+  plot_layout(heights = c(1.1, 1.3))
+
+combined_plots <- combined_plots +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.8),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_markdown(
+        size = rel(0.95),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 1.2,
+        margin = margin(t = 5, b = 10)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.65),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0.5,
+        margin = margin(t = 10)
+      )
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 39, 
+  width  = 12,
+  height = 12
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_39.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_39.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 39: \[Crane Observations at Lake Hornborgasjön, Sweden (1994–2024)\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-09-30
+:::
