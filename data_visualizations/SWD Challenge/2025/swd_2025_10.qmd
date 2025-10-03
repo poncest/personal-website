@@ -1,9 +1,9 @@
 ---
 title: "Health Funding Surges While Education Slips"
 subtitle: "Funder priorities, 2020 -> 2025"
-description: "An arrow chart redesign avoiding the spaghetti graph problem, showing how non-profit funder support shifted across five categories over five years."
+description: "Arrow chart redesign that avoids spaghetti graphs by using directional arrows and strategic sorting to show non-profit funder priority shifts from 2020 to 2025."
 author: "Steven Ponce"
-date: "2025-10-01" 
+date: "2025-10-03" 
 categories: ["SWDchallenge", "Data Visualization", "R Programming", "2025"]
 tags: [
   "arrow chart",
@@ -14,7 +14,6 @@ tags: [
   "chart redesign",
   "avoiding spaghetti graphs",
   "before and after comparison",
-  "slope chart",
   "change over time"
 ]
 image: "thumbnails/swd_2025_10.png"
@@ -48,7 +47,7 @@ Additional information can be found [HERE](https://community.storytellingwithdat
 
 ### Makeover
 
-![Arrow chart showing changes in non-profit funder support from 2020 to 2025. Health increased by 8% to 75%, while Arts & Culture grew by 23% to 43%. Education declined by 13% to 60%, Human Services fell by 5% to 55%, and Other dropped by 23% to 30%. A dashed vertical line marks the 2025 median at 55%.](swd_2025_10.png){#fig-4}
+![Arrow chart showing non-profit funder support changes from 2020 to 2025. Categories sorted by 2025 support level with subtle shading grouping growth (Health +8pp to 75%, Arts & Culture +23pp to 43%) versus decline (Education -13pp to 60%, Human Services -5pp to 55%, Other -23pp to 30%). Blue arrows show growth, orange show decline. Dashed line marks 2025 median at 55%.](swd_2025_10.png){#fig-4}
 
 ### <mark> **Steps to Create this Graphic** </mark>
 
@@ -68,11 +67,11 @@ pacman::p_load(
 ) 
 
 ### |- figure size ---- 
-camcorder::gg_record( 
- dir    = here::here("temp_plots"),
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
   device = "png",
-  width  =  10,
-  height =  8,
+  width  = 8,
+  height = 6,
   units  = "in",
   dpi    = 320
 )
@@ -157,10 +156,11 @@ colors <- get_theme_colors(
 
 ### |-  titles and caption ----
 title_text <- str_glue("Health Funding Surges While Education Slips")
+
 subtitle_text <- str_glue(
-  "Funder priorities, 2020 -> 2025 (dashed = 2025 median)\n",
-  "Percentages can exceed 100% because funders choose multiple categories • Data self-reported by funders"
-  )
+  "Funder priorities shifted from 2020 to 2025 (sorted by current support level)\n",
+  "Data self-reported by funders • Percentages exceed 100% as funders support multiple categories"
+)
 
 # Create caption
 caption_text <- create_swd_caption(
@@ -219,7 +219,7 @@ p <- ggplot(arrow_data, aes(y = category)) +
   # Geoms
   geom_vline(
     xintercept = median_2025, linetype = "dashed",
-    color = "gray35", linewidth = 0.7
+    color = "gray55", linewidth = 0.25
   ) +
 
   # median tag
@@ -228,15 +228,22 @@ p <- ggplot(arrow_data, aes(y = category)) +
     x = median_2025, y = n_cats + 0.35,
     label = paste0("2025 median: ", label_percent(accuracy = 1)(median_2025)),
     size = 3.2, fontface = "bold",
-    label.size = 0, fill = "white", alpha = 0.95, color = "gray15"
+    label.size = 0, fill = "white", alpha = 0.95, color = "gray35"
   ) +
 
   # arrows
   geom_segment(
     aes(x = y2020, xend = y2025, yend = category, color = change > 0),
     linewidth = 1.4, lineend = "round",
-    arrow = arrow(length = unit(0.28, "cm"), type = "closed")
+    arrow = arrow(length = unit(0.28, "cm"), type = "open")
   ) +
+  
+  # subtle background 
+  geom_rect(data = filter(arrow_data, change > 0),
+            aes(ymin = as.numeric(category) - 0.25, 
+                ymax = as.numeric(category) + 0.25),
+            xmin = 0, xmax = 0.9, 
+            fill = "gray", alpha = 0.1) +
 
   # arrows labels
   geom_text(aes(x = y2020, label = lab_2020, hjust = hjust_2020),
@@ -252,9 +259,8 @@ p <- ggplot(arrow_data, aes(y = category)) +
   # Scales
   scale_x_continuous(
     labels = label_percent(accuracy = 1),
-    limits = c(0, max_x + 0.12),
-    breaks = seq(0, 0.90, by = 0.10),
-    expand = expansion(mult = c(0.01, 0.07))
+    limits = c(0, 0.9),
+    breaks = seq(0, 1, by = 0.20)
   ) +
   scale_y_discrete() +
   scale_color_manual(values = colors$palette) +
@@ -282,20 +288,20 @@ p <- ggplot(arrow_data, aes(y = category)) +
       margin = margin(t = 5, b = 5)
     ),
     plot.subtitle = element_text(
-      size = rel(0.95),
+      size = rel(0.80),
       family = fonts$subtitle,
       color = alpha(colors$subtitle, 0.9),
       lineheight = 1.2,
       margin = margin(t = 5, b = 10)
     ),
     plot.caption = element_markdown(
-      size = rel(0.65),
+      size = rel(0.50),
       family = fonts$caption,
       color = colors$caption,
       hjust = 0.5,
       margin = margin(t = 10)
     )
-  )
+  ) 
 ```
 
 #### 7. Save
@@ -309,8 +315,8 @@ save_plot(
   type = 'swd', 
   year = 2025, 
   month = 10, 
-  width  = 10,
-  height = 8,
+  width  = 8,
+  height = 6,
   )
 ```
 
