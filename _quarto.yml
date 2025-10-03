@@ -12,11 +12,11 @@ project:
 execute:
   cache: true
   freeze: auto
-  echo: fenced  # Only show code when explicitly fenced
-  warning: false  # Hide warnings unless necessary
-  message: false  # Hide messages unless necessary
-  fig-dpi: 96  # Lower DPI for faster rendering (web standard)
-  fig-format: png  # More efficient than PDF for web              
+  echo: fenced  
+  warning: false  
+  message: false  
+  fig-dpi: 96  
+  fig-format: png  
 
 website:
   title: "Steven Ponce"
@@ -54,6 +54,10 @@ website:
         href: projects.qmd
     
     right:
+      - icon: file-earmark-person
+        text: Resume
+        href: cv/Steven_Ponce_Resume.pdf  
+        target: _blank
       - icon: github
         href: https://github.com/poncest
       - icon: linkedin
@@ -119,7 +123,7 @@ format:
     anchor-sections: true
     code-fold: show
     code-tools: false
-    code-link: false  # Disable since you're getting warnings about this
+    code-link: false  
     html-math-method: katex  # Faster than MathJax
     
      # Performance tweaks
