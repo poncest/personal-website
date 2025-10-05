@@ -1,0 +1,387 @@
+---
+title: "European Basketball Success by Nation"
+subtitle: "Greece dominates with 27 Final Four appearances and 10 titles, nearly double Spain's performance"
+description: "Analyzing EuroLeague basketball success across nations using faceted bar charts. Greece leads with 27 Final Four appearances and a 37% championship conversion rate."
+date: "2025-10-05" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "EuroLeague",
+  "basketball",
+  "sports analytics",
+  "ggplot2",
+  "tidytext",
+  "faceted visualization",
+  "reorder_within",
+  "data cleaning",
+  "consulting-style charts",
+  "Europe"
+]
+image: "thumbnails/tt_2025_40.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Bar chart comparing EuroLeague basketball success by country. Greece leads with 27 Final Four appearances and 10 titles, followed by Spain (12 appearances, 6 titles) and Turkey (12 appearances, 4 titles). Seven other countries have 1-4 Final Four appearances each. Greece's 37% title conversion rate is noted.](tt_2025_40.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,   # Easily Install and Load the 'Tidyverse'
+  ggtext,      # Improved Text Rendering Support for 'ggplot2'
+  showtext,    # Using Fonts More Easily in R Graphs
+  janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+  scales,      # Scale Functions for Visualization
+  glue,        # Interpreted String Literals
+  tidytext     # Text Mining using 'dplyr', 'ggplot2', and Other Tidy Tools 
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 6,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 40)
+
+euroleague_basketball <- tt$euroleague_basketball |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(euroleague_basketball)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+teams_clean <- euroleague_basketball |>
+  mutate(
+    across(
+      c(
+        team, home_city, arena, country, last_season,
+        years_of_final_four_appearances, years_of_titles_won
+      ),
+      \(x) if_else(is.na(x), NA_character_, str_squish(x))
+    ),
+    capacity_num = parse_number(capacity),
+    last_season_num = parse_number(last_season),
+    final_four_appearances = as.integer(final_four_appearances),
+    titles_won = as.integer(titles_won)
+  )
+
+# Country aggregation
+country_summary <- teams_clean |>
+  summarise(
+    n_teams = n(),
+    tot_titles = sum(titles_won, na.rm = TRUE),
+    tot_ff = sum(final_four_appearances, na.rm = TRUE),
+    .by = country
+  )
+
+# Long df
+country_long <- country_summary |>
+  filter(tot_ff > 0 | tot_titles > 0) |> # Only show countries with achievements
+  mutate(
+    # Highlight only Greece 
+    highlight = country == "Greece",
+    `Final Four apps` = tot_ff,
+    Titles = tot_titles
+  ) |>
+  select(country, highlight, `Final Four apps`, Titles) |>
+  pivot_longer(
+    cols = c(`Final Four apps`, Titles),
+    names_to = "metric",
+    values_to = "value"
+  ) |>
+  mutate(
+    country_ordered = reorder_within(country, value, metric)
+  )
+
+# Greece's stats
+greece_stats <- country_summary |>
+  filter(country == "Greece")
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get basic theme colors
+colors <- get_theme_colors(
+  palette = c("TRUE" = "#0066CC", "FALSE" = "gray70")
+)
+
+### |- titles and caption ----
+title_text <- str_glue("European Basketball Success by Nation")
+
+subtitle_text <- str_glue(
+  "Greece dominates with 27 Final Four appearances and 10 titles, nearly double Spain's performance<br>",
+  "Shows only countries with Final Four appearances or titles<br>"
+)
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 40,
+  source_text = "EuroLeague Basketball via Wikipedia"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.4), color = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.9), margin = margin(b = 20)),
+
+    ## Grid
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+    
+    # Axes
+    axis.title = element_text(size = rel(0.9), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.95)),
+    axis.ticks = element_blank(),
+    
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+        face = "bold", 
+        color = "gray20", 
+        size = rel(1),
+        margin = margin(t = 8, b = 8)
+    ),
+    panel.spacing = unit(2, "lines"),
+    
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- final plot ----
+p <- ggplot(country_long, aes(x = value, y = country_ordered)) +
+  # Geoms
+  geom_col(
+    aes(fill = highlight, alpha = highlight),
+    width = 0.65
+  ) +
+  geom_text(
+    aes(
+      label = if_else(value > 0, as.character(value), ""),
+      color = highlight
+    ),
+    hjust = -0.3,
+    size = 3.3,
+    fontface = "bold"
+  ) +
+  geom_text(
+    data = tibble(
+      metric = "Final Four apps",
+      y_pos = 7.8,
+      x_pos = 1,
+      label = "Greece: 37% conversion rate\n(10 titles from 27 Final Four apps)"
+    ),
+    aes(x = x_pos, y = y_pos, label = label),
+    hjust = 0,
+    vjust = 1,
+    size = 2.8,
+    color = colors$palette[1],
+    fontface = "italic",
+    lineheight = 0.9,
+    inherit.aes = FALSE
+  ) +
+  # Scales
+  scale_y_reordered(expand = expansion(mult = c(0, 0.12))) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, 0.18)),
+    breaks = pretty_breaks(n = 4)
+  ) +
+  scale_fill_manual(
+    values = colors$palette,
+    guide = "none"
+  ) +
+  scale_alpha_manual(
+    values = c("TRUE" = 1, "FALSE" = 0.65),
+    guide = "none"
+  ) +
+  scale_color_manual(
+    values = c("TRUE" = "gray20", "FALSE" = "gray50"),
+    guide = "none"
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = NULL,
+  ) +
+  # Facets
+  facet_wrap(~metric, nrow = 1, scales = "free") +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.75),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 40, 
+  width  = 8,
+  height = 6
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_40.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_40.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 40: \[EuroLeague Basketball\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-10-07
+:::
