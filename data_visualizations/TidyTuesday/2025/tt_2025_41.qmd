@@ -1,0 +1,410 @@
+---
+title: "The World Started Tracking Severe Food Insecurity in 2016"
+subtitle: "Countries reporting each indicator annually. Severe Food Insecurity adoption jumps post-2016"
+description: "FAO data reveals global tracking of Severe Food Insecurity surged 70% after 2016."
+date: "2025-10-13" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "Food Security",
+  "FAO Data",
+  "World Food Day",
+  "Temporal Analysis",
+  "Data Infrastructure",
+  "Line Chart",
+  "geomtextpath",
+  "Data Quality",
+  "Threshold Data",
+  "Global Health",
+  "Sustainable Development",
+  "ggplot2",
+  "Data Literacy",
+  "Measurement Systems"
+]
+image: "thumbnails/tt_2025_41.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Line chart showing five food security indicators tracked by countries from 2005 to 2025. Four gray lines (Average dietary energy requirements, Undernourishment, Child Overweight, Child Stunting) remain steady at 200-240 countries throughout. One purple line (Moderate/Severe Food Insecurity) dramatically surges from 40 countries in 2015 to 139 countries in 2016 (3.5x increase), then continues rising to ~190 countries by 2022, with a gray shaded box highlighting the post-2016 period of expanded tracking.](tt_2025_41.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  scales,        # Scale Functions for Visualization
+  glue,          # Interpreted String Literals
+  geomtextpath,  # Curved Text in 'ggplot2' # Curved Text in 'ggplot2'
+  ggrepel        # Automatically Position Non-Overlapping Text Labels with 'ggplot2' 
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 6,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 41)
+
+food_security <- tt$food_security |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(food_security)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy-fixed
+#| warning: false
+
+fs_clean <- food_security |>
+  mutate(
+    year = year_end,
+    item_short = case_when(
+      str_detect(item, "children under 5.*overweight") ~ "Child Overweight",
+      str_detect(item, "children under 5.*stunted") ~ "Child Stunting",
+      str_detect(item, "Prevalence of undernourishment.*3-year") ~ "Undernourishment (3y)",
+      str_detect(item, "Prevalence of moderate or severe food insecurity") ~ "Moderate/Severe Food Insecurity",
+      TRUE ~ str_trunc(item, 35)
+    )
+  )
+
+# Manually select items that tell the story
+selected_items <- c(
+  "Moderate/Severe Food Insecurity",
+  "Child Overweight",
+  "Child Stunting",
+  "Undernourishment (3y)",
+  "Average dietary energy requireme..."
+)
+
+# Count countries per year/indicator
+participation <- fs_clean |>
+  filter(!is.na(value), item_short %in% selected_items) |>
+  distinct(area, year, item_short) |>
+  count(item_short, year, name = "n_countries") |>
+  mutate(is_highlight = item_short == "Moderate/Severe Food Insecurity") |>
+  arrange(item_short, year)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get basic theme colors
+colors <- get_theme_colors(
+  palette = c("TRUE" = "#7209b7", "FALSE" = "gray70")
+)
+
+### |- titles and caption ----
+title_text <- str_glue(
+    "The World Started Tracking Severe Food Insecurity in 2016"
+    )
+
+subtitle_text <- str_glue(
+  "Countries reporting each indicator annually. Severe Food Insecurity adoption jumps **post-2016**.<br>",
+  "**Note**: Most values are modeled estimates rather than direct measurements.<br>"
+)
+
+caption_text <- create_social_caption(
+  tt_year = 2025,
+  tt_week = 41,
+  source_text = "FAO Suite of Food Security Indicators"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(face = "bold", family = fonts$title, size = rel(1.4), color = colors$title, margin = margin(b = 10)),
+    plot.subtitle = element_text(family = fonts$subtitle, lineheight = 1.2, color = colors$subtitle, size = rel(0.9), margin = margin(b = 20)),
+
+    ## Grid
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+    
+    # Axes
+    axis.title = element_text(size = rel(0.9), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.95)),
+    axis.ticks = element_blank(),
+    
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+        face = "bold", 
+        color = "gray20", 
+        size = rel(1),
+        margin = margin(t = 8, b = 8)
+    ),
+    panel.spacing = unit(2, "lines"),
+    
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(family = fonts$tsubtitle, 
+                                color = colors$text, size = rel(0.8), face = "bold"),
+    legend.text = element_text(family = fonts$tsubtitle, 
+                               color = colors$text, size = rel(0.7)),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- final plot ----
+p <- ggplot(participation, aes(year, n_countries, group = item_short)) +
+  # Annotate
+    annotate("rect",
+             xmin = 2016 - 0.5, xmax = 2024.5, 
+             ymin = 0, ymax = 250, alpha = 0.06  
+    ) +
+  # Geoms
+    # Gray lines (background)
+    geom_line(
+        data = filter(participation, !is_highlight),
+        color = colors$palette[2],
+        linewidth = 0.6,
+        alpha = 0.5
+    ) +
+    # Gray line labels
+    geom_text_repel(
+        data = filter(participation, !is_highlight) |>
+            group_by(item_short) |>
+            slice_max(year, n = 1) |>  
+            ungroup(),
+        aes(label = item_short),
+        family = "text",
+        size = 2.8,
+        color = colors$palette[2],
+        alpha = 0.7,
+        hjust = 0,
+        nudge_x = 0.15,
+        direction = "y",
+        segment.size = 0.3,
+        segment.alpha = 0.3,
+        segment.color = colors$palette[2],
+        max.overlaps = 20, 
+        seed = 456
+    ) +
+    # Purple highlight line
+    geom_textline(
+        data = filter(participation, is_highlight),
+        aes(label = item_short),
+        color = colors$palette[1],
+        linewidth = 1.8,         
+        size = 3.6,             
+        vjust = -0.25,
+        hjust = 0.35,
+        # straight = TRUE,
+        text_smoothing = 30,
+        na.rm = TRUE
+    ) +
+  # Scales
+    scale_x_continuous(
+        limits = c(2005, 2025),
+        breaks = seq(2005, 2025, 5),
+    ) +
+    scale_y_continuous(
+        limits = c(0, 260),      
+        breaks = seq(0, 250, 50)
+    ) +
+    coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Year",
+    y = "Countries Reporting"
+  ) +
+  # Theme
+  theme(
+    panel.grid.minor  = element_blank(),
+    panel.grid.major.x= element_blank(),
+    panel.grid.major.y= element_line(colour = "gray90", linewidth = 0.2),
+    plot.title = element_text(
+      size = rel(1.55),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.75),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 0, b = 0)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    )
+  )
+
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 41, 
+  width  = 8,
+  height = 6
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_41.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_41.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data Sources:
+
+-   TidyTuesday 2025 Week 41: \[World Food Day\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-10-14
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+- **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+- **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+- **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+- **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**  
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**  
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+
+:::
