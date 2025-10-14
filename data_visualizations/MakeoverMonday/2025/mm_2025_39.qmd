@@ -428,7 +428,7 @@ p2 <- ridges_data |>
 combined_plots <- p1 + p2 +
   plot_layout(ncol = 2, widths = c(1.4, 1.1))
 
-combined_plots +
+combined_plots <- combined_plots +
   plot_annotation(
     title = title_text,
     subtitle = subtitle_text,
