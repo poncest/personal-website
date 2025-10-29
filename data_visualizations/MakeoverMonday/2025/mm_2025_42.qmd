@@ -1,0 +1,446 @@
+---
+title: "The Partisan Divide: Who Agrees More?m"
+subtitle: "Net percentage point difference between Biden and Trump supporters on cultural issues"
+description: "Visualizing stark partisan divides on 8 cultural issues using data from Pew Research Center's 2024 election survey of 7,166 registered voters."
+date: "2025-10-29" 
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "politics",
+  "partisan-divide",
+  "cultural-issues",
+  "pew-research",
+  "diverging-bars",
+  "2024-election",
+  "r-stats"
+]
+image: "thumbnails/mm_2025_42.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 42
+project_file <- "mm_2025_42.qmd"
+project_image <- "mm_2025_42.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2025w42-cultural-issues-and-the-2024-election"
+data_secondary <- "https://data.world/makeovermonday/2025w42-cultural-issues-and-the-2024-election"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_42/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.pewresearch.org/politics/2024/06/06/cultural-issues-and-the-2024-election"
+org_secondary <- "https://www.pewresearch.org/politics/2024/06/06/cultural-issues-and-the-2024-election"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Cultural Issues and the 2024 Election", data_secondary)`
+
+<!-- ![Original visualization](`r chart_original`) -->
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_42/original_chart.png)
+
+### Makeover
+
+![Bar chart showing percentage-point differences between Biden and Trump supporters on cultural issues. Blue bars extend to the right for Biden's advantages (legacy of slavery +52pp, openness +51pp, gender identity +50pp). Red bars extend left for Trump advantages (gun ownership -63pp, criminal justice -41pp, marriage priority -40pp).](mm_2025_42.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,  # Easily Install and Load the 'Tidyverse'
+    ggtext,     # Improved Text Rendering Support for 'ggplot2'
+    showtext,   # Using Fonts More Easily in R Graphs
+    scales,     # Scale Functions for Visualization
+    glue,       # Interpreted String Literals
+    patchwork   # Using Fonts More Easily in R Graphs
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+pew_culture_wars_2024_raw <- read_csv(
+  here::here('data/MakeoverMonday/2025/pew_culture_wars_2024.csv')) |> 
+  janitor::clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(pew_culture_wars_2024_raw )
+skimr::skim_without_charts(pew_culture_wars_2024_raw )
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+pew_tidy <- pew_culture_wars_2024_raw |>
+  mutate(
+    # Create concise, readable issue labels
+    issue_label = case_when(
+      str_detect(issue, "Gun ownership") ~ "Gun ownership increases safety",
+      str_detect(issue, "legacy of slavery") ~ "Legacy of slavery affects Black Americans",
+      str_detect(issue, "openness to people") ~ "America's openness is essential",
+      str_detect(issue, "man or a woman") ~ "Gender identity beyond assigned sex",
+      str_detect(issue, "criminal justice") ~ "Criminal justice not tough enough",
+      str_detect(issue, "marriage and having children") ~ "Marriage and children should be priority",
+      str_detect(issue, "Religion should be kept") ~ "Religion separate from government",
+      str_detect(issue, "gains women have made") ~ "Women's gains at men's expense",
+      TRUE ~ issue
+    ),
+    net_diff = biden_supporters_percent - trump_supporters_percent,
+    advantage = if_else(net_diff > 0, "Biden", "Trump"),
+    abs_diff = abs(net_diff),
+    issue_label = str_wrap(issue_label, width = 25),
+    issue_label = fct_reorder(issue_label, net_diff),
+  ) 
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(
+  palette = c(
+    "Biden" = "#2C5F8D",   
+    "Trump" = "#C7352E" 
+    )
+  ) 
+### |-  titles and caption ----
+title_text <- str_glue("The Partisan Divide: Who Agrees More?")
+
+subtitle_text <- str_glue(
+    "Net percentage point difference between Biden and Trump supporters on cultural issues"
+  )
+
+# Create caption
+caption_text <- create_mm_caption(
+  mm_year = current_year,
+  mm_week = current_week,
+  source_text = "Pew Research Center, April 2024 (n=7,166 registered voters)<br>Note: Positive values indicate Biden supporters agree more; negative values indicate Trump supporters agree more"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # # Text styling
+    plot.title = element_text(
+      size = rel(1.4), family = fonts$title, face = "bold",
+      color = colors$title, lineheight = 1.1, hjust = 0,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.9), family = fonts$subtitle, face = "italic",
+      color = alpha(colors$subtitle, 0.9), lineheight = 1.1,
+      margin = margin(t = 0, b = 20)
+    ),
+    
+    # Legend formatting
+    legend.position = "plot",
+    legend.justification = "top",
+    legend.margin = margin(l = 12, b = 5),
+    legend.key.size = unit(0.8, "cm"),
+    legend.box.margin = margin(b = 10),
+    legend.title = element_text(face = "bold"),
+    
+    # Axis formatting
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5),
+    axis.title.x = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10)
+    ),
+    axis.title.y = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(r = 10)
+    ),
+    axis.text.x = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+    axis.text.y = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+    
+    # Grid lines
+    panel.grid.minor = element_line(color = "#ecf0f1", linewidth = 0.2),
+    panel.grid.major = element_line(color = "#ecf0f1", linewidth = 0.4),
+    
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+p <- pew_tidy |>
+  ggplot(aes(x = net_diff, y = issue_label, fill = advantage)) +
+  # Geoms
+  geom_col(width = 0.65, alpha = 0.9) +
+  geom_vline(xintercept = 0, color = "#1a1a1a", linewidth = 1) +
+  geom_text(
+    aes(
+      label = paste0(ifelse(net_diff > 0, "+", ""), net_diff, "pp"),
+      hjust = ifelse(net_diff > 0, -0.15, 1.15)
+    ),
+    size = 3.5,
+    fontface = "bold",
+    color = "#1a1a1a"
+  ) +
+  # Scales
+  scale_fill_manual(
+    values = colors$palette
+  ) +
+  scale_x_continuous(
+    breaks = seq(-70, 70, 20),
+    labels = function(x) paste0(abs(x), "pp"),
+    limits = c(-75, 75),
+    expand = c(0, 0)
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x = -37.5, y = 8.5,
+    label = "← Trump supporters agree more",
+    color = colors$palette[2],
+    fontface = "bold",
+    size = 4,
+    hjust = 0.5
+  ) +
+  annotate(
+    "text",
+    x = 37.5, y = 8.5,
+    label = "Biden supporters agree more →",
+    color = colors$palette[1],
+    fontface = "bold",
+    size = 4,
+    hjust = 0.5
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Percentage point difference",
+    y = NULL,
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.7),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.90),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.65),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    ),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "#e5e5e5", linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+  )
+
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 8, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+-   Makeover Monday `r current_year` Week `r current_week`: `r create_link("Cultural Issues and the 2024 Election", data_main)`
+
+2.  Article
+
+-   `r create_link("Cultural Issues and the 2024 Election", data_secondary)`
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
