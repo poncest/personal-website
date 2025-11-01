@@ -1,27 +1,26 @@
 ---
-title: "Flint Lead Contamination: Government vs. Citizen Testing (2015)"
-subtitle: "Comparison of water samples collected by MDEQ (n = 71) and Virginia Tech (n = 271)"
-description: "Comparing lead levels in Flint water samples: government vs. citizen science testing revealed different contamination patterns and the impact of sample exclusion on public health reporting."
-date: "2025-11-01" 
+title: "Gender Equity in British Literary Prizes: Progress with Persistent Disparities"
+subtitle: "Overall representation improved (+15 pp), yet only 4 of 13 major prizes achieved gender balance."
+description: "Analysis of 950+ prize outcomes (1990-2022) reveals women's representation among winners doubled from 35% to 50%, but progress varies dramatically by prize. Pyramid chart and timeline visualization using R, ggplot2, and patchwork."
+date: "2025-10-26" 
 categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
 tags: [
-  "flint-water-crisis",
-  "public-health",
-  "environmental-data",
-  "citizen-science",
-  "data-ethics",
   "ggplot2",
+  "tidyverse",
   "patchwork",
-  "stacked-bar-chart",
-  "cumulative-distribution",
-  "epa-standards",
-  "lead-contamination",
-  "government-data",
-  "data-transparency",
-  "sequential-color-palette",
-  "water-quality"
+  "pyramid-chart",
+  "timeline-visualization",
+  "gender-equity",
+  "literary-prizes",
+  "confidence-intervals",
+  "Post45-Data-Collective",
+  "data-analysis",
+  "statistical-visualization",
+  "British-literature",
+  "ggtext",
+  "Wilson-CI"
 ]
-image: "thumbnails/tt_2025_44.png"
+image: "thumbnails/tt_2025_43.png"
 format:
   html:
     toc: true
@@ -45,7 +44,7 @@ execute:
   eval: true
 ---
 
-![A two-panel visualization comparing lead contamination in Flint, Michigan water samples (2015). The top panel shows a stacked bar chart with five risk categories from zero detection to above the EPA action level; Virginia Tech citizen science found 16.6% of 271 samples above the 15 ppb action level, versus the MDEQ government's 11.3% of 71 samples. The bottom panel displays cumulative distribution curves showing the percentage of samples below each lead concentration; at the 90th percentile, MDEQ measured 18 ppb, while Virginia Tech measured 26.6 ppb. The brown color palette progresses from light tan (safe) to dark brown (dangerous). Both charts emphasize EPA's health goal of 0 ppb.](tt_2025_44.png){#fig-1}
+![A two-panel visualization analyzing gender equity in British literary prizes from 1990 to 2022. The top panel shows a line chart of women's share of winners, which increased from 35% to 50%, with significant year-to-year variation. The bottom panel displays a horizontal pyramid chart comparing 13 major prizes, revealing that only four achieved gender balance (40-60% women). Seven prizes remain male-dominant, and two are female-dominant, showing persistent disparities despite overall progress.](tt_2025_43.png){#fig-1}
 
 ### <mark> **Steps to Create this Graphic** </mark>
 
@@ -61,14 +60,14 @@ execute:
 suppressPackageStartupMessages({
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
-  tidyverse,  # Easily Install and Load the 'Tidyverse'
-  ggtext,     # Improved Text Rendering Support for 'ggplot2'
-  showtext,   # Using Fonts More Easily in R Graphs
-  janitor,    # Simple Tools for Examining and Cleaning Dirty Data
-  scales,     # Scale Functions for Visualization
-  glue,       # Interpreted String Literals
-  ggrepel,    # Automatically Position Non-Overlapping Text Labels with 'ggplot2'
-  patchwork   # The Composer of Plots
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  scales,        # Scale Functions for Visualization
+  glue,          # Interpreted String Literals
+  patchwork,     # The Composer of Plots
+  binom          # Binomial Confidence Intervals for Several Parameterizations
 )
 })
 
@@ -97,10 +96,9 @@ source(here::here("R/themes/base_theme.R"))
 #| eval: true
 #| warning: false
 
-tt <- tidytuesdayR::tt_load(2025, week = 44)
+tt <- tidytuesdayR::tt_load(2025, week = 43)
 
-flint_mdeq <- tt$flint_mdeq |> clean_names()
-flint_vt <- tt$flint_vt |> clean_names()
+prizes <- tt$prizes |> clean_names()
 
 tidytuesdayR::readme(tt)
 rm(tt)
@@ -115,8 +113,8 @@ rm(tt)
 #| results: 'hide'
 #| warning: false
 
-glimpse(flint_mdeq)
-glimpse(flint_vt)
+glimpse(prizes)
+glimpse(prizes)
 ```
 
 #### 4. Tidy Data
@@ -125,80 +123,135 @@ glimpse(flint_vt)
 #| label: tidy-fixed
 #| warning: false
 
-mdeq_tidy <- flint_mdeq |>
-  mutate(
-    excluded = is.na(lead2),
-    source = "MDEQ"
-  ) |>
-  select(sample, lead, excluded, notes, source)
-
-vt_tidy <- flint_vt |>
-  reframe(
-    sample, lead,
-    excluded = FALSE,
-    notes = NA_character_,
-    source = "Virginia Tech"
+# data prep
+prizes_clean <- prizes |>
+  filter(
+    !is.na(gender),
+    !is.na(prize_year),
+    prize_year >= 1990,
+    prize_year <= 2022,
+    gender %in% c("man", "woman")
   )
 
-combined_data <- bind_rows(mdeq_tidy, vt_tidy) |>
+# P1: pyramid data ----
+pyramid_data <- prizes_clean |>
+  filter(person_role == "winner") |>
+  count(prize_alias, gender) |>
+  group_by(prize_alias) |>
   mutate(
-    source = factor(source, levels = c("MDEQ", "Virginia Tech")),
-    status = if_else(excluded, "Excluded by MDEQ", "Included")
-  )
-
-source_labels <- c(
-  "MDEQ" = "Michigan Dept. of Environmental Quality\n(Government)",
-  "Virginia Tech" = "Virginia Tech\n(Citizen)"
-)
-
-stats_tbl <- combined_data |>
-  group_by(source) |>
-  summarise(
-    p90 = quantile(lead, 0.90, na.rm = TRUE),
-    median = median(lead, na.rm = TRUE),
-    mean = mean(lead, na.rm = TRUE),
-    n = n(),
-    .groups = "drop"
-  )
-
-risk_lvls <- c(
-  "Zero Detection",
-  "Trace Levels (>0–5 ppb)",
-  "Elevated (5–10 ppb)",
-  "Concerning (10–15 ppb)",
-  "Above EPA Action Level (>15 ppb)"
-)
-
-risk_data <- combined_data |>
-  mutate(
-    risk_category = case_when(
-      lead == 0 ~ risk_lvls[1],
-      lead > 0 & lead <= 5 ~ risk_lvls[2],
-      lead > 5 & lead <= 10 ~ risk_lvls[3],
-      lead > 10 & lead <= 15 ~ risk_lvls[4],
-      lead > 15 ~ risk_lvls[5],
-      TRUE ~ NA_character_
-    ) |> factor(levels = risk_lvls)
-  ) |>
-  count(source, risk_category, name = "count") |>
-  group_by(source) |>
-  mutate(
-    percentage = 100 * count / sum(count),
-    total = sum(count)
+    total = sum(n),
+    pct = 100 * n / total
   ) |>
   ungroup() |>
-  mutate(text_color = if_else(risk_category %in% risk_lvls[1:2], "black", "white"))
-
-summary_pct <- risk_data |>
-  summarise(
-    above_15 = sum(percentage[risk_category == "Above EPA Action Level (>15 ppb)"]),
-    above_10 = sum(percentage[risk_category %in% c(
-      "Concerning (10–15 ppb)",
-      "Above EPA Action Level (>15 ppb)"
-    )]),
-    .by = source
+  filter(total >= 15) |>
+  select(prize_alias, gender, n, pct, total) |>
+  pivot_wider(
+    names_from = gender,
+    values_from = c(n, pct),
+    values_fill = 0
   ) |>
-  arrange(source)
+  mutate(
+    prize_label = str_wrap(prize_alias, width = 28),
+    women_pct = pct_woman,
+    men_pct = pct_man,
+    women_n = n_woman,
+    men_n = n_man,
+    men_x = -men_pct,
+    women_x = women_pct,
+    total = total,
+    dist50 = abs(women_pct - 50)
+  ) |>
+  select(
+    prize_label, women_pct, men_pct, women_n, men_n, men_x,
+    women_x, total, dist50
+  ) |>
+  arrange(across(all_of("women_pct"), desc)) |>
+  mutate(
+    y_fac = factor(prize_label, levels = rev(prize_label))
+  )
+
+# Summary counts
+balanced <- sum(abs(pyramid_data$women_pct - 50) <= 10)
+total_prize <- nrow(pyramid_data)
+male_dom <- sum(pyramid_data$women_pct < 40)
+female_dom <- sum(pyramid_data$women_pct > 60)
+
+# Outside labels with counts
+pad <- 4.5
+pad <- 5.5 # Slightly more padding for breathing room
+fmt_lab <- function(pct, n) {
+  paste0(
+    "<span style='font-size:11pt;'><b>", round(pct), "%</b></span><br>",
+    "<span style='font-size:9pt; color:gray60;'>(n=", n, ")</span>"
+  )
+}
+
+men_lab <- pyramid_data |>
+  mutate(
+    x = men_x - pad,
+    txt = fmt_lab(abs(men_x), men_n)
+  )
+wom_lab <- pyramid_data |>
+  mutate(
+    x = women_x + pad,
+    txt = fmt_lab(women_x, women_n)
+  )
+
+# P2: timeline data ----
+timeline <- prizes_clean |>
+  filter(person_role == "winner") |>
+  count(prize_year, gender) |>
+  pivot_wider(names_from = gender, values_from = n, values_fill = 0) |>
+  mutate(
+    total = man + woman,
+    p_w = woman / total
+  ) |>
+  mutate({
+    binom::binom.wilson(x = woman, n = total)[, c("lower", "upper")]
+  } |> as_tibble()) |>
+  rename(ci_lo = lower, ci_hi = upper) |>
+  mutate(
+    pct_w = 100 * p_w,
+    lo = 100 * ci_lo,
+    hi = 100 * ci_hi
+  )
+
+# Headline stats
+early_avg <- timeline |>
+  filter(prize_year <= 1995) |>
+  summarise(avg = mean(pct_w, na.rm = TRUE)) |>
+  pull()
+
+late_avg <- timeline |>
+  filter(prize_year >= 2018) |>
+  summarise(avg = mean(pct_w, na.rm = TRUE)) |>
+  pull()
+
+improvement <- late_avg - early_avg
+
+parity_year <- timeline |>
+  filter(pct_w >= 50) |>
+  arrange(prize_year) |>
+  slice(1) |>
+  pull(prize_year)
+
+# milestones
+milestones <- tibble(
+  year = c(1993, 2008, 2018),
+  label = c(
+    glue("Early 1990s:\n{round(early_avg)}% women"),
+    "2000s:\nSlow growth",
+    glue("Recent years:\n{round(late_avg)}% women")
+  )
+) |>
+  left_join(timeline |> select(prize_year, pct_w), by = c("year" = "prize_year")) |>
+  mutate(
+    y = case_when(
+      year == 1993 ~ pct_w - 8,
+      year == 2008 ~ pct_w + 8,
+      year == 2018 ~ pct_w + 8
+    )
+  )
 ```
 
 #### 5. Visualization Parameters
@@ -211,44 +264,32 @@ summary_pct <- risk_data |>
 ### |-  plot aesthetics ----
 # Get basic theme colors
 colors <- get_theme_colors(
-  palette = c(
-    "Zero Detection" = "#F5E6D3",
-    "Trace Levels (>0–5 ppb)" = "#D4A574",
-    "Elevated (5–10 ppb)" = "#A67C52",
-    "Concerning (10–15 ppb)" = "#7D5A3F",
-    "Above EPA Action Level (>15 ppb)" = "#5D3A1A",
-    "MDEQ" = "#B8860B",
-    "Virginia Tech" = "#8B4513"
+  palette = list(
+    col_women = "#7B4ABF",
+    col_men = "#17A0A3",
+    col_gray1 = "#2C3E50",
+    col_gray2 = "#7F8C8D",
+    col_grid = "#ECF0F1"
   )
 )
 
 ### |- titles and caption ----
 title_text <- str_glue(
-  "Flint Lead Contamination: Government vs. Citizen Testing (2015)"
+  "Gender Equity in British Literary Prizes: Progress with Persistent Disparities"
 )
 
 subtitle_text <- str_glue(
-  "Comparison of water samples collected by MDEQ (n = 71) and Virginia Tech (n = 271)"
+    "Overall representation improved (+{round(improvement)} pp), ",
+    "yet only {balanced} of {total_prize} major prizes achieved gender balance."
 )
 
-pct_leq_30 <- combined_data |>
-  summarise(p = mean(lead <= 30, na.rm = TRUE) * 100) |>
-  pull(p) |>
-  round(0)
-
 caption_text <- create_social_caption(
-    tt_year = 2025,
-    tt_week = 44,
-    note_text = glue::glue(
-        "**Note:** EPA health goal is 0 ppb (no safe level). ",
-        "Action level of 15 ppb triggers mandatory intervention.<br><br>",
-        "**Chart Guide:**<br>",
-        "• **Top:** Share of samples by risk category<br>",
-        "• **Bottom:** Cumulative % below each concentration<br><br>",
-        "Chart shows 0–30 ppb range ({pct_leq_30}% of samples). ",
-        "Some samples exceed 100 ppb (not shown)."
-    ),
-    source_text = "Loux & Gibson (2018)."
+  tt_year = 2025,
+  tt_week = 43,
+  note_text = NULL,
+  source_text = str_glue(
+      "Post45 Data Collective (post45.org) | Analysis: British Literary Prizes (1990–2022)"
+  )
 )
 
 ### |-  fonts ----
@@ -264,13 +305,13 @@ weekly_theme <- extend_weekly_theme(
   base_theme,
   theme(
     # Text styling
-    plot.title = element_text(
+    plot.title = element_markdown(
       face = "bold", family = fonts$title, size = rel(1.4),
-      color = colors$title, margin = margin(b = 10), hjust = 0
+      color = colors$title, margin = margin(b = 10), hjust = 0.5
     ),
     plot.subtitle = element_text(
       face = "italic", family = fonts$subtitle, lineheight = 1.2,
-      color = colors$subtitle, size = rel(0.9), margin = margin(b = 20), hjust = 0
+      color = colors$subtitle, size = rel(0.9), margin = margin(b = 20), hjust = 0.5
     ),
 
     ## Grid
@@ -321,186 +362,214 @@ theme_set(weekly_theme)
 #| label: plot
 #| warning: false
 
-### |- P1: risk categories plot ----
-risk_subtitle <- glue(
-  "Percent of samples by contamination level (MDEQ vs. Virginia Tech, 2015)"
-)
-
-n_mdeq <- stats_tbl$n[stats_tbl$source == "MDEQ"]
-n_vt <- stats_tbl$n[stats_tbl$source == "Virginia Tech"]
-
+### |- P1: pyramid plot ----
 p1 <-
-  ggplot(risk_data, aes(source, percentage, fill = risk_category)) +
-  geom_bar(stat = "identity", color = "white", linewidth = 0.8, width = 0.68) +
-  # Geoms
-  geom_text(
-    aes(
-      label = ifelse(
-        percentage >= 3,
-        sprintf("%d samples (%.1f%%)", count, percentage),
-        ""
-      ),
-      color = text_color,
-    ),
-    position = position_stack(vjust = 0.5), family = "mono",
-    size = 3.5, lineheight = 0.9,
-    show.legend = FALSE
+  ggplot(pyramid_data, aes(y = y_fac)) +
+
+  # Geom
+  geom_col(aes(x = men_x),
+    fill = colors$palette$col_men,
+    width = 0.7, color = "white", linewidth = 0.25
+  ) +
+  geom_col(aes(x = women_x),
+    fill = colors$palette$col_women,
+    width = 0.7, color = "white", linewidth = 0.25
+  ) +
+  geom_vline(
+    xintercept = 0, color = colors$palette$col_gray1,
+    linewidth = 1
+  ) +
+  geom_vline(
+    xintercept = c(-50, 50), color = "#E67E22",
+    linewidth = 0.8, linetype = "dashed", alpha = 0.7
+  ) +
+  geom_richtext(
+    data = men_lab,
+    aes(y = y_fac, x = x, label = txt),
+    hjust = 1, color = "gray40", size = 3,
+    fill = NA, label.color = NA,
+    inherit.aes = FALSE
+  ) +
+  geom_richtext(
+    data = wom_lab,
+    aes(y = y_fac, x = x, label = txt),
+    hjust = 0, color = "gray40", size = 3,
+    fill = NA, label.color = NA,
+    inherit.aes = FALSE
   ) +
   # Scales
-  scale_color_identity(guide = "none") +
-  scale_fill_manual(
-    values = colors$palette,
-    breaks = rev(risk_lvls),
-    labels = rev(risk_lvls),
-    name = "Lead Concentration Category"
-  ) +
-  scale_y_continuous(
-    labels = label_percent(scale = 1), breaks = seq(0, 100, 20), expand = c(0.01, 0)
-  ) +
-  # Annotate
-  annotate("text",
-    x = 1, y = 104, label = glue("n = {n_mdeq} samples"),
-    fontface = "bold", size = 3.5, color = "gray30"
-  ) +
-  annotate("text",
-    x = 2, y = 104, label = glue("n = {n_vt} samples"),
-    fontface = "bold", size = 3.5, color = "gray30"
+  coord_cartesian(xlim = c(-110, 110), clip = "off") +
+  scale_x_continuous(
+    breaks = seq(-100, 100, 25),
+    labels = \(x) paste0(abs(x), "%"),
+    expand = c(0, 0)
   ) +
   # Labs
   labs(
-    title = "Distribution of Water Samples by Lead Risk Category",
-    subtitle = risk_subtitle, x = NULL, y = "Percentage of Samples"
+    title = glue(
+      "<span style='color:{colors$palette$col_men}; font-family:{get_font_families()$title};'>**Men**</span> ",
+      "<span style='font-family:sans;'>←</span> ",
+      "Winners by Prize (Share of Winners) ",
+      "<span style='font-family:sans;'>→</span> ",
+      "<span style='color:{colors$palette$col_women}; font-family:{get_font_families()$title};'>**Women**</span>"
+    ),
+    subtitle = glue(
+      "{balanced} balanced (40–60%) • ",
+      "{male_dom} male-dominant (<40% women) • ",
+      "{female_dom} female-dominant (>60% women)"
+    ),
+    x = NULL,
+    y = NULL,
+    caption = "Winners only • Prizes with ≥15 total winners • Parity guides at ±50%"
   ) +
   # Theme
   theme(
-    legend.position = "right",
-    legend.background = element_rect(fill = "white", color = "gray70", linewidth = 0.4),
-    legend.title = element_text(face = "bold", size = 9.5),
-    legend.text = element_text(size = 8.5, family = "Arial"),
-    legend.key.size = unit(0.9, "lines"),
-    legend.margin = margin(6, 6, 6, 6),
-    panel.grid.major.x = element_blank(),
-    axis.text.x = element_text(lineheight = 0.95)
+    plot.caption = element_text(
+      color = "#95A5A6", size = 8.5,
+      margin = margin(t = 8, b = 5),
+      hjust = 0.5
+    ),
+    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(size = 8.8, lineheight = 0.95),
+    plot.margin = margin(20, 45, 20, 45) 
   )
 
-### |- P2: Cumulative plot ----
-ecdf_subtitle <- glue(
-  "At 90th percentile: MDEQ = 18 ppb, Virginia Tech = 26.6 ppb (EPA goal: 0 ppb, no safe level)\n",
-  "Steeper curves = more samples concentrated at lower lead levels."
-)
-
-annot_pts <- stats_tbl |>
-  reframe(
-    role = if_else(source == "MDEQ", "Government", "Citizen"),
-    x = p90,
-    y = 0.90,
-    lab = glue("{source}: {round(p90,1)} ppb (>15)"),
-    .by = source
-  )
-
+### |- P2: timeline plot ----
 p2 <-
-  ggplot(combined_data, aes(lead, color = source)) +
-    # Geoms
-    stat_ecdf(linewidth = 1.8, alpha = 0.9) +
-    geom_vline(xintercept = 15, linetype = "dashed", color = "#D32F2F", linewidth = 0.8) +
-    geom_hline(yintercept = 0.9, linetype = "dotted", color = "gray40", linewidth = 0.7) +
-    geom_point(
-      data = annot_pts,
-      aes(x, y, fill = source, color = source),
-      shape = 21, size = 3.5, stroke = 1.3, show.legend = FALSE
-    ) +
-    geom_label_repel(
-      data = annot_pts, aes(x, y, label = lab, color = source),
-      nudge_y = c(-0.07, -0.07), label.padding = unit(0.15, "lines"),
-      label.size = 0, show.legend = FALSE, seed = 44
-    ) +
-    # Annotate
-    annotate("text",
-      x = 16, y = 0.55,
-      label = "EPA Action Level:\n15 ppb (requires\nintervention)",
-      color = "#D32F2F", size = 3.5, hjust = 0, fontface = "bold", family = "mono"
-    ) +
-    annotate("text",
-      x = 0.5, y = 0.95,
-      label = "90th Percentile\n(10% of samples above this line)",
-      color = "gray30", size = 3.2, hjust = 0, family = "mono"
-    ) +
-    # Scales
-    scale_color_manual(
-      values = colors$palette,
-      breaks = c("MDEQ", "Virginia Tech"),
-      labels = c(
-        glue("{source_labels['MDEQ']} (n={n_mdeq})"),
-        glue("{source_labels['Virginia Tech']} (n={n_vt})")
-      ),
-      name = "Data Source"
-    ) +
-    scale_fill_manual(values = colors$palette, guide = "none") +
-    scale_x_continuous(
-      trans = "sqrt", limits = c(0, 30), breaks = seq(0, 30, 5),
-      expand = c(0.01, 0)
-    ) +
-    scale_y_continuous(
-      labels = label_percent(accuracy = 1),
-      breaks = seq(0, 1, 0.1), expand = c(0.01, 0)
-    ) +
-    # Labs
-    labs(
-      title = "Cumulative Distribution of Lead Levels in Water Samples",
-      subtitle = ecdf_subtitle,
-      x = "Lead Concentration (parts per billion)",
-      y = "Cumulative Percentage of Samples"
-    ) +
-    guides(color = guide_legend(
-      title = "Data Source",
-      override.aes = list(linetype = 1, linewidth = 1.8)
-    )) +
-    # Theme
-    theme(
-      legend.position = "inside",
-      legend.position.inside = c(1.35, 0.15),
-      legend.justification = c("right", "bottom"),
-      legend.background = element_rect(fill = "white", color = "gray70", linewidth = 0.4),
-      legend.title = element_text(face = "bold", size = 9.5),
-      legend.text = element_text(size = 8.5, family = "Arial"),
-      legend.key.size = unit(1, "lines"),
-      legend.margin = margin(6, 6, 6, 6),
+ggplot(timeline, aes(prize_year, pct_w)) +
+  # Annotations
+  annotate("rect",
+    xmin = 1990, xmax = 2022, ymin = 0, ymax = 50,
+    fill = colors$palette$col_men, alpha = 0.03
+  ) +
+  annotate("rect",
+    xmin = 1990, xmax = 2022, ymin = 50, ymax = 75,
+    fill = colors$palette$col_women, alpha = 0.04
+  ) +
+  # Geoms
+  geom_ribbon(aes(ymin = lo, ymax = hi),
+    fill = colors$palette$col_women, alpha = 0.15
+  ) +
+  geom_line(color = colors$palette$col_women, linewidth = 1.5) +
+  geom_point(color = colors$palette$col_women, size = 2.8, alpha = 0.9) +
+  geom_hline(
+    yintercept = 50,
+    linetype = "dashed",
+    color = alpha(colors$palette$col_gray1, 0.3),
+    linewidth = 0.5
+  ) +
+  geom_point(
+    data = timeline |> filter(prize_year == parity_year),
+    aes(prize_year, pct_w),
+    color = "#2C3E50", size = 4.5, shape = 21,
+    fill = "white", stroke = 1.5
+  ) +
+  geom_segment(
+    data = milestones,
+    aes(
+      x = year, xend = year,
+      y = ifelse(y > pct_w, pct_w, 0),
+      yend = y
+    ),
+    color = colors$palette$col_gray2,
+    linetype = "dotted", linewidth = 0.7
+  ) +
+  geom_label(
+    data = milestones,
+    aes(x = year, y = y, label = label),
+    size = 3, fontface = "plain",
+    fill = alpha("#F9FAFB", 0.75),  
+    color = "#34495E",
+    label.padding = unit(0.28, "lines"),
+    label.size = 0.2,
+    label.r = unit(0.15, "lines")
+  ) +
+  annotate(
+    "text",
+    x = parity_year,
+    y = (timeline |> 
+        filter(prize_year == parity_year) |> 
+        pull(pct_w) + 6.5),
+    label = glue("First ≥50%\n({parity_year})"),
+    color = "#2C3E50", size = 3.2, fontface = "bold",
+    lineheight = 0.9
+  ) +
+  annotate("text",
+    x = 2021, y = 46.5,
+    label = "50% parity",
+    color = colors$palette$col_gray1,
+    size = 3, fontface = "italic", hjust = 1
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = label_percent(scale = 1),
+    breaks = seq(0, 75, 25)
+  ) +
+  scale_x_continuous(breaks = seq(1990, 2020, 5)) +
+  coord_cartesian(ylim = c(0, 75), expand = FALSE) +
+  # Labs
+  labs(
+    title = glue(
+      "Women's share of literary prize winners increased from ",
+      "{round(early_avg)}% to {round(late_avg)}% (+{round(improvement)} pp)"
+    ),
+    subtitle = glue(
+      "British Literary Prizes, 1990–2022 • ",
+      "95% Wilson confidence interval • ",
+      "Parity first achieved in {parity_year}"
+    ),
+    x = "Year",
+    y = "Women winners (%)",
+    caption = "95% Wilson confidence intervals shown • 158 winners total"
+  ) +
+  # Theme
+  theme(
+    plot.caption = element_text(
+      color = "#95A5A6", size = 8.5,
+      margin = margin(t = 8, b = 5),
+      hjust = 0.5
+    ),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(
+      color = "gray92", linewidth = 0.4
     )
+  )
 
 ### |- Combined plot ----
-combined_plots <- p1 / p2
+combined_plots <- p2 / p1 +
+    plot_layout(heights = c(0.85, 1.15))
 
 combined_plots <- combined_plots +
-  plot_annotation(
-    title = title_text,
-    subtitle = subtitle_text,
-    caption = caption_text,
-    theme = theme(
-      plot.title = element_text(
-        size = rel(1.85),
-        family = fonts$title,
-        face = "bold",
-        color = colors$title,
-        lineheight = 1.15,
-        margin = margin(t = 8, b = 5)
-      ),
-      plot.subtitle = element_text(
-        size = rel(0.95),
-        family = fonts$subtitle,
-        color = alpha(colors$subtitle, 0.88),
-        lineheight = 1.2,
-        margin = margin(t = 2, b = 15)
-      ),
-      plot.caption = element_markdown(
-        size = rel(0.7),
-        family = "Arial",
-        color = colors$caption,
-        hjust = 0,
-        lineheight = 1.3,
-        margin = margin(t = 12, b = 5),
-      )
+    plot_annotation(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text,
+        theme = theme(
+            plot.title = element_markdown(
+                size = rel(1.55),
+                family = fonts$title,
+                face = "bold",
+                color = colors$title,
+                lineheight = 1.15,
+                margin = margin(t = 8, b = 5)
+            ),
+            plot.subtitle = element_text(
+                size = rel(0.87),
+                family = fonts$subtitle,
+                color = alpha(colors$subtitle, 0.88),
+                lineheight = 1.2,
+                margin = margin(t = 2, b = 15)
+            ),
+            plot.caption = element_markdown(
+                size = rel(0.73),
+                family = fonts$caption,
+                color = colors$caption,
+                hjust = 0.5,
+                lineheight = 1.3,
+                margin = margin(t = 12, b = 5),
+            )
+        )
     )
-  )
 ```
 
 #### 7. Save
@@ -509,12 +578,11 @@ combined_plots <- combined_plots +
 #| label: save
 #| warning: false
 
-### |-  plot image ----  
 save_plot_patchwork(
   plot = combined_plots, 
   type = "tidytuesday", 
   year = 2025, 
-  week = 44, 
+  week = 43, 
   width  = 12,
   height = 14,
   )
@@ -538,24 +606,19 @@ sessionInfo()
 ::: {.callout-tip collapse="true"}
 ##### Expand for GitHub Repo
 
-The complete code for this analysis is available in [`tt_2025_44.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_44.qmd).
+The complete code for this analysis is available in [`tt_2025_43.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_43.qmd).
 
 For the full repository, [click here](https://github.com/poncest/personal-website/).
 :::
 
 #### 10. References
+
 ::: {.callout-tip collapse="true"}
 ##### Expand for References
 
-1.  **Primary Source:**
-    -   Loux, T., & Gibson, A. K. (2019). Using Flint, Michigan, lead data in introductory statistics. *Teaching Statistics*, *41*(3), 85-88. https://doi.org/10.1111/test.12187
+1.  Data Sources:
 
-2.  **Data Source:**
-    -   TidyTuesday 2025 Week 44: [Lead concentration in Flint water samples in 2015](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-11-04/readme.md)
-
-3.  **Additional Context:**
-    -   Pieper, K. J., Tang, M., & Edwards, M. A. (2017). Flint water crisis caused by interrupted corrosion control: Investigating "ground zero" home. *Environmental Science & Technology*, *51*(4), 2007-2014.
-    -   EPA. (n.d.). [Basic information about lead in drinking water](https://19january2017snapshot.epa.gov/ground-water-and-drinking-water/basic-information-about-lead-drinking-water_.html)
+-   TidyTuesday 2025 Week 43: \[Selected British Literary Prizes (1990-2022)\](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-10-28
 :::
 
 #### 11. Custom Functions Documentation
