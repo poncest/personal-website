@@ -11,13 +11,13 @@ get_social_icons <- function() {
 }
 
 # Create social media caption (tidytuesday)
-create_social_caption <- function(tt_year, tt_week, source_text) {
+create_social_caption <- function(tt_year, tt_week, source_text, note_text) {
     icons <- get_social_icons()
     
-    tt_text <- str_glue("#TidyTuesday: {tt_year} Week {tt_week} &bull; Source: {source_text}<br>")
+    tt_text <- str_glue("<br>#TidyTuesday: {tt_year} Week {tt_week} &bull; Source: {source_text}")
     social_text <- str_glue("{icons$linkedin} stevenponce &bull; {icons$bluesky} sponce1 &bull; {icons$github} poncest &bull; #rstats #ggplot2")
     
-    str_glue("{tt_text} {social_text}")
+    str_glue("{note_text} {tt_text} {social_text}")
 }
 
 # Create SWD social media caption
