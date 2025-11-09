@@ -1,0 +1,455 @@
+---
+title: "The Changing Face of TB Mortality"
+subtitle: "Africa's remarkable decline in HIV-associated tuberculosis deaths"
+description: "Africa reduced HIV-associated TB deaths from 60% to 28% of total TB mortality between 2000-2024—a 32 percentage point decline. Despite this progress, Africa's burden remains 2-6 times higher than other WHO regions. This visualization uses weighted regional estimates and direct labeling to tell a story of remarkable public health progress alongside persistent health disparities."
+date: "2025-11-09" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "tuberculosis",
+  "HIV-TB-coinfection",
+  "global-health",
+  "WHO-data",
+  "public-health",
+  "mortality-trends",
+  "weighted-estimates",
+  "Africa",
+  "antiretroviral-therapy",
+  "health-disparities",
+  "line-chart",
+  "ggrepel",
+  "direct-labeling",
+  "data-storytelling"
+]
+image: "thumbnails/tt_2025_45.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Line chart showing HIV-associated TB deaths as percentage of total TB mortality by WHO region from 2000-2024. Africa's bold blue line dominates, declining from 60% to 28% (31.9 percentage point decrease). Five other WHO regions shown in gray remain below 35% throughout, with most under 15%. All regions labeled at right endpoint. Chart demonstrates Africa's significant progress yet persistent disproportionate burden of HIV/TB co-infection.](tt_2025_45.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,     # Easily Install and Load the 'Tidyverse'
+    ggtext,        # Improved Text Rendering Support for 'ggplot2'
+    showtext,      # Using Fonts More Easily in R Graphs
+    janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+    scales,        # Scale Functions for Visualization
+    glue,          # Interpreted String Literals
+    ggrepel        # Non-overlapping text labels
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+who_tb_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-11-11/who_tb_data.csv')
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(who_tb_data)
+skimr::skim(who_tb_data) |> summary()
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy-fixed
+#| warning: false
+
+### |- calculate HIV-associated mortality proportion (WEIGHTED BY DEATHS) ----
+WEIGHTED_BY_DEATHS <- TRUE
+
+tb_hiv_ratio <- who_tb_data |>
+  filter(!is.na(e_mort_tbhiv_num), !is.na(e_mort_num), e_mort_num > 0) |>
+  mutate(
+    hiv_prop = e_mort_tbhiv_num / e_mort_num,
+    wt = if (WEIGHTED_BY_DEATHS) e_mort_num else 1
+  ) |>
+  group_by(g_whoregion, year) |>
+  summarise(
+    avg_hiv_prop = weighted.mean(hiv_prop, w = wt, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(avg_hiv_prop = 100 * avg_hiv_prop) |>
+  filter(!is.na(g_whoregion), !is.na(avg_hiv_prop))
+
+### |- prepare endpoint labels ----
+# Africa gets prominent label
+endpoint_labels_africa <- tb_hiv_ratio |>
+  filter(g_whoregion == "Africa") |>
+  filter(year == max(year))
+
+# All other regions get smaller, gray labels for transparency
+endpoint_labels_others <- tb_hiv_ratio |>
+  filter(g_whoregion != "Africa") |>
+  group_by(g_whoregion) |>
+  filter(year == max(year)) |>
+  ungroup()
+
+# Africa series (sorted)
+africa <- tb_hiv_ratio |>
+    filter(g_whoregion == "Africa") |>
+    arrange(year) |>
+    ungroup()
+
+africa_first <- africa |> slice_head(n = 1)
+africa_last  <- africa |> slice_tail(n = 1)
+
+africa_change_pp <- africa_last$avg_hiv_prop - africa_first$avg_hiv_prop
+start_year <- africa_first$year
+end_year   <- africa_last$year
+end_val    <- africa_last$avg_hiv_prop
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Define color palette - Africa as hero, others as context
+region_colors <- c(
+    "Africa" = "#1E3A8A",                    
+    "Americas" = "gray60",                   
+    "Eastern Mediterranean" = "gray60",      
+    "Europe" = "gray60",                     
+    "South-East Asia" = "gray60",            
+    "Western Pacific" = "gray60"             
+)
+
+# Line widths - Africa bold, others thin
+region_linewidths <- c(
+    "Africa" = 1.5,
+    "Americas" = 0.6,
+    "Eastern Mediterranean" = 0.6,
+    "Europe" = 0.6,
+    "South-East Asia" = 0.6,
+    "Western Pacific" = 0.6
+)
+
+colors <- get_theme_colors(
+    palette = list(
+        col_africa = "#1E3A8A",
+        col_gray = "gray60"
+    )
+)
+
+### |- titles and caption ----
+title_text <- str_glue("The Changing Face of TB Mortality")
+
+subtitle_text <- str_glue(
+    "HIV-associated deaths as a share of total TB mortality, by WHO region<br>",
+    "**Africa** shows remarkable progress from {round(africa_first$avg_hiv_prop)}% ",
+    "to {round(africa_last$avg_hiv_prop)}%, yet still bears the heaviest burden"
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 45,
+    source_text = "WHO Global Tuberculosis Database | Regional estimates weighted by mortality burden"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_markdown(
+      face = "bold", family = fonts$title, size = rel(1.4),
+      color = colors$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_text(
+      face = "italic", family = fonts$subtitle, lineheight = 1.2,
+      color = colors$subtitle, size = rel(0.9), margin = margin(b = 20), hjust = 0
+    ),
+
+    ## Grid
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+
+    # Axes
+    axis.title = element_text(size = rel(0.8), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.85)),
+    axis.ticks = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(1),
+      margin = margin(t = 8, b = 8)
+    ),
+    panel.spacing = unit(2, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  main plot ----
+p <- 
+  ggplot(tb_hiv_ratio, aes(
+    x = year, y = avg_hiv_prop,
+    color = g_whoregion,
+    linewidth = g_whoregion)
+    ) +
+  # Geoms
+  geom_line(alpha = 0.9) +
+  geom_text_repel(
+    data = bind_rows(endpoint_labels_africa, endpoint_labels_others),
+    aes(
+      x = year,
+      y = avg_hiv_prop,
+      label = g_whoregion,
+      size = g_whoregion,
+      fontface = ifelse(g_whoregion == "Africa", "bold", "plain")
+    ),
+    hjust = 0,
+    color = ifelse(bind_rows(endpoint_labels_africa, endpoint_labels_others)$g_whoregion == "Africa",
+      "#1E3A8A", "gray40"
+    ),
+    lineheight = 0.9,
+    nudge_x = 1,
+    direction = "y",
+    segment.size = 0.2,
+    segment.color = "gray70",
+    min.segment.length = 0,
+    max.overlaps = 20,
+    xlim = c(NA, 2038),
+    show.legend = FALSE
+  ) +
+  # Scales
+  scale_size_manual(
+    values = c(
+      "Africa" = 4.5,
+      "Americas" = 2.8,
+      "Eastern Mediterranean" = 2.8,
+      "Europe" = 2.8,
+      "South-East Asia" = 2.8,
+      "Western Pacific" = 2.8
+    )
+  ) +
+  scale_color_manual(values = region_colors) +
+  scale_linewidth_manual(values = region_linewidths) +
+  scale_x_continuous(
+    breaks = seq(2000, 2024, by = 5),
+    limits = c(2000, 2028),
+    expand = expansion(mult = c(0.02, 0))
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(x, "%"),
+    limits = c(0, 65),
+    breaks = seq(0, 65, by = 10)
+  ) +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "HIV-Associated TB Deaths\n(% of Total TB Mortality)"
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x = 2021, y = 22,
+    label = glue("{round(abs(africa_change_pp),1)} pp decline since {start_year}"),
+    family = fonts$text, size = 3.6, hjust = 0, color = colors$palette$col_africa
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(1.85),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.15,
+      margin = margin(t = 8, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.9),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.88),
+      lineheight = 1.2,
+      margin = margin(t = 2, b = 5)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = "Arial",
+      color = colors$caption,
+      hjust = 0,
+      lineheight = 1.3,
+      margin = margin(t = 12, b = 5),
+    ),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.2),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+  )
+
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 45, 
+  width  = 10,
+  height = 7,
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_45.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_45.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  **Data Source:**
+    -   TidyTuesday 2025 Week 45: [WHO TB Burden Data: Incidence, Mortality, and Population](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-11-11/readme.md)
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
