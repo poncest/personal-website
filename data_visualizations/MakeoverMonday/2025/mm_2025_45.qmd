@@ -1,0 +1,719 @@
+---
+title: "Understanding the Rise in Domestic Terrorism: Context Matters"
+subtitle: "While raw attack counts increased 53% (1994-2001 vs 2020-2024), population growth explains half this increase. Per capita rates show a 26% rise—significant but less dramatic."
+description: "A four-panel analytical dashboard examining US domestic terrorism trends (1994-2024) with population adjustment. By integrating US Census Bureau data, this makeover reveals that population growth explains half of the apparent 53% increase in attacks—the per capita rate rose only 26%."
+date: "2025-11-11"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+   "makeover-monday",
+  "terrorism-analysis",
+  "data-visualization",
+  "ggplot2",
+  "patchwork",
+  "per-capita-analysis",
+  "population-adjustment",
+  "time-series",
+  "multi-panel-dashboard",
+  "rolling-averages",
+  "us-census-data",
+  "tidycensus",
+  "analytical-rigor",
+  "csis-data",
+  "domestic-terrorism",
+  "ideology-analysis",
+  "data-literacy"
+]
+image: "thumbnails/mm_2025_45.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 45
+project_file <- "mm_2025_45.qmd"
+project_image <- "mm_2025_45.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2025w45-terrorism-and-political-violence-in-the-usa"
+data_secondary <- "https://data.world/makeovermonday/2025w45-terrorism-and-political-violence-in-the-usa"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_45/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.csis.org/analysis/left-wing-terrorism-and-political-violence-united-states-what-data-tells-us"
+org_secondary <- "https://www.csis.org/analysis/left-wing-terrorism-and-political-violence-united-states-what-data-tells-us"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Left-Wing Terrorism and Political Violence in the United States: What the Data Tells Us", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_45/original_chart.png)
+
+### Makeover
+
+![Four-panel dashboard showing US domestic terrorism trends from 1994-2024. Panel A shows total annual attacks increased 53% from early period to recent years. Panel B displays per capita rates (attacks per million people) increased 26%, demonstrating that population growth explains half the raw increase. Panel C presents smoothed trend lines by ideology, with right-wing attacks (orange line) rising from \~8 attacks in mid-2000s to \~25 in recent years, while jihadist (teal) and left-wing (light blue) attacks remain lower. Panel D shows right-wing share of total attacks, typically 60-90%, with a notable dip to \~50% in the late 2000s. Key finding: while raw attack counts rose substantially, population-adjusted rates show a more modest increase, and right-wing attacks consistently dominate throughout the entire period.](mm_2025_45.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,     # Easily Install and Load the 'Tidyverse'
+    janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,         # Compact and Flexible Summaries of Data
+    scales,        # Scale Functions for Visualization
+    ggtext,        # Improved Text Rendering Support for 'ggplot2'
+    showtext,      # Using Fonts More Easily in R Graphs
+    glue,          # Interpreted String Literals
+    patchwork,     # The Composer of Plots
+    ggrepel,       # Automatically Position Non-Overlapping Text Labels
+    zoo            # For rollmean function
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 16,
+    height = 11,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+terrorism_enriched <- read_csv(
+  here::here("data/MakeoverMonday/2025/terrorism_enriched.csv")) |>
+  mutate(ideology = factor(
+    ideology,
+    levels = c("Right", "Left", "Jihadist", "Ethnonationalist", "Other")
+  ))
+
+terrorism_yearly <- read_csv(
+  here::here("data/MakeoverMonday/2025/terrorism_yearly.csv"))
+
+# Filter to 1994-2024 (exclude partial 2025)
+data_1994_2024 <- terrorism_enriched |> filter(year <= 2024)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(terrorism_enriched)
+glimpse(terrorism_yearly)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  Data Notes ----
+# The datasets loaded below have been preprocessed via `data_prep.R`
+# 
+# Preprocessing script: https://github.com/poncest/MakeoverMonday/blob/master/2025/Week_45/data_prep.R
+# Download data_prep.R from the GitHub link above and run locally
+#
+# Key preprocessing steps:
+# 1. Original data: terrorism_by_ideology_1994-2025.csv (raw attack counts)
+# 2. Population data: Fetched from US Census Bureau via tidycensus
+#    - 1994-2009: Intercensal estimates (official reconciled data)
+#    - 2010-2019: Vintage 2019 estimates via API
+#    - 2020-2023: Vintage 2023 estimates
+#    - 2024-2025: Linear projection (excluded from analysis)
+# 3. Calculated metrics:
+#    - attacks_per_million: Population-adjusted rates
+#    - pct_of_year: Percentage composition
+#    - 3-year rolling averages (for smoothing)
+#
+# Loaded datasets (from Section 2):
+# - terrorism_enriched: Full dataset with all calculated metrics
+# - terrorism_yearly: Annual summaries
+# - data_1994_2024: Filtered dataset excluding partial 2025 data
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(
+  palette = list(
+    "Right"            = "#A08843",
+    "Left"             = "#4F6D78",
+    "Jihadist"         = "#73896C",
+    "Ethnonationalist" = "#8E7E9E",
+    "Other"            = "#9B9B9B",
+    "total"            = "#2C3E4C",
+    "per_capita"       = "#6A5882",
+    "breakdown"        = "#A08843"
+  )
+)   
+ 
+### |-  Main titles ----
+title_text <- "Understanding the Rise in Domestic Terrorism: Context Matters"
+
+subtitle_text <- str_glue(
+  "While raw attack counts increased 53% (1994-2001 vs 2020-2024), <b>population growth explains half this increase</b>.<br>",
+  "Per capita rates show a 26% rise—significant but less dramatic."
+)
+
+### |-  Data source caption ----
+caption_text <- create_social_caption_02_mm(
+  mm_year = 2025,
+  mm_week = 45,
+  note_text = str_glue(
+    "**Note:** 2025 data excluded because it represents a partial year.<br>",
+    "Per capita rates are calculated as attacks per million people.<br>",
+    "The use of the 2010 Census as a population baseline may produce a slight discontinuity.<br>"
+  ),
+  source_text = str_glue(
+    "Terrorism incidents: CSIS Warfare, Irregular Threats & Terrorism Program (1994–2024).<br>",
+    "U.S. population estimates:<br>",
+    "&nbsp;&nbsp;• Intercensal estimates (1994–2009) ",
+    "&nbsp;&nbsp;• Vintage 2019 estimates (2010–2019) ",
+    "&nbsp;&nbsp;• Vintage 2023 estimates (2020–2024)<br>"
+  )
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # # Text styling
+    plot.title = element_text(
+      size = rel(1.5), family = fonts$title, face = "bold",
+      color = colors$title, lineheight = 1.1, hjust = 0,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.9), family = fonts$subtitle, face = "italic",
+      color = alpha(colors$subtitle, 0.9), lineheight = 1.1,
+      margin = margin(t = 0, b = 20)
+    ),
+
+    # Legend formatting
+    legend.position = "plot",
+    legend.justification = "top",
+    legend.margin = margin(l = 12, b = 5),
+    legend.key.size = unit(0.8, "cm"),
+    legend.box.margin = margin(b = 10),
+    # legend.title = element_text(face = "bold"),
+
+    # Axis formatting
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5),
+    axis.title.x = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10)
+    ),
+    axis.title.y = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(r = 10)
+    ),
+    axis.text.x = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+    axis.text.y = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+
+    # Grid lines
+    panel.grid.minor = element_line(color = "#ecf0f1", linewidth = 0.2),
+    panel.grid.major = element_line(color = "#ecf0f1", linewidth = 0.4),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Panel A: Total Attacks (Raw Counts) ----
+pa <-
+  terrorism_yearly |>
+  filter(year <= 2024) |>
+  ggplot(aes(x = year, y = total_attacks)) +
+  geom_hline(
+    yintercept = 23.8,
+    linetype = "dashed",
+    color = "grey60",
+    linewidth = 0.4
+  ) +
+  geom_line(linewidth = 1.2, color = colors$palette$total, alpha = 0.9) +
+  geom_point(size = 2.2, color = colors$palette$total) +
+  annotate(
+    "text",
+    x = 2001,
+    y = 27,
+    label = "Mean: 23.8",
+    size = 2.8,
+    color = "grey50",
+    hjust = 0,
+    family = fonts$subtitle
+  ) +
+  scale_x_continuous(breaks = seq(1995, 2025, 5)) +
+  scale_y_continuous(breaks = seq(0, 50, 10), limits = c(0, 50)) +
+  labs(
+    title = "A. Total Attacks",
+    subtitle = "Raw count increased 53% (1994-2001 to 2020-2024)",
+    y = "Annual attacks",
+    x = NULL
+  ) +
+  theme(
+    panel.grid.major.x = element_blank()
+  )
+
+### |-  Panel B: Per Capita Rate ----
+pb <-
+  terrorism_yearly |>
+  filter(year <= 2024) |>
+  ggplot(aes(x = year, y = attacks_per_million)) +
+  geom_hline(
+    yintercept = 0.082,
+    linetype = "dashed",
+    color = "grey60",
+    linewidth = 0.4
+  ) +
+  geom_line(linewidth = 1.2, color = colors$palette$per_capita, alpha = 0.9) +
+  geom_point(size = 2.2, color = colors$palette$per_capita) +
+  annotate(
+    "segment",
+    x = 2010, xend = 2010,
+    y = 0, yend = 0.155,
+    linetype = "dotted",
+    color = "grey70",
+    linewidth = 0.35
+  ) +
+  annotate(
+    "text",
+    x = 2010,
+    y = 0.158,
+    label = "Census 2010\nbase year",
+    size = 2.4,
+    color = "grey60",
+    hjust = 0.5,
+    lineheight = 0.9,
+    family = fonts$subtitle
+  ) +
+  annotate(
+    "text",
+    x = 2001,
+    y = 0.093,
+    label = "Mean: 0.082",
+    size = 2.8,
+    color = "grey50",
+    hjust = 0,
+    family = fonts$subtitle
+  ) +
+  scale_x_continuous(breaks = seq(1995, 2025, 5)) +
+  scale_y_continuous(
+    breaks = seq(0, 0.16, 0.04),
+    limits = c(0, 0.16)
+  ) +
+  labs(
+    title = "B. Per Capita Rate",
+    subtitle = "Population-adjusted: 26% increase (1994-2001 to 2020-2024)",
+    y = "Attacks per million people",
+    x = NULL
+  ) +
+  theme(
+    panel.grid.major.x = element_blank()
+  )
+
+### |-  Panel C: Attacks by Ideology (Top 3, 3-year avg)  ----
+data_smoothed <- data_1994_2024 |>
+  filter(ideology %in% c("Right", "Left", "Jihadist")) |>
+  arrange(ideology, year) |>
+  group_by(ideology) |>
+  mutate(attacks_smooth = rollmean(attacks, k = 3, fill = NA, align = "center")) |>
+  ungroup()
+
+label_data <- data_smoothed |>
+  filter(!is.na(attacks_smooth)) |>
+  group_by(ideology) |>
+  filter(year == max(year)) |>
+  ungroup() |>
+  mutate(
+    label = case_when(
+      ideology == "Right" ~ "Right-wing",
+      ideology == "Left" ~ "Left-wing",
+      ideology == "Jihadist" ~ "Jihadist"
+    )
+  )
+
+pc <-
+  data_smoothed |>
+  ggplot(aes(x = year, y = attacks_smooth, color = ideology)) +
+  geom_line(linewidth = 1.2, alpha = 0.95) +
+  geom_vline(
+    xintercept = 2014,
+    linetype = "dotted",
+    alpha = 0.4,
+    color = "grey40"
+  ) +
+  geom_text_repel(
+    data = label_data,
+    aes(label = label),
+    hjust = 0,
+    nudge_x = 1.2,
+    direction = "y",
+    segment.size = 0.3,
+    segment.color = "grey60",
+    size = 3,
+    fontface = "bold",
+    family = fonts$subtitle,
+    show.legend = FALSE,
+    min.segment.length = 0
+  ) +
+  annotate(
+    "text",
+    x = 2014,
+    y = 32,
+    label = "2014",
+    size = 2.5,
+    color = "grey40",
+    family = fonts$subtitle
+  ) +
+  scale_x_continuous(breaks = seq(1995, 2025, 5)) +
+  scale_y_continuous(breaks = seq(0, 35, 10), limits = c(0, 35)) +
+  scale_color_manual(
+    values = c(
+      "Right"    = colors$palette$Right,
+      "Left"     = colors$palette$Left,
+      "Jihadist" = colors$palette$Jihadist
+    ),
+    labels = c("Right-wing", "Left-wing", "Jihadist")
+  ) +
+  labs(
+    title = "C. Breakdown by Ideology",
+    subtitle = "Right-wing attacks increased notably after 2014 (3-year rolling average)",
+    y = "Annual attacks (3-year avg)",
+    x = "Year"
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank()
+  )
+
+### |-  Panel D: Right-Wing Share of Total (3-year avg) ----
+pd <-
+  data_1994_2024 |>
+  group_by(year) |>
+  mutate(
+    year_total = sum(attacks),
+    pct = attacks / year_total * 100
+  ) |>
+  ungroup() |>
+  filter(ideology == "Right") |>
+  arrange(year) |>
+  mutate(pct_smooth = rollmean(pct, k = 3, fill = NA, align = "center")) |>
+  ggplot(aes(x = year, y = pct_smooth)) +
+  annotate(
+    "rect",
+    xmin = 1994, xmax = 2024,
+    ymin = 50, ymax = 100,
+    fill = "#FFF7EB",
+    alpha = 0.7
+  ) +
+  geom_hline(
+    yintercept = 50,
+    linetype   = "dashed",
+    color      = "grey50",
+    linewidth  = 0.4
+  ) +
+  geom_hline(
+    yintercept = 75,
+    linetype   = "dotted",
+    color      = "grey60",
+    linewidth  = 0.35
+  ) +
+  geom_line(
+    linewidth = 1.2,
+    color = colors$palette$Right,
+    alpha = 0.95
+  ) +
+  annotate(
+    "text",
+    x = 1995,
+    y = 52,
+    label = "Majority (50%) threshold",
+    size = 2.5,
+    color = "grey50",
+    hjust = 0,
+    family = fonts$subtitle
+  ) +
+  annotate(
+    "text",
+    x = 1995,
+    y = 77,
+    label = "Supermajority (75%) threshold",
+    size = 2.5,
+    color = "grey50",
+    hjust = 0,
+    family = fonts$subtitle
+  ) +
+  scale_x_continuous(breaks = seq(1995, 2025, 5)) +
+  scale_y_continuous(
+    breaks = seq(0, 100, 25),
+    limits = c(0, 100),
+    labels = label_percent(scale = 1)
+  ) +
+  labs(
+    title = "D. Right-Wing Share of Total",
+    subtitle = "Typically 60–90%, with a dip to ~50% in the late 2000s (3-year rolling average)",
+    y = "Right-wing % of annual attacks",
+    x = "Year"
+  ) +
+  theme(
+    legend.position    = "none",
+    panel.grid.major.x = element_blank()
+  )
+
+### |-  combined plot ----
+combined_plots <- (pa | pb) / (pc | pd) +
+  plot_layout(heights = c(1, 1.05))
+
+combined_plots <- combined_plots +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(2.3),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_markdown(
+        size = rel(1.2),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 1.2,
+        margin = margin(t = 5, b = 15)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.65),
+        family = fonts$caption,
+        color = colors$caption,
+        hjust = 0,
+        lineheight = 1.2,
+        margin = margin(t = 10)
+      )
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 16, 
+  height = 11
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Data Sources:**
+
+1.  **Terrorism Data:**
+    -   Makeover Monday `r current_year` Week `r current_week`: `r create_link("Terrorism and Political Violence in the United States", data_main)`
+    -   Original dataset: `terrorism_by_ideology_1994-2025.csv`
+2.  **Population Data:**
+    -   US Census Bureau, Population Estimates Program (PEP)
+    -   Retrieved via tidycensus R package
+    -   Intercensal estimates (1994-2009): `r create_link("2000-2010 Intercensal Estimates", "https://www2.census.gov/programs-surveys/popest/tables/2000-2010/intercensal/national/us-est00int-01.csv")`
+    -   Vintage 2019 estimates (2010-2019): API access via tidycensus
+    -   Vintage 2023 estimates (2020-2024): API access via tidycensus
+
+**Data Preprocessing:**
+
+-   **Script:** `r create_link("data_prep.R", "https://github.com/poncest/MakeoverMonday/blob/master/2025/Week_45/data_prep.R")`
+    -   Integrates terrorism incidents with US Census population data
+    -   Calculates per capita rates (attacks per million population)
+    -   Computes 3-year rolling averages for trend smoothing
+    -   Generates period classifications and summary statistics
+    -   See script comments for full methodology
+
+**Citations:**
+
+1.  **Terrorism Data:**
+    -   Center for Strategic and International Studies (CSIS). (2024). *Terrorism and Political Violence in the United States: What the Data Tells Us*. CSIS Warfare, Irregular Threats, and Terrorism Program. Retrieved from https://www.csis.org/programs/transnational-threats-project/terrorism-and-political-violence
+2.  **Population Data:**
+    -   US Census Bureau. (Various years). *Population Estimates Program (PEP)*. Retrieved via tidycensus R package. https://www.census.gov/programs-surveys/popest.html
+    -   US Census Bureau. (2012). *Intercensal Estimates of the Resident Population for the United States: April 1, 2000 to July 1, 2010*. https://www.census.gov/data/tables/time-series/demo/popest/intercensal-2000-2010-national.html
+
+**Methodology Notes:**
+
+-   2025 data excluded from analysis (partial year)
+-   Per capita rates calculated as attacks per million population
+-   3-year rolling averages applied to reduce year-to-year volatility
+-   Census 2010 base year may cause slight discontinuity in time series
+
+**Reproducibility:**
+
+All analysis code available in the `r create_link("project repository", "https://github.com/poncest/MakeoverMonday/tree/master/2025/Week_45")`:
+
+-   Data preprocessing: `data_prep.R`
+-   Visualization code: `mm_2025_45_final.R`
+-   Publication document: `mm_2025_45.qmd`
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::

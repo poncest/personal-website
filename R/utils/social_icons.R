@@ -31,6 +31,16 @@ create_social_caption_02 <- function(tt_year, tt_week, source_text, note_text) {
     str_glue("{note_text} {tt_text} {social_text}")
 }
 
+# Create social media caption
+create_social_caption_02_mm <- function(mm_year, mm_week, source_text, note_text) {
+  icons <- get_social_icons()
+  
+  mm_text <- str_glue("<br>#MakeoverMonday: {mm_year} Week {mm_week} &bull; Source: {source_text}")
+  social_text <- str_glue("{icons$linkedin} stevenponce &bull; {icons$bluesky} sponce1 &bull; {icons$github} poncest &bull; #rstats #ggplot2")
+  
+  str_glue("{note_text} {mm_text} {social_text}")
+}
+
 # Create SWD social media caption
 create_swd_caption <- function(year, month, source_text) {
   # Get icons from existing function
