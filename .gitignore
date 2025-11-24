@@ -29,7 +29,12 @@ test.qmd
 .quarto/
 /.quarto/
 
-*.html
+# Allow _site HTML files (pre-rendered output for Netlify)
+!_site/**/*.html
+
+# Ignore HTML files everywhere else
+/*.html
+*_files/**/*.html
 
 # Caching and build directories
 /.netlify/
