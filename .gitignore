@@ -12,7 +12,7 @@
 /temp_plots/
 /personal-website/2024/temp/Week_41
 /data_visualizations/TidyTuesday/2024/tt_2024_42_files/
-site_libs/
+
 
 
 # Test files
@@ -38,6 +38,14 @@ test.qmd
 
 # Caching and build directories
 /.netlify/
+
+# Allow site_libs in _site (needed for deployment)
+!_site/site_libs/
+
+# Block site_libs everywhere else
+/site_libs/
+*_files/site_libs/
+
 
 # R specific
 .Rprofile
