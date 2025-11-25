@@ -1,0 +1,506 @@
+---
+title: "Kids' June 2025 Streaming Top 10"
+subtitle: "Netflix leads June with 4 of the top 10 programs, totaling 3.3B minutes viewed"
+description: "An analysis of Nielsen's kids' streaming data (ages 6-17) for June 2025, revealing Netflix's dominance with 4 of the top 10 programs. The visualization highlights viewing patterns and raises questions about age-appropriate content, as several Teen/Mature-rated shows rank highly among young viewers."
+date: "2025-11-25"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+ags: [
+   "makeover-monday",
+   "ggplot2",
+   "horizontal-bar-chart",
+   "streaming-data",
+   "nielsen",
+   "kids-media",
+   "netflix",
+   "entertainment-analytics",
+   "data-journalism",
+   "tv-ratings",
+   "viewing-habits"
+]
+image: "thumbnails/mm_2025_46.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 46
+project_file <- "mm_2025_46.qmd"
+project_image <- "mm_2025_46.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/schools-out-and-the-tvs-on"
+data_secondary <- "https://data.world/makeovermonday/schools-out-and-the-tvs-on"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_46/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.nielsen.com/insights/2025/what-us-kids-watched-tv-streaming-summer-june/"
+org_secondary <- "https://www.nielsen.com/insights/2025/what-us-kids-watched-tv-streaming-summer-june/"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Left-Wing Terrorism and Political Violence in the United States: What the Data Tells Us", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_45/original_chart.png)
+
+### Makeover
+
+![Horizontal bar chart showing Kids' June 2025 Streaming Top 10 programs by total minutes viewed. Netflix dominates with four programs (shown in red): Ginny & Georgia leads at 1.43 billion minutes, followed by Squid Game (837M), Stranger Things (617M), and Alvin! and the Chipmunks (466M). Other platforms in gray include Disney+ (Bluey - 895M, Phineas and Ferb - 748M), Paramount+ (SpongeBob - 801M), Hulu (Gumball - 626M), Max/Netflix (Young Sheldon - 533M), and Peacock (Love Island USA - 473M). Notable: Several Teen/Mature-rated shows rank highly despite a 6-17 age demographic.](mm_2025_46.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+  tidyverse,     # Easily Install and Load the 'Tidyverse'
+  janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+  skimr,         # Compact and Flexible Summaries of Data
+  scales,        # Scale Functions for Visualization
+  ggtext,        # Improved Text Rendering Support for 'ggplot2'
+  showtext,      # Using Fonts More Easily in R Graphs
+  glue           # Interpreted String Literals
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 10,
+    height = 8,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+top_10 <- readxl::read_excel(
+  here::here("data/MakeoverMonday/2025/Top 10 Streaming (Kids 6 17).xlsx")) |>
+  clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(top_10)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+top_10_clean <- top_10 |>
+  mutate(
+    # Standardize program names
+    program_clean = case_when(
+      str_detect(program, "Spongebob") ~ "SpongeBob SquarePants",
+      TRUE ~ program
+    )
+  )
+
+# SOURCES:
+# - Content Ratings: IMDb (www.imdb.com) - displays TV Parental Guidelines ratings
+# - Show Type & Genre: IMDb and streaming service platforms (Netflix, Disney+, etc.)
+# - Additional verification: Common Sense Media (www.commonsensemedia.org)
+#
+# NOTE: These ratings reflect US TV Parental Guidelines:
+#   TV-Y   = All Children
+#   TV-Y7  = Directed to Older Children (7+)
+#   TV-G   = General Audience
+#   TV-PG  = Parental Guidance Suggested
+#   TV-14  = Parents Strongly Cautioned (14+)
+#   TV-MA  = Mature Audience Only (17+)
+
+show_info <- tribble(
+  ~program_clean,                ~type,         ~rating,   ~genre,          ~imdb_id,
+  "Ginny & Georgia",             "Live-action", "TV-14",   "Drama",         "tt10624432",
+  "Bluey",                       "Animation",   "TV-Y",    "Comedy",        "tt7678620",
+  "Squid Game",                  "Live-action", "TV-MA",   "Thriller",      "tt10919420",
+  "SpongeBob SquarePants",       "Animation",   "TV-Y7",   "Comedy",        "tt0206512",
+  "Phineas and Ferb",            "Animation",   "TV-G",    "Comedy",        "tt0852863",
+  "The Amazing World of Gumball","Animation",   "TV-PG",   "Comedy",        "tt1942683",
+  "Stranger Things",             "Live-action", "TV-14",   "Sci-Fi",        "tt4574334",
+  "Young Sheldon",               "Live-action", "TV-PG",   "Comedy",        "tt6226232",
+  "Love Island USA",             "Reality",     "TV-14",   "Reality",       "tt8230780",
+  "Alvin! and the Chipmunks",    "Animation",   "TV-Y7",   "Comedy",        "tt0084119"
+)
+
+## |-  join and create analysis variables ----
+top_10_analysis <- top_10_clean |>
+  left_join(show_info, by = "program_clean") |>
+  mutate(
+    mins_millions = round(mins_viewed / 1e6, 0),
+    age_appropriate = case_when(
+      rating %in% c("TV-Y", "TV-Y7", "TV-G") ~ "Kids",
+      rating == "TV-PG" ~ "Family",
+      rating == "TV-14" ~ "Teen",
+      rating == "TV-MA" ~ "Mature",
+      TRUE ~ "Unknown"
+    ),
+    age_appropriate = factor(age_appropriate,
+                             levels = c("Kids", "Family", "Teen", "Mature")
+    ),
+    program_with_provider = glue("{program_clean}<br><span style='font-size:8pt;color:gray50'>({svod_provider})</span>"),
+    program_ordered = fct_reorder(program_with_provider, -rank)
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(
+  palette = list(
+    netflix       = "#B20710", 
+    neutral_dark  = "#9E9E9E"          
+  )
+)
+
+### |-  Main titles ----
+title_text <- "Kids' June 2025 Streaming Top 10"
+subtitle_text <- str_glue(
+  "Netflix leads June with 4 of the top 10 programs, totaling 3.3B minutes viewed<br>",
+  "Nielsen measures household accounts with viewers 6–17; programming reflects actual viewing, not age-appropriateness."
+)
+
+### |-  Data source caption ----
+caption_text <- create_mm_caption(
+  mm_year = 2025,
+  mm_week = 46,
+  source_text = str_glue(
+    "Nielsen National TV Panel<br>",
+    "**Note:** Kids 6-17, June 2025 (05/26/25 - 06/29/25). Metadata from IMDb."
+  )
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # # Text styling
+    plot.title = element_text(
+      size = rel(1.5), family = fonts$title, face = "bold",
+      color = colors$title, lineheight = 1.1, hjust = 0,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.9), family = fonts$subtitle, face = "italic",
+      color = alpha(colors$subtitle, 0.9), lineheight = 1.1,
+      margin = margin(t = 0, b = 20)
+    ),
+
+    # Legend formatting
+    legend.position = "plot",
+    legend.justification = "top",
+    legend.margin = margin(l = 12, b = 5),
+    legend.key.size = unit(0.8, "cm"),
+    legend.box.margin = margin(b = 10),
+    # legend.title = element_text(face = "bold"),
+
+    # Axis formatting
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5),
+    axis.title.x = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10)
+    ),
+    axis.title.y = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(r = 10)
+    ),
+    axis.text.x = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+    axis.text.y = element_markdown(
+      size = rel(0.85), family = fonts$subtitle,
+      color = colors$text
+    ),
+
+    # Grid lines
+    panel.grid.minor = element_line(color = "#ecf0f1", linewidth = 0.2),
+    panel.grid.major = element_line(color = "#ecf0f1", linewidth = 0.4),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+## |-  prepare data for plotting ----
+plot_data <- top_10_analysis |>
+  mutate(
+    # Netflix highlighting
+    is_netflix = svod_provider == "Netflix",
+    bar_color = ifelse(is_netflix, colors$palette$netflix, colors$palette$neutral_dark),
+    text_color = ifelse(is_netflix, "white", "gray30"),
+  ) |>
+  mutate(
+    mins_billions = mins_millions / 1000,
+    mins_label_smart = ifelse(
+      mins_billions >= 1,
+      paste0(round(mins_billions, 2), "B"),
+      paste0(mins_millions, "M")
+    )
+  )
+
+### |-  main plot ----
+p <- 
+  plot_data |>
+  ggplot(aes(x = mins_millions, y = program_ordered)) +
+  # Geoms
+  geom_col(aes(fill = bar_color), width = 0.65) +
+  geom_text(
+    aes(x = 25, label = paste0(genre, " | ", type), color = text_color),
+    hjust = 0,
+    size = 2.5
+  ) +
+  geom_label(
+    aes(x = mins_millions - 40, label = rating),
+    hjust = 1,
+    size = 2.5,
+    fontface = "bold",
+    fill = "white",
+    label.size = 0,
+    label.padding = unit(0.15, "lines")
+  ) +
+  geom_text(
+    aes(label = mins_label_smart),
+    hjust = -0.1,
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  # Annotate
+  annotate(
+    "text", x = 850, y = 3,
+    label = "60% of the Top 10 are Kids/Family titles,\nwhile several Teen/Mature shows still rank highly\namong households with viewers 6–17.",
+    hjust = 0, size = 3.2, lineheight = 1.1,
+    family = fonts$subtitle, color = "gray30"
+  ) +
+  # Scales
+  scale_x_continuous(
+    position = "top",
+    expand = expansion(mult = c(0.02, 0.1)),
+    labels = label_comma(suffix = "M")
+  ) +
+  scale_fill_identity() +
+  scale_color_identity() +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    x = "Total Minutes Viewed (Millions)",
+    y = NULL,
+    caption = caption_text
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.85),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.8),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.5,
+      margin = margin(t = 5, b = 25)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.5),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0,
+      lineheight = 1.2,
+      margin = margin(t = 10)
+    ),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank()
+  )
+
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 10, 
+  height = 8
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+-   Makeover Monday `r current_year` Week `r current_week`: `r create_link("School’s out and the TV’s on: What kids in the U.S. watched in June", data_main)`
+
+2.  Article
+
+-   `r create_link("School’s out and the TV’s on: What kids in the U.S. watched in June", data_secondary)`
+
+3.  Citation:
+    -   Nielsen. (2025). **School's out and the TV's on: What kids in the U.S. watched in June.** Nielsen Insights. Retrieved from https://www.nielsen.com/insights/2025/what-us-kids-watched-tv-streaming-summer-june/
+    
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
+
