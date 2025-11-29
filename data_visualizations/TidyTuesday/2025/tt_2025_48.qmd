@@ -1,6 +1,6 @@
 ---
 title: "The Böögg Cannot Predict Record Hot Summers"
-subtitle: "Zurich's exploding snowman is folklore, not forecasting. Record summers (avg >19°C) occur across all burn durations from 4 to 60 minutes." 
+subtitle: "The folklore: A faster Böögg explosion means a hotter summer. The reality: Record summers (>19°C) occurred whether the Böögg took 4 minutes or 60. Correlation: r = +0.19." 
 description: "Exploring whether Zurich's Sechseläuten festival tradition holds predictive power: does a faster Böögg explosion mean a hotter summer? This TidyTuesday visualization tests folklore against climate data, revealing a correlation of +0.19—the opposite direction from what tradition claims."
 date: "2025-11-29" 
 categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
@@ -41,7 +41,7 @@ execute:
   eval: true
 ---
 
-![Scatter plot showing burn duration versus average summer temperature for Zurich's Sechseläuten festival (1923–2025). Record hot summers (above 19°C, shown as large red points) are scattered across the entire range of burn durations—from 4 to 60 minutes—demonstrating no relationship between how quickly the Böögg explodes and summer temperatures. The correlation is +0.19, opposite to what folklore predicts.](tt_2025_48.png){#fig-1}
+![Scatter plot testing Swiss folklore that a faster Böögg explosion predicts a hotter summer. A dotted diagonal line shows the expected negative relationship, but the data contradicts it: record hot summers (large red points above 19°C threshold) are scattered across all burn durations from 4 to 60 minutes. The 2003 European heat wave had a fast 7-minute burn, while 2023's record summer had a slow 57-minute burn. Correlation is +0.19, opposite to folklore's prediction.](tt_2025_48.png){#fig-1}
 
 ### <mark> **Steps to Create this Graphic** </mark>
 
@@ -188,11 +188,9 @@ colors <- get_theme_colors(
 title_text <- "The Böögg Cannot Predict Record Hot Summers"
 
 subtitle_text <- str_glue(
-    "Zurich's exploding snowman is folklore, not forecasting. Record summers ",
-    "(avg >{record_threshold}°C) occur across **all burn durations** from {min(plot_data$duration)} to {max(plot_data$duration)} minutes.<br>",
-    "Correlation between burn duration and avg summer temp is ",
-    "r = {scales::number(cor_duration_temp, accuracy = 0.01, signed = TRUE)} ",
-    "(folklore predicts negative)."
+    "**The folklore:** A faster Böögg explosion means a hotter summer.<br>",
+    "**The reality:** Record summers (>{record_threshold}°C) occurred whether the Böögg took ", 
+    "{min(plot_data$duration)} minutes or {max(plot_data$duration)}. Correlation: r = +0.19."
 )
 
 caption_text <- create_social_caption(
@@ -329,12 +327,22 @@ p <-
     family = fonts$text
   ) +
   annotate(
+    "segment",
+    x = 8, xend = 50,
+    y = 20.5, yend = 17.5,
+    color = "gray70",
+    linewidth = 0.8,
+    linetype = "dotted",
+    arrow = arrow(length = unit(0.15, "inches"), type = "closed")
+  ) +
+  annotate(
     "text",
-    x = mean(c(min_record_duration, max_record_duration)),
-    y = 14.45,
-    label = "Record summers span all burn durations",
-    size = 2.8,
-    color = colors$palette["annotation"],
+    x = 52, y = 17.3,
+    label = "What folklore\npredicts",
+    size = 2.5,
+    color = "gray50",
+    hjust = 0,
+    lineheight = 0.9,
     fontface = "italic"
   ) +
   # Scales
@@ -368,7 +376,7 @@ p <-
       margin = margin(t = 8, b = 5)
     ),
     plot.subtitle = element_markdown(
-      size = rel(0.7),
+      size = rel(0.8),
       family = fonts$subtitle,
       color = alpha(colors$subtitle, 0.88),
       lineheight = 1.25,
