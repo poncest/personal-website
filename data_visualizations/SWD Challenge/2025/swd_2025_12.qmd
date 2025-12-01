@@ -1,0 +1,464 @@
+---
+title: "The Race to 500 Home Runs"
+subtitle: "McGwire was fastest (1,688 games) but linked to PED use. Babe Ruth holds the fastest clean record at 1,790 games, while Eddie Murray needed 2,971 games."
+description: "A cumulative line chart visualizing the path to 500 career home runs for all 28 members of baseball's elite club. This SWD challenge entry demonstrates the 'less is better' principle—where fewer games represents superior performance—by highlighting the fastest (McGwire), fastest clean (Ruth), and slowest (Murray) trajectories."
+author: "Steven Ponce"
+date: "2025-12-01" 
+categories: ["SWDchallenge", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "less-is-better",
+  "cumulative-line-chart",
+  "baseball",
+  "500-home-run-club",
+  "Lahman-database",
+  "milestone-analysis",
+  "sports-visualization",
+  "ggplot2"
+]
+image: "thumbnails/swd_2025_12.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                          
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+### Challenge
+
+This month’s challenge asks you to create a visual where lower values represent better performance or outcomes. Whether it's time, cost, risk, or something else, your goal is to make it immediately clear that less is the win.
+
+Additional information can be found [HERE](https://community.storytellingwithdata.com/challenges/dec-2025-when-less-is-better)
+
+### Visualization
+
+![Line chart showing the cumulative home run trajectories for all 28 members of baseball's 500 Home Run Club. Three players are highlighted: Mark McGwire in red reached 500 HR fastest at 1,688 games but is linked to PED use; Babe Ruth in dark blue holds the fastest clean record at 1,790 games; Eddie Murray in teal took the longest at 2,971 games. The remaining 25 players appear as gray lines, illustrating a spread of roughly 1,300 games between the fastest and slowest paths to the milestone.](swd_2025_12.png){#fig-4}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,   # Easily Install and Load the 'Tidyverse'
+  ggtext,      # Improved Text Rendering Support for 'ggplot2'
+  showtext,    # Using Fonts More Easily in R Graphs
+  janitor,     # Simple Tools for Examining and Cleaning Dirty Data
+  scales,      # Scale Functions for Visualization
+  glue,        # Interpreted String Literals
+  Lahman       # Sean 'Lahman' Baseball Database
+) 
+
+### |- figure size ---- 
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+
+batting_raw <- Lahman::Batting
+people_raw  <- Lahman::People
+
+### |- PED-linked players (Source: ESPN - The Steroids Era) ----
+# https://www.espn.com/mlb/topics/_/page/the-steroids-era
+# "Of the 10 players [who reached 500 HR between 1998-2009], six -- Barry Bonds, 
+# Alex Rodriguez, Mark McGwire, Manny Ramirez, Rafael Palmeiro and Gary Sheffield 
+# -- have been linked to PEDs."
+# Sammy Sosa added based on leaked 2003 test results
+
+ped_players <- c(
+  "Mark McGwire",
+  "Barry Bonds",
+  "Alex Rodriguez",
+  "Sammy Sosa",
+  "Manny Ramirez",
+  "Rafael Palmeiro",
+  "Gary Sheffield"
+)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(batting_raw)
+glimpse(people_raw)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+
+career_hr <- batting_raw |>
+  group_by(playerID) |>
+  summarize(
+    career_HR = sum(HR, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  filter(career_HR >= 500) |>
+  left_join(
+    people_raw |> select(playerID, nameFirst, nameLast),
+    by = "playerID"
+  ) |>
+  mutate(player_name = paste(nameFirst, nameLast)) |>
+  arrange(desc(career_HR))
+
+cumulative_stats <- batting_raw |>
+  filter(playerID %in% career_hr$playerID) |>
+  group_by(playerID, yearID) |>
+  summarize(
+    season_HR = sum(HR, na.rm = TRUE),
+    season_G  = sum(G, na.rm = TRUE),
+    .groups   = "drop"
+  ) |>
+  arrange(playerID, yearID) |>
+  group_by(playerID) |>
+  mutate(
+    cumulative_HR = cumsum(season_HR),
+    cumulative_G  = cumsum(season_G)
+  ) |>
+  ungroup()
+
+race_data <- cumulative_stats |>
+  filter(cumulative_HR <= 550) |>
+  left_join(
+    people_raw |> select(playerID, nameFirst, nameLast),
+    by = "playerID"
+  ) |>
+  mutate(
+    player_name = paste(nameFirst, nameLast),
+    is_ped = player_name %in% ped_players,
+    player_category = case_when(
+      player_name == "Mark McGwire" ~ "mcgwire",
+      player_name == "Babe Ruth" ~ "ruth",
+      player_name == "Eddie Murray" ~ "murray",
+      TRUE ~ "other"
+    )
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    mcgwire = "#BF092F",  
+    ruth  = "#132440",  
+    murray = "#3B9797", 
+    others = "gray75",
+    milestone = "gray55",
+    grid = "gray90"
+  )
+)
+
+### |-  titles and caption ----
+title_text <- "The Race to 500 Home Runs"
+
+subtitle_text <- str_glue(
+  "**McGwire** was fastest (1,688 games) but linked to PED use. **Babe Ruth** holds the fastest clean record at 1,790 games,<br>",
+  "while **Eddie Murray** needed 2,971 games.<br><br>",
+  "<span style='color:gray50; font-size:10pt;'>7 of 28 club members have been linked to performance-enhancing drugs (1929–2021)</span>"
+)
+
+# Create caption
+caption_text <- create_swd_caption(
+  year = 2025,
+  month = "Dec",
+  source_text = "500 HR Club trajectories: Lahman Baseball Database • PED links: ESPN “The Steroids Era”"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(
+      face = "bold", family = fonts$title, size = rel(1.4),
+      color = colors$palette$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_text(
+      family = fonts$subtitle, lineheight = 1.2,
+      color = colors$palette$subtitle, size = rel(0.9), margin = margin(b = 20), hjust = 0
+    ),
+
+    ## Grid
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+
+    # Axes
+    axis.title = element_text(size = rel(0.9), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.95)),
+    axis.ticks = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(1),
+      margin = margin(t = 8, b = 8)
+    ),
+    panel.spacing = unit(2, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$tsubtitle,
+      color = colors$palette$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$palette$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(10, 20, 10, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+
+p <- ggplot(race_data, aes(x = cumulative_G, y = cumulative_HR, group = player_name)) +
+  # Geoms
+  geom_hline(
+    yintercept = 500,
+    linetype   = "dashed",
+    color      = colors$palette$milestone,
+    linewidth  = 0.5
+  ) +
+  geom_line(
+    data = race_data |> filter(player_category == "other"),
+    color = colors$palette$others,
+    linewidth = 0.5,
+    alpha = 0.6
+  ) +
+  geom_line(
+    data = race_data |> filter(player_category == "murray"),
+    color = colors$palette$murray,
+    linewidth = 1.1
+  ) +
+  geom_line(
+    data = race_data |> filter(player_category == "ruth"),
+    color = colors$palette$ruth,
+    linewidth = 1.1
+  ) +
+  geom_line(
+    data = race_data |> filter(player_category == "mcgwire"),
+    color = colors$palette$mcgwire,
+    linewidth = 1.4
+  ) +
+  # Annotations
+  annotate(
+    "text",
+    x = 1500, y = 545,
+    label = "McGwire*\n1,688 games",
+    hjust = 0.5, vjust = 0,
+    size = 3.6,
+    color = colors$palette$mcgwire,
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = 1820, y = 585,
+    label = "Ruth\n1,790 games\n(fastest clean)",
+    hjust = 0, vjust = 0.5,
+    size = 3.3,
+    color = colors$palette$ruth,
+    fontface = "bold",
+    lineheight = 0.9
+  ) +
+  annotate(
+    "text",
+    x = 3200, y = 515,
+    label = "Murray\n2,971 games\n(slowest)",
+    hjust = 1, vjust = 0,
+    size = 3.3,
+    color = colors$palette$murray,
+    fontface = "bold",
+    lineheight = 0.9
+  ) +
+  annotate(
+    "text",
+    x = 80, y = 515,
+    label = "500 HR milestone",
+    hjust = 0, vjust = 0,
+    size = 3.1,
+    color = colors$palette$milestone
+  ) +
+  # Scales
+  scale_x_continuous(
+    labels = scales::comma,
+    limits = c(0, 3200),
+    breaks = seq(0, 3000, 500),
+    expand = c(0.02, 0)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 600),
+    breaks = seq(0, 500, 100)
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title    = title_text,
+    subtitle = subtitle_text,
+    caption  = caption_text,
+    x        = "Games played",
+    y        = "Cumulative home runs"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = rel(2),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.15,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.8),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.88),
+      lineheight = 1.3,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.55),
+      family = fonts$subtitle,
+      color = colors$caption,
+      hjust = 0,
+      lineheight = 1.4,
+      margin = margin(t = 20, b = 5)
+    ),
+    axis.title = element_text(size = 10, color = "gray35"),
+    axis.text = element_text(size = 9,  color = "gray35")
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = 'swd', 
+  year = 2025, 
+  month = 12, 
+  width  = 10,
+  height = 8,
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`swd_2025_12.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2025/swd_2025_12.qmd). For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+Data Sources:
+
+-   Lahman Baseball Database: [Sean Lahman's Baseball Database](https://www.seanlahman.com/baseball-archive/statistics/) via the [{Lahman}](https://cran.r-project.org/web/packages/Lahman/index.html) R package
+-   PED Information: [ESPN - The Steroids Era](https://www.espn.com/mlb/topics/_/page/the-steroids-era)
+
+SWD Challenge: - Storytelling with Data: [December 2025 - When Less is Better](https://community.storytellingwithdata.com/challenges/)
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
