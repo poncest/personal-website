@@ -1,0 +1,591 @@
+---
+title: "AI Model Performance: Accuracy vs. Hallucination"
+subtitle: "Top 6 models by combined accuracy–hallucination score, shown in context of 18 leading AI models"
+description: "A two-panel visualization examining 18 leading AI models across accuracy and hallucination metrics. The top panel highlights the six best performers through detailed scorecards, while the bottom scatterplot reveals that proprietary models (Claude, Grok, GPT-5) cluster in the high-accuracy, low-hallucination zone, outperforming most open-weight alternatives."
+date: "2025-12-08"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2025/mm_2025_48.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2025"]   
+tags: [
+  "makeover-monday",
+  "artificial-intelligence",
+  "machine-learning",
+  "model-evaluation",
+  "accuracy",
+  "hallucination",
+  "scatterplot",
+  "small-multiples",
+  "patchwork",
+  "ggplot2",
+  "performance-metrics",
+  "comparative-analysis",
+  "Claude",
+  "GPT",
+  "LLM"
+]
+image: "thumbnails/mm_2025_48.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2025
+current_week <- 48
+project_file <- "mm_2025_48.qmd"
+project_image <- "mm_2025_48.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2025wk48-which-ai-models-hallucinate-the-most"
+data_secondary <- "https://data.world/makeovermonday/2025wk48-which-ai-models-hallucinate-the-most"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_48/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.voronoiapp.com/technology/Which-AI-Models-Hallucinate-the-Most-7211"
+org_secondary <- "https://www.voronoiapp.com/technology/Which-AI-Models-Hallucinate-the-Most-7211"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Which AI Models Hallucinate the Most?", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_48/original_chart.png)
+
+### Makeover
+
+![Two-panel chart showing AI model performance. The top panel displays performance cards for the six best models (Claude 4.1 Opus, Claude 4.5 Sonnet, Grok 4, Magistral Medium 7.2, GPT-5 high, and Kimi K2 0905) with their accuracy, hallucination rates, and combined scores. The bottom panel shows a scatterplot of all 18 models, plotting accuracy versus hallucination rate, with the top 6 models labeled and highlighted. Proprietary models (blue) cluster in the high accuracy, low hallucination zone, while open-weight models (coral) show more varied performance.](mm_2025_48.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse,     # Easily Install and Load the 'Tidyverse'
+    janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,         # Compact and Flexible Summaries of Data
+    scales,        # Scale Functions for Visualization
+    ggtext,        # Improved Text Rendering Support for 'ggplot2'
+    showtext,      # Using Fonts More Easily in R Graphs
+    glue,          # Interpreted String Literals
+    patchwork,     # The Composer of Plots
+    ggrepel        # Automatically Position Non-Overlapping Text Labels with ggplot2
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 12,
+    height = 14,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+ai_models <- readxl::read_excel(
+   here::here("data/MakeoverMonday/2025/AI Model Hallucination Scores.xlsx")) |>
+  clean_names()
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(ai_models)
+skim(ai_models) |> summary()
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  data wrangling ----
+ai_models_tidy <- ai_models |>
+  mutate(
+    model_type = case_when(
+      str_detect(model, "Claude|GPT-5|Gemini|Grok") ~ "Proprietary",
+      str_detect(model, "DeepSeek|Llama|Qwen|GPT-OSS|Kimi|Magistral") ~ "Open Weights",
+      TRUE ~ "Unknown"
+    ),
+    model_family = case_when(
+      str_detect(model, "Claude") ~ "Claude",
+      str_detect(model, "GPT") ~ "GPT",
+      str_detect(model, "Gemini") ~ "Gemini",
+      str_detect(model, "Grok") ~ "Grok",
+      str_detect(model, "DeepSeek") ~ "DeepSeek",
+      str_detect(model, "Llama") ~ "Llama",
+      str_detect(model, "Qwen") ~ "Qwen",
+      str_detect(model, "Kimi") ~ "Kimi",
+      str_detect(model, "Magistral") ~ "Magistral",
+      TRUE ~ "Other"
+    ),
+    model_short = str_remove(model, " v\\d+\\.\\d+$") |>
+      str_remove(" BA\\d+B \\d+$"),
+    median_accuracy = median(accuracy_index_higher_is_better),
+    median_hallucination = median(hallucination_index_lower_is_better),
+    quadrant = case_when(
+      accuracy_index_higher_is_better > median_accuracy &
+        hallucination_index_lower_is_better < median_hallucination ~
+        "High Accuracy, Low Hallucination",
+      accuracy_index_higher_is_better > median_accuracy &
+        hallucination_index_lower_is_better >= median_hallucination ~
+        "High Accuracy, High Hallucination",
+      accuracy_index_higher_is_better <= median_accuracy &
+        hallucination_index_lower_is_better < median_hallucination ~
+        "Low Accuracy, Low Hallucination",
+      TRUE ~ "Low Accuracy, High Hallucination"
+    ),
+    combined_score = accuracy_index_higher_is_better - hallucination_index_lower_is_better,
+    rank_combined = rank(-combined_score, ties.method = "min"),
+    rank_label = glue("Rank {rank_combined} of {n()}")
+  )
+
+median_acc <- median(ai_models_tidy$accuracy_index_higher_is_better)
+median_hall <- median(ai_models_tidy$hallucination_index_lower_is_better)
+
+top_6_models <- ai_models_tidy |>
+  arrange(desc(combined_score)) |>
+  slice_head(n = 6)
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <- get_theme_colors(
+  palette = list(
+   proprietary   = "#0077B6",
+    open_weights  = "#E07A5F",
+    neutral_light = "#E8F4F8",
+    neutral_mid   = "#90C9E8",
+    success       = "#06A77D"    
+  )
+)
+
+### |-  Main titles ----
+title_text    <- "AI Model Performance: Accuracy vs. Hallucination"
+subtitle_text <- "Top 6 models by combined accuracy–hallucination score, shown in context of 18 leading AI models"
+
+
+### |-  Data source caption ----
+caption_text <- create_mm_caption(
+  mm_year = 2025,
+  mm_week = 48,
+  source_text = str_glue(
+     "artificialanalysis.ai (AA-Omniscience Index)"
+  )
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # # Text styling
+    plot.title = element_text(
+      size = rel(1.5), family = fonts$title, face = "bold",
+      color = colors$title, lineheight = 1.1, hjust = 0,
+      margin = margin(t = 5, b = 10)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.9), family = fonts$subtitle, face = "italic",
+      color = alpha(colors$subtitle, 0.9), lineheight = 1.1,
+      margin = margin(t = 0, b = 20)
+    ),
+
+    # Legend formatting
+    legend.position = "plot",
+    legend.justification = "right",
+    legend.margin = margin(l = 12, b = 5),
+    legend.key.size = unit(0.8, "cm"),
+    legend.box.margin = margin(b = 10),
+    # legend.title = element_text(face = "bold"),
+
+    # Axis formatting
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(color = "gray", linewidth = 0.5),
+    
+    axis.title.x = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(t = 10), family = fonts$subtitle,
+      color = "gray40" 
+    ),
+    axis.title.y = element_text(
+      face = "bold", size = rel(0.85),
+      margin = margin(r = 10), family = fonts$subtitle,
+      color = "gray40" 
+    ),
+    axis.text.x = element_text(
+      size = rel(0.85), family = fonts$subtitle,
+      color = "gray40"  
+    ),
+    axis.text.y = element_markdown(
+      size = rel(0.85), family = fonts$subtitle,
+      color = "gray40"
+    ),
+
+    # Grid lines
+    panel.grid.minor = element_line(color = "#ecf0f1", linewidth = 0.2),
+    panel.grid.major = element_line(color = "#ecf0f1", linewidth = 0.4),
+
+    # Margin
+    plot.margin = margin(20, 20, 20, 20)
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- PANEL 1: SCORE CARDS ----
+p1 <- top_6_models |>
+  ggplot(aes(x = 1, y = 1)) +
+  # Geoms
+  geom_tile(
+    aes(fill = model_type),
+    alpha = 0.18,
+    linewidth = 3
+  ) +
+  geom_text(
+    aes(label = glue(
+      "{rank_label}\n\n",
+      "Accuracy: {percent(accuracy_index_higher_is_better, accuracy = 1)}\n",
+      "Hallucination: {percent(hallucination_index_lower_is_better, accuracy = 1)}\n\n",
+      "Combined score: {sprintf('%.2f', combined_score)}"
+    )),
+    size = 3.8,
+    lineheight = 1.1,
+    fontface = "plain",
+    color = "gray20"
+  ) +
+  # Facets
+  facet_wrap(
+    ~ reorder(model_short, -combined_score),
+    ncol   = 3,
+    scales = "free"
+  ) +
+  # Scales
+  scale_fill_manual(
+    values = c(
+      "Proprietary" = colors$palette$proprietary,
+      "Open Weights" = colors$palette$open_weights
+    ),
+    name = NULL
+  ) +
+  # Labs
+  labs(title = "Top 6 Models by Combined Performance") +
+  # Theme
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal",
+    legend.text = element_text(size = 9, face = "bold"),
+    strip.text = element_text(
+      size = rel(1),
+      face = "bold",
+      hjust = 0.5,
+      margin = margin(t = 4, b = 4)
+    ),
+    plot.margin = weekly_theme$plot.margin,
+    panel.spacing = unit(10, "pt"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank()
+  )
+
+### |- PANEL 2: SCATTERPLOT ----
+p2 <- ai_models_tidy |>
+  ggplot(aes(
+    x = hallucination_index_lower_is_better,
+    y = accuracy_index_higher_is_better
+  )) +
+  # Annotate
+  annotate(
+    "rect",
+    xmin = -Inf, xmax = median_hall,
+    ymin = median_acc, ymax = Inf,
+    fill = colors$palette$neutral_light, alpha = 0.5
+  ) +
+  annotate(
+    "text",
+    x = median_hall * 0.6,
+    y = Inf,
+    label = "IDEAL ZONE\nHigh accuracy\nLow hallucination",
+    vjust = 1.25,
+    size = 3,
+    color = "gray40",
+    fontface = "bold",
+    lineheight = 0.9
+  ) +
+  # Geoms
+  geom_vline(
+    xintercept = median_hall,
+    linetype   = "dashed",
+    color      = "gray55",
+    linewidth  = 0.5
+  ) +
+  geom_hline(
+    yintercept = median_acc,
+    linetype   = "dashed",
+    color      = "gray55",
+    linewidth  = 0.5
+  ) +
+  geom_point(
+    data = ai_models_tidy |> filter(rank_combined > 6),
+    aes(color = model_type),
+    size = 3.3,
+    alpha = 0.25
+  ) +
+  geom_point(
+    data = top_6_models,
+    aes(color = model_type),
+    size = 5,
+    alpha = 0.95
+  ) +
+  geom_text_repel(
+    data = top_6_models,
+    aes(label = model_short, color = model_type),
+    size = 3.2,
+    fontface = "bold",
+    box.padding = 0.4,
+    point.padding = 0.3,
+    segment.color = "gray60",
+    segment.size = 0.5,
+    min.segment.length = 0,
+    max.overlaps = 20,
+    show.legend = FALSE,
+    seed = 1234
+  ) +
+  # Scales
+  scale_color_manual(
+    values = c(
+      "Proprietary" = colors$palette$proprietary,
+      "Open Weights" = colors$palette$open_weights
+    ),
+    name = NULL
+  ) +
+  scale_x_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = expansion(mult = 0.05)
+  ) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    expand = expansion(mult = 0.05)
+  ) +
+  # Labs
+  labs(
+    title = "All 18 Models in Context",
+    x = "Hallucination rate (lower is better)",
+    y = "Accuracy (higher is better)"
+  )
+
+### |- COMBINED PLOTS ----
+combined_plots <- p1 / p2 +
+  plot_layout(heights = c(1, 1.3)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.95),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.1,
+        margin = margin(t = 5, b = 5)
+      ),
+      plot.subtitle = element_markdown(
+        size = rel(0.95),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.9),
+        lineheight = 1.5,
+        margin = margin(t = 5, b = 25)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.55),
+        family = fonts$caption,
+        color = "gray50",
+        hjust = 0,
+        lineheight = 1.2,
+        margin = margin(t = 10, b = 10)
+      ),
+      plot.margin = margin(10, 15, 10, 15)
+    )
+  )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 12, 
+  height = 14
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  Data:
+
+    -   Makeover Monday `r current_year` Week `r current_week`: `r create_link("Which AI Models Hallucinate the Most?", data_main)`
+
+2.  Article
+
+    -   `r create_link("Which AI Models Hallucinate the Most?", data_secondary)`
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
