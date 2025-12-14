@@ -1,0 +1,497 @@
+---
+title: "Global language endangerment: scale and geographic concentration"
+subtitle: "Nearly half of the world’s critically endangered languages are concentrated in the Pacific region, making Papunesia the global epicenter of language loss risk." 
+description: "This visualization examines the global distribution of 8,612 documented languages from Glottolog 5.2.1, revealing critical patterns in language endangerment. A treemap shows that only 31% of languages are considered safe, while 745 are critically endangered (moribund or nearly extinct). Geographic analysis demonstrates that 303 of these critically endangered languages (41%) are concentrated in the Pacific region, particularly across Indonesia, Papua New Guinea, Philippines, and Pacific islands."
+date: "2025-12-14"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_51.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2025"]
+tags: [
+  "Linguistic Diversity",
+  "Endangered Languages",
+  "Language Preservation",
+  "Papunesia",
+  "Pacific Region",
+  "Geographic Analysis",
+  "Treemap",
+  "Cartography",
+  "Glottolog",
+  "Cultural Heritage",
+  "ggplot2",
+  "treemapify",
+  "patchwork",
+  "Data Storytelling"
+]
+image: "thumbnails/tt_2025_51.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Two-panel visualization showing global language endangerment. Left panel: treemap displaying distribution of 8,612 languages by status - 2,704 not endangered (light blue-gray), 1,835 shifting (light gray), 1,629 threatened (medium gray), 1,225 extinct (dark gray), 434 moribund (red), and 311 nearly extinct (dark red). Right panel: map of the Pacific region showing 303 critically endangered languages (41% of the global total) concentrated in Papunesia, represented as red dots clustered across Indonesia, Papua New Guinea, the Philippines, and the Pacific islands. ](tt_2025_51.png){#fig-1}
+
+### <mark> **Steps to Create this Graphic** </mark>
+
+#### 1. Load Packages & Setup
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,     # Easily Install and Load the 'Tidyverse'
+    ggtext,        # Improved Text Rendering Support for 'ggplot2'
+    showtext,      # Using Fonts More Easily in R Graphs
+    janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+    skimr,         # Compact and Flexible Summaries of Data
+    scales,        # Scale Functions for Visualization
+    glue,          # Interpreted String Literals
+    treemapify,    # Create Treemap Visualizations
+    patchwork,     # The Composer of Plots
+    maps           # Draw Geographical Maps
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 14,
+  height = 12,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### 2. Read in the Data
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2025, week = 51)
+
+endangered_status <- tt$endangered_status |> clean_names()
+families <- tt$families |> clean_names()
+languages <- tt$languages |> clean_names()
+
+tidytuesdayR::readme(tt)
+rm(tt)
+```
+
+#### 3. Examine the Data
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(endangered_status)
+glimpse(families)
+glimpse(languages)
+```
+
+#### 4. Tidy Data
+
+```{r}
+#| label: tidy-fixed
+#| warning: false
+
+### |- Join all datasets ----
+languages_combined <- languages |>
+  left_join(endangered_status, by = "id") |>
+  left_join(families, by = c("family_id" = "id")) |>
+  mutate(
+    status_label = case_when(
+      status_code == 1 ~ "Not Endangered",
+      status_code == 2 ~ "Threatened",
+      status_code == 3 ~ "Shifting",
+      status_code == 4 ~ "Moribund",
+      status_code == 5 ~ "Nearly Extinct",
+      status_code == 6 ~ "Extinct",
+      TRUE ~ "Unknown"
+    ),
+    endangerment_broad = case_when(
+      status_code == 1 ~ "Safe",
+      status_code %in% 2:3 ~ "Threatened/Shifting",
+      status_code %in% 4:5 ~ "Critical",
+      status_code == 6 ~ "Extinct",
+      TRUE ~ "Unknown"
+    ),
+    is_endangered = status_code %in% 2:5,
+    n_countries = str_count(countries, ";") + 1
+  )
+
+### |- Overall endangerment summary ----
+endangerment_summary <- languages_combined |>
+  count(status_label, endangerment_broad, sort = TRUE) |>
+  mutate(pct = n / sum(n))
+
+### |- Pacific region critical languages ----
+pacific_critical <- languages_combined |>
+  filter(
+    endangerment_broad == "Critical",
+    !is.na(latitude), !is.na(longitude),
+    longitude >= 100, longitude <= 180,
+    latitude >= -50, latitude <= 20
+  )
+
+# Calculate total critical languages globally 
+total_critical <- languages_combined |>
+  filter(endangerment_broad == "Critical") |>
+  nrow()
+
+pacific_pct <- round(nrow(pacific_critical) / total_critical * 100)
+
+### |- data for treemap labels  ----
+endangerment_summary2 <- endangerment_summary |>
+  filter(endangerment_broad != "Unknown") |>
+  group_by(status_label) |>
+  summarise(n = sum(n), .groups = "drop") |>
+  mutate(
+    pct = n / sum(n),
+    status_label = fct_reorder(status_label, -n),
+    label_txt = glue("{status_label}\n{comma(n)} ({scales::percent(pct, accuracy = 0.1)})"),
+    text_color = if_else(status_label %in% c("Moribund", "Nearly Extinct"), "white", "gray10")
+  )
+```
+
+#### 5. Visualization Parameters
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = list(
+      col_not_endangered = "#E8EEF2",
+      col_shifting = "#D0D0D0",
+      col_threatened = "#A8A8A8",
+      col_extinct = "#8A8A8A",
+      col_moribund = "#E63946",
+      col_nearly_extinct = "#C41E3A",
+      col_map_bg = "gray96",
+      col_map_border = "gray65",
+      col_ink = "gray10",
+      col_rule = "gray85"
+  )
+)
+
+### |- titles and caption ----
+main_title <- "Global language endangerment: scale and geographic concentration"
+
+treemap_subtitle <- "Share of 8,612 documented languages by endangerment status (Glottolog 5.2.1)"
+
+map_title <- "Papunesia: a global hotspot for critical endangerment"
+map_subtitle <- glue(
+    "{comma(nrow(pacific_critical))} of {comma(total_critical)} critically endangered languages ",
+    "({pacific_pct}%) fall within the Pacific focus region"
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2025,
+    tt_week = 51,
+    source_text = "Glottolog 5.2.1 | Max Planck Institute for Evolutionary Anthropology"
+)
+
+key_takeaway <- glue(
+    "Nearly **half of the world’s critically endangered languages** ",
+    "are concentrated in the **Pacific region**, making **Papunesia** the global epicenter of language loss risk."
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(
+      face = "bold", family = fonts$title, size = rel(1.4),
+      color = colors$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_text(
+      face = "italic", family = fonts$subtitle, lineheight = 1.2,
+      color = colors$subtitle, size = rel(0.8), margin = margin(b = 20), hjust = 0
+    ),
+
+    # Grid
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.25),
+
+    # Axes
+    axis.title = element_text(size = rel(0.8), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.85)),
+    axis.ticks = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(0.9),
+      margin = margin(t = 6, b = 4)
+    ),
+    panel.spacing = unit(1.5, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$subtitle,
+      color = colors$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(20, 20, 20, 20),
+    
+    # Panel framing (subtle  containers) 
+    panel.border     = element_rect(color = colors$palette$col_rule, fill = NA, linewidth = 0.8),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### 6. Plot
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Plot 1: Treemap ----
+p1 <- ggplot(
+    endangerment_summary2,
+    aes(area = n, fill = status_label)
+) +
+    geom_treemap(color = "white", size = 2) +
+    geom_treemap_text(
+        aes(label = label_txt, color = text_color),
+        place = "centre",
+        fontface = "bold",
+        size = 12,
+        grow = FALSE,
+        family = fonts$text,
+        reflow = TRUE
+    ) +
+    scale_fill_manual(
+        values = c(
+            "Not Endangered"  = colors$palette$col_not_endangered,
+            "Shifting"        = colors$palette$col_shifting,
+            "Threatened"      = colors$palette$col_threatened,
+            "Extinct"         = colors$palette$col_extinct,
+            "Moribund"        = colors$palette$col_moribund,
+            "Nearly Extinct"  = colors$palette$col_nearly_extinct
+        )
+    ) +
+    scale_color_identity() +
+    labs(
+        # tag = "A",
+        title = "Endangerment status distribution",
+        subtitle = treemap_subtitle
+    ) +
+    theme(
+        legend.position = "none",
+        plot.margin = margin(t = 6, r = 10, b = 6, l = 6)
+    )
+
+### |- Plot 2: Map  ----
+world_map <- map_data("world")
+
+p2 <- ggplot() +
+    geom_polygon(
+        data = world_map,
+        aes(x = long, y = lat, group = group),
+        fill = colors$palette$col_map_bg,
+        color = colors$palette$col_map_border,
+        linewidth = 0.28
+    ) +
+    geom_point(
+        data = pacific_critical,
+        aes(x = longitude, y = latitude),
+        shape = 21,
+        fill  = colors$palette$col_moribund,
+        color = "white",
+        stroke = 0.35,
+        alpha = 0.75,
+        size  = 1.9
+    ) +
+    coord_fixed(
+        xlim = c(100, 180),
+        ylim = c(-50, 20),
+        ratio = 1.3,
+        expand = FALSE
+    ) +
+    labs(
+        # tag = "B",
+        title = map_title,
+        subtitle = map_subtitle
+    ) +
+    theme_void() +
+    theme(
+        plot.title = element_text(
+            face = "bold", family = fonts$title, size = 19.6,
+            color = colors$title, margin = margin(b = 10), hjust = 0
+        ),
+        plot.subtitle = element_text(
+            face = "italic", family = fonts$subtitle, lineheight = 1.2,
+            color = colors$subtitle, size = 11.2, margin = margin(b = 20), hjust = 0
+        ),
+        panel.border = element_rect(color = colors$palette$col_rule, fill = NA, linewidth = 0.8),
+        plot.margin = margin(t = 6, r = 6, b = 6, l = 10)
+    )
+
+### |- Combine plots ----
+combined_plots <- p1 + p2 +
+    plot_annotation(
+        title    = main_title,
+        subtitle = key_takeaway,
+        caption  = caption_text,
+        theme =  theme(
+            plot.title = element_text(
+                size = rel(2.3),
+                family = fonts$title,
+                face = "bold",
+                color = colors$title,
+                lineheight = 1.15,
+                margin = margin(t = 8, b = 5)
+            ),
+            plot.subtitle = element_markdown(
+                size = rel(0.80),
+                family = fonts$subtitle,
+                color = alpha(colors$subtitle, 0.88),
+                lineheight = 1.5,
+                margin = margin(t = 5, b = 20)
+            ),
+            plot.caption = element_markdown(
+                size = rel(0.65),
+                family = fonts$subtitle,
+                color = colors$caption,
+                hjust = 0,
+                lineheight = 1.4,
+                margin = margin(t = 20, b = 5)
+            )
+        )
+    )
+```
+
+#### 7. Save
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "tidytuesday", 
+  year = 2025, 
+  week = 51, 
+  width  = 14,
+  height = 12,
+  )
+```
+
+#### 8. Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### 9. GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2025_51.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2025/tt_2025_51.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### 10. References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  **Data Source:**
+    -   TidyTuesday 2025 Week 50: [The Languages of the World](https://github.com/rfordatascience/tidytuesday/blob/main/data/2025/2025-12-23/readme.md)
+:::
+
+#### 11. Custom Functions Documentation
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
