@@ -1,0 +1,269 @@
+---
+title: "Exploring a Century of Meteorite Discoveries"
+subtitle: "Designing an interactive dashboard to explore 45,716 meteorite landings across 1,150+ years"
+description: "From raw NASA records to interactive insight: a portfolio case study on building a professional R Shiny dashboard to explore global meteorite discoveries."
+date: "2025-12-15"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+
+citation:
+  url: "https://stevenponce.netlify.app/projects/standalone_visualizations/meteorite_explorer.html"
+categories: ["R Programming", "Shiny", "Meteorite Landings", "2025"]
+tags: [
+  "r-shiny", "dashboard", "nasa-data", "meteorites", "interactive", "spatial-analysis"
+]
+image: "thumbnails/sa_2025-12-15.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(
+  dev = "png",
+  fig.width = 9,
+  fig.height = 10,
+  dpi = 320
+)
+```
+
+**Explore the project**
+
+-   🚀 **Live app**: <https://0l6jpd-steven-ponce.shinyapps.io/Meteorite_Landings/>
+-   💻 **Source code**: <https://github.com/poncest/Meteorite_Landings>
+
+------------------------------------------------------------------------
+
+## The Opportunity
+
+NASA’s meteorite landings dataset documents **45,716 meteorite discoveries** from **860 CE to 2013**—over 1,150 years of recorded encounters with material from space.
+
+This project began with a simple goal: **turn a large historical dataset into an intuitive, interactive experience** that allows users to explore where meteorites were found, how discoveries changed over time, and what distinguishes rare observed falls from later recoveries.
+
+------------------------------------------------------------------------
+
+## Guiding Questions
+
+To shape the dashboard, I focused on a small set of questions that naturally emerge from the data:
+
+**Geography**
+
+-   Where are meteorite discoveries concentrated globally?
+-   Why does Antarctica dominate modern records?
+
+**Time**
+
+-   How have discoveries evolved over time?
+-   What explains the sharp rise in finds after 1970?
+
+**Physical Characteristics**
+
+-   How do observed falls differ from recovered meteorites?
+-   Which meteorite types appear most frequently?
+
+------------------------------------------------------------------------
+
+## Design Approach: Progressive Disclosure
+
+The dashboard follows a **progressive disclosure** strategy: present the big picture first, then allow deeper exploration for users who want it.
+
+### Global Overview
+
+The opening view provides immediate context through four headline metrics:
+
+-   **Total meteorites**: 45,716
+-   **Largest find**: Hoba (\~60 tonnes)
+-   **Time span**: 860–2013
+-   **Observed falls**: 2.4%
+
+![Global Overview tab showing worldwide meteorite locations, discovery trends over time, and mass distributions for observed falls versus recovered finds.](https://raw.githubusercontent.com/poncest/Meteorite_Landings/main/screenshots/global-overview.png){#fig-1}
+
+These are paired with three core visualizations:
+
+1.  **Interactive world map** showing all meteorite locations with clustering for performance
+2.  **Discovery timeline** highlighting the rapid increase in finds since the 19th century
+3.  **Mass distribution** comparing observed falls versus recovered meteorites
+
+A simple year-range filter allows users to focus on specific historical periods without overwhelming the interface.
+
+### Deep Dive Analytics
+
+For more detailed exploration, the analytics tab adds multidimensional filters:
+
+-   Year range
+-   Mass range (log scale)
+-   Meteorite classification
+-   Discovery status (Fell vs. Found)
+
+All visualizations and summary statistics update reactively, allowing users to explore relationships across time, mass, and type.
+
+![Deep Dive Analytics tab with multidimensional filtering by year, mass, meteorite type, and discovery status, updating all charts and metrics in real time.](https://raw.githubusercontent.com/poncest/Meteorite_Landings/main/screenshots/analytics.png){#fig-2}
+
+### Data Explorer
+
+The final tab exposes the underlying dataset through an interactive table, supporting:
+
+-   Search and column-level filtering
+-   Sorting
+-   CSV export for external analysis
+
+![Data Explorer tab providing a searchable, sortable table of all meteorite records with CSV export for further analysis.](https://raw.githubusercontent.com/poncest/Meteorite_Landings/main/screenshots/data-explorer.png){#fig-3}
+
+------------------------------------------------------------------------
+
+## Key Patterns Revealed by the Data
+
+### Antarctica’s Outsized Role
+
+Modern meteorite discoveries are dominated by Antarctica. The ice sheet acts as a natural conveyor belt, concentrating meteorites in accessible regions. Dark stones contrast sharply against the ice, and cold, dry conditions preserve specimens exceptionally well.
+
+### The Post-1970 Discovery Surge
+
+The dramatic rise in discoveries after 1970 reflects **improved search efforts**, not an increase in meteorite impacts. Antarctic expeditions, desert surveys, and systematic recovery programs fundamentally changed how meteorites are found.
+
+### Fell vs. Found
+
+Only **1,097 meteorites (2.4%)** were observed falling. These events are scientifically valuable because their arrival time is precisely known. Recovered meteorites, which make up the remaining 97.6%, are often larger and discovered long after impact.
+
+------------------------------------------------------------------------
+
+## Design Decisions That Improved Clarity
+
+### Consistency Over Color
+
+Early versions of the dashboard used multiple accent colors for value boxes, creating visual noise. Switching to **uniform white cards** with subtle borders improved readability and gave the dashboard a more professional, consulting-style appearance.
+
+### Standardized Layout
+
+Both main tabs follow the same structure:
+
+1.  Key metrics
+2.  Optional filters
+3.  Detailed charts
+
+This consistency reduces cognitive load and helps users quickly understand how to navigate the dashboard.
+
+### Unified Interactivity
+
+All charts use **ggiraph** for hover-based interaction, ensuring a consistent interaction model across maps, timelines, and distributions.
+
+------------------------------------------------------------------------
+
+## Technical Overview
+
+::: {.callout-tip collapse="true"}
+### Architecture & Stack
+
+The app uses a modular Shiny architecture:
+
+-   **UI**: `ui_main.R`, `ui_tabs.R`
+-   **Server**: `server.R`, `server_charts.R`
+-   **Global setup**: `global.R`
+
+**Core technologies**:
+
+-   R Shiny + shinydashboard
+
+-   ggiraph (interactive charts)
+
+-   leaflet (mapping)
+
+-   DT (data tables)
+
+-   dplyr / ggplot2 (data manipulation and visualization)
+
+:::
+
+------------------------------------------------------------------------
+
+## Deployment Lessons 
+
+::: {.callout-note collapse="true"}
+##### Expand for Deployment Notes
+
+**Dependency Management**
+- Spatial packages (`terra`, `raster`) require explicit declaration in DESCRIPTION
+- Indirect dependencies must be captured in `renv.lock` with `renv::snapshot()`
+
+**Performance Optimization**  
+- Binary data formats (`.rds`) load ~10x faster than text formats (`.csv`)
+- Essential for meeting shinyapps.io's 60-second startup limit
+
+**Reproducibility**
+- Lock all dependencies early to avoid deployment surprises
+- Test with `rsconnect::appDependencies()` before deploying
+
+:::
+
+------------------------------------------------------------------------
+
+## Closing Takeaway
+
+::: {.callout-note}
+
+This project reinforced a simple but powerful lesson: effective dashboards are designed, not assembled.
+Clarity, consistency, and restraint mattered more than adding features — both in code and in communication.
+
+:::
+
+------------------------------------------------------------------------
+
+## Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+
+## GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+[Access the GitHub repository here](https://github.com/poncest/Meteorite_Landings)
+:::
+
+------------------------------------------------------------------------
+
+## References
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+-   NASA Meteorite Landings Dataset: <https://catalog.data.gov/dataset/meteorite-landings>
+-   Shiny Documentation: <https://shiny.posit.co/>
+-   ggiraph: <https://davidgohel.github.io/ggiraph/>
+-   Leaflet for R: <https://rstudio.github.io/leaflet/>
+:::
+
+
+
