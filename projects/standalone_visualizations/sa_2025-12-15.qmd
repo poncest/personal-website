@@ -194,39 +194,29 @@ The app uses a modular Shiny architecture:
 -   DT (data tables)
 
 -   dplyr / ggplot2 (data manipulation and visualization)
-
 :::
 
 ------------------------------------------------------------------------
 
-## Deployment Lessons 
+## Deployment Lessons
 
 ::: {.callout-note collapse="true"}
 ##### Expand for Deployment Notes
 
-**Dependency Management**
-- Spatial packages (`terra`, `raster`) require explicit declaration in DESCRIPTION
-- Indirect dependencies must be captured in `renv.lock` with `renv::snapshot()`
+**Dependency Management** - Spatial packages (`terra`, `raster`) require explicit declaration in DESCRIPTION - Indirect dependencies must be captured in `renv.lock` with `renv::snapshot()`
 
-**Performance Optimization**  
-- Binary data formats (`.rds`) load ~10x faster than text formats (`.csv`)
-- Essential for meeting shinyapps.io's 60-second startup limit
+**Performance Optimization**\
+- Binary data formats (`.rds`) load \~10x faster than text formats (`.csv`) - Essential for meeting shinyapps.io's 60-second startup limit
 
-**Reproducibility**
-- Lock all dependencies early to avoid deployment surprises
-- Test with `rsconnect::appDependencies()` before deploying
-
+**Reproducibility** - Lock all dependencies early to avoid deployment surprises - Test with `rsconnect::appDependencies()` before deploying
 :::
 
 ------------------------------------------------------------------------
 
 ## Closing Takeaway
 
-::: {.callout-note}
-
-This project reinforced a simple but powerful lesson: effective dashboards are designed, not assembled.
-Clarity, consistency, and restraint mattered more than adding features — both in code and in communication.
-
+::: callout-note
+This project reinforced a simple but powerful lesson: effective dashboards are designed, not assembled. Clarity, consistency, and restraint mattered more than adding features — both in code and in communication.
 :::
 
 ------------------------------------------------------------------------
@@ -235,6 +225,7 @@ Clarity, consistency, and restraint mattered more than adding features — both 
 
 ::: {.callout-tip collapse="true"}
 ##### Expand for Session Info
+
 ```{r, echo = FALSE}
 #| eval: true
 #| warning: false
@@ -242,7 +233,6 @@ Clarity, consistency, and restraint mattered more than adding features — both 
 sessionInfo()
 ```
 :::
-
 
 ## GitHub Repository
 
@@ -264,6 +254,3 @@ sessionInfo()
 -   ggiraph: <https://davidgohel.github.io/ggiraph/>
 -   Leaflet for R: <https://rstudio.github.io/leaflet/>
 :::
-
-
-
