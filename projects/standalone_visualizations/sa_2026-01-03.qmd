@@ -1,0 +1,226 @@
+---
+title: "Building a Hypothesis-Driven Financial Analysis Dashboard"
+subtitle: "Transforming SEC financial disclosures into executive decision support—testing strategic propositions through 8 years of Microsoft's financial performance"
+description: "A case study in applying consulting frameworks to financial analytics—using R Shiny, hypothesis testing, and evidentiary discipline to assess revenue growth, profitability, and capital efficiency."
+date: "2026-01-03"
+author:
+    
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:    
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-01-03.html"
+categories: ["R Programming", "Shiny", "Financial Analysis", "2026"]
+tags: ["r-shiny", "finance", "dashboard", "hypothesis-testing", "sec-edgar", "xbrl"]
+image: "thumbnails/sa_2026-01-03.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(dev = "png", fig.width = 9, fig.height = 10, dpi = 320)
+```
+
+🚀 **Live app:**  
+[Microsoft Financial Analysis Dashboard](https://0l6jpd-steven-ponce.shinyapps.io/Microsoft_financial_app/)
+
+💻 **Source code:**  
+[GitHub repository](https://github.com/poncest/Microsoft_financial_app/tree/main)
+
+------------------------------------------------------------------------
+
+## Introduction
+
+Microsoft’s reported financial results over the past decade point to a
+company that is larger, more profitable, and more cash-generative than
+at any point in its history. Revenue has more than doubled since FY2016,
+operating margins have expanded materially, and free cash flow has
+remained consistently strong.
+
+The harder question is whether these improvements reflect **structural
+change** in the business model — or simply the arithmetic effects of
+scale and favorable mix.
+
+This post summarizes a disciplined financial analysis of Microsoft’s
+consolidated results from FY2016–FY2023, focusing on **what the data
+supports**, **what it suggests**, and **what it cannot resolve on its
+own**.
+
+------------------------------------------------------------------------
+
+## Questions This Analysis Examines
+
+1.  Has revenue growth accelerated in recent years, or primarily
+    reflected scale?
+2.  Are margin improvements better explained by business mix than cost
+    compression?
+3.  Has cash generation remained resilient alongside continued
+    investment?
+4.  Do balance sheet trends indicate increased financial flexibility?
+
+Each question is evaluated using historical, consolidated disclosures
+only.
+
+------------------------------------------------------------------------
+
+### Why a Hypothesis-Driven Approach
+
+Rather than presenting metrics in isolation, this analysis is structured around explicit, testable hypotheses.  
+This approach forces clarity on what the data can support, helps distinguish observation from interpretation, and makes analytical limits visible rather than implicit.
+
+------------------------------------------------------------------------
+
+## What the Analysis Finds
+
+Based on consolidated historical disclosures from FY2016–FY2023, the analysis supports the following directional conclusions:
+
+- **Revenue growth has increased over time**, but the evidence suggests a combination of scale effects and changing business mix rather than a discrete acceleration inflection.
+- **Margin expansion is more consistent with revenue mix effects than broad-based cost compression**, as profitability improved alongside sustained R&D intensity.
+- **Cash generation remained resilient throughout the period**, with free cash flow (proxy) maintaining a stable relationship to revenue despite continued investment.
+- **Balance sheet trends indicate increased financial flexibility**, though they do not imply future capital allocation decisions.
+
+These findings are descriptive and bounded by the limitations of consolidated financial disclosures. They are explored in detail through the dashboard sections that follow.
+
+------------------------------------------------------------------------
+
+## Dashboard Walkthrough
+
+### Executive Brief
+
+![](https://raw.githubusercontent.com/poncest/Microsoft_financial_app/main/screenshots/exec_brief.png)
+
+The Executive Brief provides a consolidated view of revenue, margins,
+cash generation, and capital efficiency.\
+Each hypothesis is explicitly labeled according to evidentiary strength
+to avoid binary conclusions.
+
+------------------------------------------------------------------------
+
+### Growth & Mix
+
+![](https://raw.githubusercontent.com/poncest/Microsoft_financial_app/main/screenshots/growth_mix.png)
+
+This section evaluates whether observed revenue growth reflects
+acceleration or scale effects, alongside changes in reported segment
+composition.
+
+------------------------------------------------------------------------
+
+### Profitability Drivers
+
+![](https://raw.githubusercontent.com/poncest/Microsoft_financial_app/main/screenshots/profitability.png)
+
+Margin trends are presented alongside R&D intensity to contextualize
+profitability without implying cost compression.
+
+------------------------------------------------------------------------
+
+### Cash Engine
+
+![](https://raw.githubusercontent.com/poncest/Microsoft_financial_app/main/screenshots/cash_engine.png)
+
+This section examines operating cash flow and free cash flow (proxy)
+trends to assess cash generation resilience during sustained investment
+periods.
+
+------------------------------------------------------------------------
+
+### Balance Sheet & Capital
+
+![](https://raw.githubusercontent.com/poncest/Microsoft_financial_app/main/screenshots/balance_sheet.png)
+
+Balance sheet metrics are used to describe financial flexibility without
+inferring future capital allocation decisions.
+
+------------------------------------------------------------------------
+
+### Data Explorer
+
+![](https://raw.githubusercontent.com/poncest/Microsoft_financial_app/main/screenshots/data_explorer.png)
+
+The Data Explorer provides full transparency, allowing users to inspect,
+filter, and export the underlying dataset.
+
+------------------------------------------------------------------------
+
+## What This Analysis Does Not Conclude
+
+-   It does not determine causality behind growth or margin changes
+-   It does not forecast future performance
+-   It does not assess valuation or shareholder returns
+-   It does not infer segment-level profitability
+
+All results are descriptive and bounded by the limitations of
+consolidated historical disclosures.
+
+------------------------------------------------------------------------
+
+## Closing Note
+
+Careful financial analysis often adds the most value not by producing
+bold conclusions, but by clarifying where confidence is warranted — and
+where restraint is appropriate.
+
+------------------------------------------------------------------------
+
+## Appendix: Methodology & Build Notes {.collapse}
+
+### Data Sources
+
+-   SEC EDGAR XBRL Company Facts API\
+-   Microsoft Form 10-K filings (FY2016–FY2023)
+
+### Key Methodological Choices
+
+-   Consolidated revenue concepts were normalized across accounting
+    standard changes.
+-   Free Cash Flow is presented as a simplified proxy (Operating Cash
+    Flow − CapEx).
+-   Segment data reflects revenue only; segment-level margins are not
+    disclosed.
+
+### Application Architecture
+
+-   R Shiny with modular architecture
+-   ggplot2 + ggiraph for interactive charts
+-   reactable for data exploration
+
+------------------------------------------------------------------------
+
+## Purpose, Scope, and Disclaimer
+
+This dashboard is an independent analytical exercise created for
+portfolio and educational purposes only.\
+It is not affiliated with, endorsed by, or produced by Microsoft
+Corporation.
+
+All data are derived from publicly available SEC filings.\
+No representation is made regarding accuracy beyond the source
+disclosures.
+
+This work does not constitute investment advice, valuation guidance, or
+financial recommendations.
