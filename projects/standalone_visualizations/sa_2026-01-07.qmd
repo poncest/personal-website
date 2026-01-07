@@ -1,0 +1,273 @@
+---
+title: "Designing an Executive-Grade R&D Portfolio Simulator"
+subtitle: "A case study in multi-objective decision support for pharmaceutical R&D strategy"
+description: "An interactive R Shiny simulator demonstrating how literature-based parameters can support structured strategic reasoning about pharmaceutical R&D portfolio allocation."
+date: "2026-01-07"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+
+citation:    
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-01-07.html"
+categories: ["R Programming", "Shiny", "Pharmaceutical Strategy", "2026"]
+tags: ["r-shiny", "simulation", "portfolio-strategy", "multi-objective", "decision-support", "pharmaceutical"]
+image: "thumbnails/sa_2026-01-07.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(dev = "png", fig.width = 9, fig.height = 10, dpi = 320)
+```
+
+🚀 **Live app:**  
+[Pharma R&D Portfolio Simulator](https://0l6jpd-steven-ponce.shinyapps.io/Pharma_R-D/)
+
+💻 **Source code:**  
+[GitHub repository](https://github.com/poncest/Pharma_R-D/tree/main)
+
+------------------------------------------------------------------------
+
+## Executive Overview
+
+Pharmaceutical R&D portfolio decisions are rarely about optimizing a single metric.\
+They require balancing **near-term output**, **execution risk**, **capital efficiency**, **speed**, and **long-term learning**—often under conditions of uncertainty and incomplete information.
+
+This project presents an **interactive R Shiny simulator** designed to support *structured strategic reasoning* about R&D portfolio allocation. Rather than predicting outcomes or recommending specific investments, the simulator provides a transparent framework for exploring **how portfolio strategies perform under different strategic priorities**.
+
+The emphasis is on **decision support**, not prescription.
+
+For organizations navigating pipeline trade-offs, this distinction matters: 
+the goal is clarity about *how* choices behave, not claims about *what* to choose.
+
+------------------------------------------------------------------------
+
+## Strategic Questions This Simulator Examines
+
+The simulator is designed to help explore questions commonly faced by R&D leadership and portfolio governance teams:
+
+-   How do different portfolio configurations perform across competing strategic objectives?
+-   When do objectives align, and when do they meaningfully diverge?
+-   What trade-offs emerge between maximizing near-term approvals and building long-term optionality?
+-   How sensitive are portfolio outcomes to therapeutic area risk profiles?
+-   Under what conditions does specialization outperform diversification?
+
+These questions are addressed through **probability-weighted simulation**, not forecasting.
+
+------------------------------------------------------------------------
+
+## Analytical Design: A Multi-Objective Framework
+
+Rather than optimizing for a single outcome, portfolios are evaluated across **five strategic objectives**, each representing a different organizational priority:
+
+1.  **Maximize Expected Approvals** – total approvals over the portfolio lifecycle\
+2.  **Predictability** – approvals per asset (execution reliability)\
+3.  **Learning Optionality** – early-stage asset exposure as a proxy for discovery\
+4.  **Speed to Market** – approvals per year\
+5.  **Capital Efficiency** – approvals per \$100M invested
+
+No objective is treated as universally “correct.” Trade-offs are expected and explicitly surfaced.
+
+------------------------------------------------------------------------
+
+## Data Foundations and Modeling Discipline
+
+### Literature-Based Inputs
+
+Baseline parameters are drawn from peer-reviewed and industry sources, including:
+
+-   Phase transition success rates (Norstella / Citeline)
+-   Trial duration estimates (Wong et al., *Biostatistics*)
+-   R&D cost estimates (JAMA Network Open)
+-   Therapeutic-area-specific success profiles (ACSH)
+
+Empirical therapeutic areas include:
+
+-   Overall (industry average)
+-   Oncology
+-   Vaccines
+-   Anti-Infectives
+
+### Modeled Strategic Scenarios
+
+Where direct literature estimates do not exist, **explicit modeling assumptions** are applied to explore strategic postures (e.g., fast-track timelines, cost-efficient rare disease focus). These assumptions are documented, adjustable, and intentionally simplified.
+
+The simulator distinguishes clearly between **empirical inputs** and **modeled scenarios**.
+
+------------------------------------------------------------------------
+
+## Simulation Approach
+
+Portfolio outcomes are calculated using **probability-weighted attrition modeling**.
+
+Rather than assuming all assets progress through all phases, costs and timelines are weighted by historical phase-transition probabilities. This reflects real-world portfolio economics, where early failures reduce downstream costs and timelines.
+
+Key outputs include:
+
+-   Expected approvals\
+-   Probability-weighted total cost\
+-   Average development timeline\
+-   Normalized efficiency metrics
+
+This approach emphasizes **structural realism** over predictive precision.
+
+------------------------------------------------------------------------
+
+## Dashboard Structure
+
+The simulator is organized into four complementary views:
+
+### Executive Brief
+
+![](https://raw.githubusercontent.com/poncest/Pharma_R-D/main/screenshots/executive_brief.png)
+
+An executive-facing entry point that allows users to select a strategic priority and view:
+
+-   Suggested portfolio configurations aligned with selected priority\
+-   Key performance metrics\
+-   Explicit trade-offs (“what improves” vs. “what is sacrificed”)
+
+### Portfolio Builder
+
+![](https://raw.githubusercontent.com/poncest/Pharma_R-D/main/screenshots/portfolio_builder.png)
+An interactive workspace for configuring:
+
+-   Phase allocation (early vs. late)
+-   Therapeutic area focus
+-   Cost assumptions
+
+with real-time feedback against strategic KPIs and preset scenarios.
+
+### Trade-off Explorer
+
+![](https://raw.githubusercontent.com/poncest/Pharma_R-D/main/screenshots/tradeoff_builder.png)
+
+A comparative analysis view that enables:
+
+-   Multi-scenario selection\
+-   Normalized radar-chart comparison across objectives\
+-   Side-by-side metrics with dynamic interpretation
+
+### Methods & Data
+
+![](https://raw.githubusercontent.com/poncest/Pharma_R-D/main/screenshots/method_data.png)
+
+A transparency-focused section documenting:
+
+-   Data sources and citations\
+-   Modeling assumptions\
+-   Normalization logic\
+-   Known limitations
+
+------------------------------------------------------------------------
+
+## What the Simulator Reveals
+
+Across scenarios and assumptions, several consistent patterns emerge:
+
+-   Output-maximizing strategies tend to cluster, particularly when late-stage assets dominate the portfolio.
+-   Learning-focused portfolios often diverge from output-focused ones, highlighting a fundamental trade-off between near-term results and long-term optionality.
+-   Therapeutic area risk profiles materially affect outcome magnitude, even when strategy rankings remain stable.
+-   Under certain conditions, objectives align—simplifying decisions. Under others, trade-offs become unavoidable and must be made explicit.
+
+These findings are descriptive, not prescriptive.
+
+------------------------------------------------------------------------
+
+## Scope and Limitations
+
+This simulator intentionally does **not**:
+
+-   Predict individual asset outcomes\
+-   Model company-specific pipelines or proprietary data\
+-   Estimate valuation, NPV, or financial return\
+-   Account for competitive dynamics or regulatory acceleration pathways
+
+Learning optionality is proxied by early-stage asset exposure, not measured scientific output.\
+All simulations assume independent trial outcomes and industry-average parameters.
+
+These constraints are deliberate to preserve interpretability and avoid overreach.
+
+------------------------------------------------------------------------
+
+## Why This Framework Is Useful
+
+Strategic portfolio discussions often fail not due to lack of data, but due to **implicit priorities and unexamined trade-offs**.
+
+This simulator provides a structured way to:
+
+-   Make priorities explicit\
+-   Compare strategies on common footing\
+-   Explore sensitivity to assumptions\
+-   Support disciplined executive discussion
+
+It is designed as a **thinking tool**, not a decision engine.
+
+------------------------------------------------------------------------
+
+## Appendix: Methodology & Build Notes {.collapse}
+
+### Data Sources
+
+- Norstella/Citeline (2024) – Phase transition probabilities
+- Wong et al., *Biostatistics* (2019) – Trial duration estimates
+- JAMA Network Open (2024) – R&D cost benchmarks
+- ACSH (2020) – Therapeutic area success profiles
+
+### Application Architecture
+
+- R Shiny with shiny.semantic (Appsilon framework)
+- Modular architecture (4 independent tabs)
+- ggiraph + fmsb for interactive visualizations
+- reactable for data tables
+
+------------------------------------------------------------------------
+
+## Purpose, Scope, and Disclaimer
+
+This simulator is an independent analytical exercise created for
+portfolio and educational purposes only.
+
+It is not affiliated with, endorsed by, or produced by any pharmaceutical company.
+
+All parameters are derived from publicly available peer-reviewed literature.
+No representation is made regarding applicability to specific company contexts.
+
+This work does not constitute investment advice, clinical guidance, or
+strategic recommendations.
+
+------------------------------------------------------------------------
+
+## Closing
+
+This project demonstrates how **analytical restraint, transparency, and multi-objective framing** can be combined into an executive-grade decision-support application.
+
+By focusing on structure rather than prediction, the simulator helps clarify *how* strategic choices behave—without claiming to know *what* should be chosen.
+
+------------------------------------------------------------------------
+
