@@ -1,0 +1,414 @@
+---
+title: "How Far Does APOD Take Us?"
+subtitle: "Distribution of distances mentioned in NASA's Astronomy Picture of the Day (2007-2025). Most content focuses on our galaxy, peaking where nebulae and star clusters reside."
+description: "Analyzing 19 years of NASA's Astronomy Picture of the Day archive to explore the cosmic distances featured in explanations. A histogram reveals APOD's 'sweet spot' between 1,000-2,000 light-years where nebulae and star clusters dominate, with reference lines marking key landmarks from Proxima Centauri to the Andromeda Galaxy."
+date: "2026-01-18"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_03.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "NASA APOD",
+  "Astronomy",
+  "Cosmic Distances",
+  "Histogram",
+  "Log Scale",
+  "Text Mining",
+  "Regex",
+  "ggplot2",
+  "Data Extraction",
+  "Space Visualization"
+]
+image: "thumbnails/tt_2026_03.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Histogram showing the distribution of distances mentioned in NASA's Astronomy Picture of the Day explanations from 2007-2025, plotted on a logarithmic scale from 1 to 10 billion light-years. The distribution peaks sharply between 1,000 and 2,000 light-years (labeled "The Nebula Peak"), where nebulae and star clusters reside. Five vertical reference lines mark key cosmic landmarks: Proxima Centauri at 4 light-years, the Orion Nebula at 1,500 light-years, the Galactic center at 26,000 light-years, the Milky Way diameter at 100,000 light-years, and the Andromeda Galaxy at 2.5 million light-years. A secondary peak appears around 10-100 million light-years, representing distant galaxies.](tt_2026_03.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,     # Easily Install and Load the 'Tidyverse'
+    ggtext,        # Improved Text Rendering Support for 'ggplot2'
+    showtext,      # Using Fonts More Easily in R Graphs
+    ggrepel,       # Non-overlapping Text Labels
+    janitor,       # Simple Tools for Examining and Cleaning Dirty Data
+    scales,        # Scale Functions for Visualization
+    glue           # Interpreted String Literals
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 6,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 03)
+apod_raw <- tt$apod |> clean_names()
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(apod_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy-fixed
+#| warning: false
+
+# Extract light-year distances from explanations
+extract_distances <- function(text) {
+  if (is.na(text)) {
+    return(NA_real_)
+  }
+  pattern <- "(\\d{1,3}(?:,\\d{3})*(?:\\.\\d+)?)\\s*(million|billion)?\\s*light[\\-\\s]years?"
+  matches <- str_match_all(tolower(text), pattern)[[1]]
+  if (nrow(matches) == 0) {
+    return(NA_real_)
+  }
+
+  val <- str_remove_all(matches[, 2], ",") |> as.numeric()
+  multiplier <- case_when(
+    matches[, 3] == "million" ~ 1e6,
+    matches[, 3] == "billion" ~ 1e9,
+    TRUE ~ 1
+  )
+  return(val * multiplier)
+}
+
+# Build distance dataset
+distances_clean <- apod_raw |>
+  mutate(dist_val = map(explanation, extract_distances)) |>
+  unnest(dist_val) |>
+  filter(!is.na(dist_val), dist_val > 0, dist_val < 1e10)
+
+landmarks <- tibble(
+  distance = c(4.24, 1500, 26000, 100000, 2500000),
+  label = c(
+    "Nearest star\n(Proxima Centauri)",
+    "Orion Nebula\n(APOD favorite)",
+    "Galactic\ncenter",
+    "Milky Way\ndiameter",
+    "Andromeda\nGalaxy"
+  ),
+  y_pos = c(255, 255, 275, 255, 255)
+)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+      bar =   "#b066a2",     
+      line =  "#58a6ff"
+  )
+)
+
+### |- titles and caption ----
+title_text = "How Far Does APOD Take Us?"
+
+subtitle_text = str_glue(
+    "Distribution of distances mentioned in NASA's **Astronomy Picture of the Day** (2007-2025).<br>",
+    "Most content focuses on our galaxy, peaking where **nebulae and star clusters** reside."
+    )
+
+caption_text <- create_social_caption(
+    tt_year = 2026,
+    tt_week = 03,
+    source_text = "NASA APOD Archive via NASA API"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(
+      face = "bold", family = fonts$title, size = rel(1.4),
+      color = colors$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_markdown(
+      face = "italic", family = fonts$subtitle, lineheight = 1.2,
+      color = colors$subtitle, size = rel(0.9), margin = margin(b = 20), hjust = 0
+    ),
+
+    # Grid
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.25),
+
+    # Axes
+    axis.title = element_text(size = rel(0.8), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.85)),
+    axis.ticks = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(0.9),
+      margin = margin(t = 6, b = 4)
+    ),
+    panel.spacing = unit(1.5, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$subtitle,
+      color = colors$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(10, 20, 10, 20),
+    
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Plot ----
+p <- ggplot(distances_clean, aes(x = dist_val)) +
+  # Annotate
+  annotate("rect",
+    xmin = 800, xmax = 3000, ymin = 0, ymax = 300,
+    fill = colors$palette$bar, alpha = 0.08
+  ) +
+  annotate("text",
+    x = 1800, y = 290, label = "THE NEBULA PEAK",
+    family = fonts$text, size = 4, color = colors$palette$bar, fontface = "bold"
+  ) +
+  # Geoms
+  geom_histogram(
+    fill = colors$palette$bar, color = "white",
+    bins = 60, alpha = 0.9
+  ) +
+  geom_segment(
+    data = landmarks,
+    aes(x = distance, xend = distance, y = 0, yend = 300),
+    linetype = "dotted",
+    color = colors$palette$line,
+    linewidth = 0.5
+  ) +
+  geom_text(
+    data = landmarks, aes(x = distance, y = y_pos, label = label),
+    size = 2.8, family = fonts$text, fontface = "bold",
+    lineheight = 0.85, vjust = 1, color = colors$text
+  ) +
+  # Scales
+  scale_x_log10(
+    expand = expansion(mult = c(0.02, 0.05)),
+    breaks = 10^(0:10),
+    labels = label_log()
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "Distance (light-years)",
+    y = "Number of\nMentions"
+  ) +
+  # Theme
+  theme(
+    axis.title.y = element_text(angle = 0, vjust = 0.95, hjust = 0, size = rel(0.8), face = "bold", color = colors$text),
+    axis.title.x = element_text(size = rel(0.8), face = "bold", color = colors$text),
+    axis.text = element_text(, color = colors$text, size = rel(0.6)),
+    plot.title = element_markdown(
+      size = rel(1.8),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.15,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.65),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.5,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.45),
+      family = fonts$subtitle,
+      color = colors$caption,
+      hjust = 0,
+      lineheight = 1.4,
+      margin = margin(t = 10, b = 5)
+    ),
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 03, 
+  width  = 8,
+  height = 6,
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_03.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_03.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 03: [Astronomy Picture of the Day (APOD) Archive](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-01-20/readme.md)
+    
+2.  **Cosmic Distance Landmarks:**
+    -   NASA Imagine the Universe: [Milky Way Galaxy](https://imagine.gsfc.nasa.gov/features/cosmic/milkyway_info.html)
+    -   NASA Science: [Orion Nebula (M42)](https://science.nasa.gov/asset/hubble/orion-nebula-2/)
+    -   NASA Science: [Andromeda Galaxy (M31)](https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/messier-31/)
+    -   ESA Gaia Mission: [Proxima Centauri parallax measurements](https://www.cosmos.esa.int/web/gaia)
+
+3.  **Article:**
+    -   NASA Science: [How Big is Space?](https://science.nasa.gov/universe/exoplanets/our-milky-way-galaxy-how-big-is-space/)
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
