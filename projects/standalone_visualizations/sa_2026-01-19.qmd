@@ -1,0 +1,262 @@
+---
+title: "Clinical Trial Duration Forecasting: A Validation-First Case Study"
+subtitle: "What time-based validation reveals about oncology trial duration forecasting using registry data"
+description: "A portfolio case study examining whether ClinicalTrials.gov registry features can support prospective oncology trial duration forecasting. Random validation suggested strong performance, but time-based validation revealed minimal predictive power—highlighting drift, leakage risk, and structural data limits."
+date: "2026-01-19"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:    
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-01-19.html"
+categories: ["R Programming", "Shiny", "Healthcare Analytics", "Machine Learning", "2026"]
+tags: ["r-shiny", "clinical-trials", "oncology", "validation", "tidymodels", "pharmaceutical", "forecasting", "temporal-validation"]
+image: "thumbnails/sa_2026-01-19.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+🚀 **Live App:**\
+[Clinical Trial Duration Forecaster](https://0l6jpd-steven-ponce.shinyapps.io/clinical-trial-forecaster/)
+
+💻 **Source Code:**\
+[GitHub repository](https://github.com/poncest/clinical-trial-forecaster)
+
+------------------------------------------------------------------------
+
+> *My model showed R² = 0.84. Then I validated it properly. The result
+> dropped to 0.04—and that finding became the point.*
+
+------------------------------------------------------------------------
+
+## [1. Framing the problem]{.smallcaps}
+
+Forecasting clinical trial timelines is an appealing problem in
+pharmaceutical analytics. Timelines influence portfolio planning,
+resourcing, and cross-functional expectations across R&D organizations.
+At the same time, experienced trial teams recognize that duration is
+shaped by factors that are difficult to observe early—protocol
+complexity, enrollment dynamics, site performance, and evolving
+standards of care.
+
+This project approaches trial duration forecasting as a **validation
+problem first**, rather than an optimization exercise. The objective is
+not to produce an operational forecasting tool, but to evaluate what
+level of prospective signal is realistically supported by publicly
+available registry data.
+
+------------------------------------------------------------------------
+
+## [2. What question this analysis tests]{.smallcaps}
+
+The core question is intentionally narrow:
+
+**Can ClinicalTrials.gov registry features support prospective
+forecasting of oncology trial duration?**
+
+To answer this, I built an end-to-end modeling pipeline and Shiny
+dashboard using completed oncology treatment trials. The target variable
+is registry-defined duration (Start Date → Completion Date), which may
+include extended follow-up and should not be interpreted as a direct
+proxy for last-patient–last-visit (LPLV); predictors are limited to
+information available in the registry at study start.
+
+The emphasis is on aligning validation strategy with intended use,
+rather than maximizing retrospective fit.
+
+------------------------------------------------------------------------
+
+## [3. When random validation appears convincing]{.smallcaps}
+
+Using a conventional random train/test split, the model appeared to
+perform well:
+
+-   R² ≈ 0.84\
+-   Median absolute error ≈ 7 months
+
+At face value, this resembles performance often reported in exploratory
+analytics. However, random splits implicitly allow information from
+later-era trials to influence predictions for earlier-era trials. For a
+forward-looking use case, this validation strategy is inappropriate.
+
+At this stage, the model was answering the wrong question.
+
+------------------------------------------------------------------------
+
+## [4. What changes under time-based validation]{.smallcaps}
+
+When the validation strategy was changed to reflect prospective
+use—training on earlier trials and testing on later trials—performance
+dropped sharply:
+
+| Validation Approach  | Test R²  | Median Absolute Error |
+|----------------------|----------|-----------------------|
+| Random split         | 0.84     | 7 months              |
+| **Time-based split** | **0.04** | **21 months**         |
+
+This result reflects two structural realities:
+
+1.  **Temporal drift**: Median trial duration decreased substantially
+    across eras, meaning relationships learned from earlier trials do
+    not generalize cleanly to later ones.
+2.  **Registry feature limitations**: Key drivers of duration—protocol
+    complexity, endpoint strategy, enrollment velocity, and operational
+    execution—are largely absent from ClinicalTrials.gov.
+
+Under these conditions, low prospective R² is not a modeling failure; it
+is the most honest estimate the data can provide.
+
+------------------------------------------------------------------------
+
+## [5. Why this matters in pharma analytics]{.smallcaps}
+
+In pharmaceutical decision-making, forecasts are used prospectively: to
+inform planning, resource allocation, and expectations. Validation
+strategies that mix past and future data can materially overstate
+confidence and lead to incorrect conclusions.
+
+This case study demonstrates that **how a model is validated matters
+more than which algorithm is chosen**. A model that performs well
+retrospectively but fails under time-based testing may still be useful
+diagnostically—but it should not be positioned as a forecasting tool.
+
+From an analytics governance perspective, this distinction is critical.
+
+------------------------------------------------------------------------
+
+## [6. What this project does—and does not—claim]{.smallcaps}
+
+This project demonstrates:
+
+-   How to design validation strategies that align with prospective use
+-   How temporal drift can invalidate apparently strong models
+-   How registry-only features constrain forecasting power
+
+It explicitly does **not** claim:
+
+-   That oncology trial duration is predictable from registry data alone
+-   That this model should be used for operational timeline planning
+-   That algorithmic complexity would resolve the observed limitations
+
+The results are conditional on the data sources and features used.
+
+------------------------------------------------------------------------
+
+## [7. What would be required for planning-grade forecasting]{.smallcaps}
+
+If the objective were operational forecasting, additional data would be
+required, including:
+
+-   Protocol complexity and amendment history
+-   Endpoint structure and follow-up requirements
+-   Enrollment trajectory and screen-failure dynamics
+-   Site and geography-level performance history
+-   Competitive and standard-of-care context
+
+These factors are typically available only through internal systems, not
+public registries.
+
+------------------------------------------------------------------------
+
+## [Dashboard Preview]{.smallcaps}
+
+> The dashboard is structured to make validation behavior visible and to
+> discourage overinterpretation of point predictions.
+
+**Executive Brief** Surfaces key metrics (R², MAE, sample size) with
+appropriate caveats about prospective use limitations.
+![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/executive_brief.png)
+
+**Duration Forecaster** Interactive scenario sandbox for exploring how
+trial characteristics relate to predicted duration—positioned as
+educational, not operational.
+![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png)
+
+**Feature Explorer** Visualizes Elastic Net coefficients and feature
+distributions to understand which registry variables the model weighted.
+![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/explorer.png)
+
+**Model Performance** Diagnostic plots comparing actual vs. predicted
+duration, with error breakdown by phase and sponsor type.
+![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/performance.png)
+
+**Methods & Data** Documents the data pipeline, inclusion criteria, and validation methodology—including the key lesson on why time-based validation matters.
+![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/methods.png)
+
+------------------------------------------------------------------------
+
+## [Appendix: Methodology & Build Notes]{.smallcaps}
+
+### [Analytical Pipeline]{.smallcaps}
+
+1.  **Data acquisition** – ClinicalTrials.gov API (oncology
+    interventional trials)
+2.  **Cohort filtering** – Treatment purpose, Phase 2–3, completed
+    studies
+3.  **Feature engineering** – Log transforms, ratios, categorical
+    encoding
+4.  **Validation design** – Time-based split aligned to prospective use
+5.  **Modeling** – Elastic Net regression via tidymodels
+6.  **Diagnostics** – Error analysis and residual inspection
+
+### [Model specification]{.smallcaps}
+
+-   **Algorithm:** Elastic Net (glmnet)
+-   **Target:** Log-transformed duration (months)
+-   **Cross-validation:** 10-fold CV within training data only
+-   **Baseline comparisons:** Linear regression, Random Forest, XGBoost
+-   **Selection criterion:** Stability, interpretability, and behavior
+    under time-based validation
+
+### [Technical stack]{.smallcaps}
+
+-   **Language:** R
+-   **Framework:** Shiny (modular architecture)
+-   **UI:** shiny.semantic (Appsilon)
+-   **Modeling:** tidymodels
+-   **Visualization:** ggplot2, ggiraph, reactable
+-   **Deployment:** shinyapps.io
+
+### [References]{.smallcaps}
+
+-   ClinicalTrials.gov – U.S. National Library of Medicine
+-   Tidymodels documentation – https://www.tidymodels.org/
+-   Appsilon shiny.semantic – https://appsilon.github.io/shiny.semantic/
+-   Wong, C.H., Siah, K.W., & Lo, A.W. (2019). Estimation of clinical
+    trial success rates and related parameters. *Biostatistics*, 20(2),
+    273–286.
+
+------------------------------------------------------------------------
+
+## [Closing reflection]{.smallcaps}
+
+::: callout-note
+The most important outcome of this project is not a performance metric,
+but a methodological lesson: **honest validation protects
+decision-makers from false confidence**.
+
+In trial analytics, recognizing the limits of available data is as
+important as extracting signal from it.
+:::
