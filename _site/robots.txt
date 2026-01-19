@@ -1,3 +1,53 @@
+# BLOCK AI SCRAPERS
+# Prevents your visualizations/data from being used to train AI models
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+# Additional AI scrapers to consider
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+# BLOCK SEO SPIDERS
+# Prevents aggressive tools from crawling your site for data mining
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+# GENERAL RULES
 User-agent: *
+# Block the messy URL pattern I saw in your sitemap
+Disallow: /*_______________________*
+# Block common internal/draft folders
+Disallow: /drafts/
+Disallow: /private/
+# Allow everything else for legitimate search engines
 Allow: /
+
+# SITEMAP LOCATION
 Sitemap: https://stevenponce.netlify.app/sitemap.xml
