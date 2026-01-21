@@ -1,0 +1,175 @@
+---
+title: "bobsburgersR v0.2.0: Seasons 15-16 and TMDB Ratings"
+subtitle: "Major update adds seasons 15-16, switches to TMDB ratings, and fixes transcript issues"
+description: "Announcing bobsburgersR v0.2.0 with expanded coverage to 309 episodes across 16 seasons. This release migrates from IMDb to TMDB ratings, adds new data columns, and fixes transcript formatting issues."
+date: "2026-01-20"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:    
+    url: "https://stevenponce.netlify.app/projects/r_packages/2026-01-20-bobsburgersr-v0.2.0.html"
+categories: ["R Package", "Data Science", "Bob's Burgers", "2026"]
+tags: ["r-package", "bobs-burgers", "tmdb", "data-visualization", "rstats"]
+image: "thumbnails/bobsburgersR.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+![Hex sticker for the bobsburgersR R
+package](/assets/img/bobsburgersR.png){width="200px" height="200px"
+fig-alt="Hex sticker for the bobsburgersR R package"}
+
+## bobsburgersR v0.2.0 is Here!
+
+I'm excited to announce the release of **bobsburgersR v0.2.0**! This
+update brings the package up to date with seasons 15 and 16, expanding
+coverage to **309 episodes** across all 16 seasons of *Bob's Burgers*.
+
+## What's New
+
+### Seasons 15-16 Added
+
+The dataset now includes the latest episodes, bringing the total from
+275 to **309 episodes**. Transcript data has also been updated to
+**204,027 lines** of dialogue.
+
+### New Rating Source: TMDB
+
+The most significant change in this release is the switch from IMDb to
+[TMDB](https://www.themoviedb.org/) (The Movie Database) for episode
+ratings. IMDb implemented bot protection in 2024 that prevents web
+scraping, so I migrated to TMDB's official API.
+
+Both rating systems use a 1-10 scale, but they come from different user
+communities. If you're comparing ratings across package versions, keep
+this in mind.
+
+**Stay tuned for a follow-up post where I'll explore how these TMDB
+ratings compare across the show's 16-season history.**
+
+### New Data Columns
+
+The `episode_data` dataset now includes:
+
+-   `votes` — Number of TMDB user votes for each episode
+-   `tmdb_id` — Unique TMDB episode identifier
+-   `runtime` — Episode length in minutes
+
+## Breaking Changes
+
+**Dataset renamed:** `imdb_wikipedia_data` is now `episode_data`. Update
+your code accordingly:
+
+``` r
+# Old (no longer works)
+data("imdb_wikipedia_data")
+
+# New
+data("episode_data")
+```
+
+**Column renamed:** `wikipedia_viewers` is now `us_viewers_millions` for
+clarity.
+
+**Column renamed:** `imdb_title` is now `title`.
+
+## Bug Fixes
+
+Fixed carriage return characters (`\r`) in transcript data for seasons
+13-14 that caused display issues.
+
+## Installation
+
+Install or update from GitHub:
+
+```{r}
+#| label: install
+#| eval: false
+
+# install.packages("devtools")
+devtools::install_github("poncest/bobsburgersR")
+```
+
+## Quick Example
+
+```{r}
+#| label: example
+#| eval: true
+
+library(bobsburgersR)
+suppressPackageStartupMessages(library(dplyr))
+
+data("episode_data")
+
+# Check the data
+cat("Total episodes:", nrow(episode_data), "\n")
+cat("Seasons:", paste(range(episode_data$season), collapse = "-"), "\n")
+
+# Average rating by season
+episode_data |>
+  group_by(season) |>
+  summarise(
+    episodes = n(),
+    avg_rating = round(mean(rating, na.rm = TRUE), 1),
+    .groups = "drop"
+  ) |>
+  print(n = 16)
+```
+
+## What's Next
+
+I'll continue updating **bobsburgersR** as new episodes air. If you have
+suggestions or find issues, feel free to [open an
+issue](https://github.com/poncest/bobsburgersR/issues) on GitHub.
+
+------------------------------------------------------------------------
+
+Check out the full changelog in
+[NEWS.md](https://github.com/poncest/bobsburgersR/blob/main/NEWS.md) and
+explore the updated package on
+[GitHub](https://github.com/poncest/bobsburgersR).
+
+## Session Info
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r}
+#| label: session-info
+#| eval: true
+
+sessionInfo()
+```
+:::
+
+## GitHub Repository
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+[Access the bobsburgersR repository
+here](https://github.com/poncest/bobsburgersR)
+:::
