@@ -91,6 +91,17 @@ create_dcc_caption <- function(dcc_year, dcc_day, source_text) {
   str_glue("{dcc_text} {social_text}")
 }
 
+# Standalone caption (non-TidyTuesday version)
+create_standalone_caption <- function(source_text) {
+  icons <- get_social_icons()
+  
+  source_line <- str_glue("Source: {source_text}<br>")
+  social_text <- str_glue("{icons$linkedin} stevenponce &bull; {icons$bluesky} sponce1 &bull; {icons$github} poncest &bull; #rstats #ggplot2")
+  
+  str_glue("{source_line}{social_text}")
+}
+
+
 # # Example usage:
 # caption_text <- create_swd_caption(
 #   year = 2025,
