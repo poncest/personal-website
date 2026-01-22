@@ -21,6 +21,7 @@ setup_fonts <- function() {
     
     # Add Google Fonts
     font_add_google("Oswald", regular.wt = 400, family = "title")
+
     # font_add_google("Merriweather Sans", regular.wt = 400, family = "subtitle")
     # font_add_google("Merriweather Sans", regular.wt = 400, family = "text")
     font_add_google("Inter", regular.wt = 400, family = "subtitle")
