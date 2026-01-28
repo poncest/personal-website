@@ -1,0 +1,436 @@
+---
+title: "Governance-First Launch Forecasting: A Decision Support Framework"
+subtitle: "Quantifying revenue risk from launch timing uncertainty using analog-based scenario analysis"
+description: "A case study in building decision support for pharmaceutical commercial planning—using governance-first analog selection, transparent assumptions, and explicit trade-off framing to quantify revenue at risk under launch timing uncertainty."
+date: "2026-01-28"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:    
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-01-28.html"
+categories: ["R Programming", "Shiny", "Pharmaceutical Analytics", "Commercial Strategy", "2026"]
+tags: ["r-shiny", "pharmaceutical", "commercial-analytics", "forecasting", "oncology", "decision-support", "governance"]
+image: "thumbnails/sa_2026-01-28.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(dev = "png", fig.width = 9, fig.height = 10, dpi = 320)
+```
+
+🚀 **Live app:**\
+[Oncology Launch Curve
+Forecaster](https://0l6jpd-steven-ponce.shinyapps.io/launch_curve_forecaster/)
+
+💻 **Source code:**\
+[GitHub repository](https://github.com/poncest/launch-curve-forecaster)
+
+------------------------------------------------------------------------
+
+> *The core challenge in launch planning isn't predicting success—it's
+> quantifying how much uncertainty costs when timing shifts.*
+
+------------------------------------------------------------------------
+
+## [1. Framing the problem]{.smallcaps}
+
+Pre-launch planning in pharmaceutical commercialization involves
+decisions under substantial uncertainty. Brand teams must commit to
+launch timing, resource allocation, and forecast ranges while facing
+unknowns about regulatory approval timing, manufacturing readiness, and
+market reception.
+
+The natural instinct is to seek precision: better models, more data,
+tighter confidence intervals. But in practice, the harder problem is
+often **structuring the conversation** around forecast ranges,
+revenue-at-risk, and timing shifts—rather than eliminating uncertainty
+entirely.
+
+This project approaches launch forecasting as a **governance and framing
+problem**, rather than a prediction exercise. The objective is not to
+forecast whether a specific launch will succeed, but to quantify **how
+analog selection and timing assumptions translate into revenue
+risk**—making trade-offs explicit for cross-functional discussion.
+
+In practice, this means shifting the question from "What will happen?"
+to "What are we implicitly assuming—and what does that assumption cost
+if it's wrong?"
+
+------------------------------------------------------------------------
+
+## [2. The core decision question]{.smallcaps}
+
+The framework is designed around a single, actionable question:
+
+**What is the revenue at risk if launch timing shifts under
+uncertainty?**
+
+This question matters because it connects analytical work directly to
+decisions that leadership teams actually face:
+
+-   How much revenue exposure exists in Year 1 if launch slips by one or
+    two quarters?
+-   What forecast commitment range (P25/P50/P75) is defensible given
+    analog variation?
+-   How sensitive are these conclusions to which analogs are included?
+
+In practice, timing assumptions also propagate into manufacturing
+readiness, commercial resourcing, and financial guidance—making early
+uncertainty costly to unwind later.
+
+Rather than producing point forecasts, the framework surfaces **ranges
+and trade-offs** that support structured executive discussion.
+
+------------------------------------------------------------------------
+
+## [3. Why governance-first analog selection]{.smallcaps}
+
+Analog-based forecasting is common in pharmaceutical commercial
+planning. The challenge is that analog selection is inherently
+subjective—and post-hoc adjustments can undermine credibility.
+
+This framework applies a **governance-first methodology**:
+
+1.  **Define inclusion criteria before examining outcomes** —
+    Therapeutic area, peak revenue threshold, and data availability
+    requirements are specified upfront.
+2.  **Lock the analog list in writing** — No modifications after seeing
+    revenue performance.
+3.  **Document rationale for every inclusion/exclusion** — Creates an
+    audit trail for reviewers.
+4.  **Test sensitivity explicitly** — Option to exclude the
+    top-performing analog tests whether conclusions depend on outliers.
+
+This approach addresses a common critique of analog analysis: that
+analysts cherry-pick comparators to support predetermined conclusions.
+By separating selection criteria from outcome examination, the framework
+survives skeptical review.
+
+This governance-first approach is operationalized in the app through
+four components: **Executive Brief** (scenario comparison and trade-off
+framing), **Scenario Builder** (criteria configuration and sensitivity
+testing), **Analog Explorer** (individual product examination with
+guardrails), and **Methods & Data** (assumption documentation and scope
+boundaries).
+
+------------------------------------------------------------------------
+
+## [4. What the framework quantifies]{.smallcaps}
+
+### Revenue-at-Risk Estimation
+
+The framework calculates Year 1 revenue at risk under configurable
+launch delay scenarios:
+
+```         
+Revenue at Risk (Year 1) = delay_quarters × (median Year 1 revenue / 4)
+```
+
+Year 1 is used because it is the period most sensitive to launch timing
+assumptions and the least confounded by later competitive or lifecycle
+effects.
+
+This is explicitly labeled as a **Year 1 average-quarter
+approximation**—a simplification that provides directional magnitude
+without implying DCF-level precision.
+
+### Scenario Bands from Analog Variation
+
+Percentile bands (P25/P50/P75) are derived from observed analog
+performance:
+
+-   **P50 (Base Case):** Median analog trajectory
+-   **P75 (Upper Range):** Upper quartile performance
+-   **P25 (Lower Range):** Lower quartile performance
+
+These represent **observed variation across analogs**, not statistical
+confidence intervals. The distinction matters: they quantify historical
+heterogeneity, not forecasting uncertainty.
+
+### Selection Statistics
+
+Dynamic statistics update as criteria change:
+
+-   Solid tumor vs. hematology count
+-   Approval year range
+-   Median peak revenue
+-   Number of analogs meeting criteria
+
+This transparency helps users understand what's driving the scenario
+range.
+
+------------------------------------------------------------------------
+
+## [5. Key assumptions documented]{.smallcaps}
+
+The framework relies on several simplifying assumptions that users
+should understand:
+
+**Demand deferral, not destruction**\
+Delayed demand is assumed to shift forward in time rather than being
+permanently lost. Competitive dynamics and access erosion are not
+modeled.
+
+**Label expansion bias**\
+Some analogs experienced significant post-launch indication expansions,
+creating potential upward bias in peak revenue estimates. Products
+without similar expansion potential may underperform these benchmarks.
+
+**Era effects**\
+Launch dynamics differ between earlier (2013–2015) and more recent
+oncology approvals. The analog set includes both eras, which may
+introduce heterogeneity.
+
+**US-weighted revenue**\
+SEC filing data may include global revenue. Geographic mix differences
+between analogs and forecasted products are not adjusted.
+
+These assumptions are documented in the Methods & Data tab and surfaced
+in the dashboard interface to prevent over-interpretation.
+
+------------------------------------------------------------------------
+
+## [6. What this framework does—and does not—do]{.smallcaps}
+
+### What it does
+
+✅ Structures analog-based launch scenario analysis\
+✅ Quantifies revenue ranges from analog variation (P25/P50/P75)\
+✅ Supports structured trade-off conversations under uncertainty\
+✅ Documents assumptions and limitations transparently\
+✅ Provides sensitivity checks to test analytical robustness
+
+### What it does not do
+
+❌ Predict whether a specific launch will succeed\
+❌ Recommend specific investment or resourcing levels\
+❌ Model competitive response or market access dynamics\
+❌ Estimate NPV or financial returns\
+❌ Replace clinical, regulatory, or strategic judgment
+
+**By design:** NPV and market access modeling are excluded because they
+require company-specific inputs that would compromise generalizability.
+Revenue scenarios are treated as **foundational inputs** to financial
+modeling, not final outputs.
+
+------------------------------------------------------------------------
+
+## [7. Dashboard structure]{.smallcaps}
+
+The application is organized into four complementary views:
+
+### Executive Brief
+
+![](https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/executive_brief.png)
+
+An executive-facing summary that surfaces:
+
+-   Key metrics (analog count, peak revenue range, revenue at risk)
+-   Launch trajectory scenarios with P25/P50/P75 bands
+-   Two explicit decision trade-offs: launch timing and forecast
+    commitment
+-   Selected analog summary table
+
+The decision boxes explicitly frame trade-offs in terms stakeholders
+recognize: "Speed vs. readiness" and "Alignment vs. credibility risk."
+
+### Scenario Builder
+
+![](https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/scenario_builder.png)
+
+An interactive configuration view that allows users to:
+
+-   Select therapeutic focus (solid tumors, hematology, or both)
+-   Set minimum peak revenue thresholds
+-   Test sensitivity by excluding the top-performing analog
+-   Configure launch delay scenarios (0–4 quarters)
+
+The Selection Rationale panel updates dynamically, showing live
+statistics and a governance note reminding users that criteria should be
+documented before examining outcomes.
+
+### Analog Explorer
+
+![](https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/analog_explorer.png)
+
+A detailed view for examining individual analog characteristics:
+
+-   Side-by-side comparison of two selected analogs
+-   Launch curve visualization showing trajectory differences
+-   Characteristics table (company, indication, approval date, peak
+    revenue)
+-   Launch context factors that may have influenced trajectory
+
+This tab includes guardrails against over-interpretation—users must
+click "View Details" to load data, creating a deliberate interaction
+that discourages casual browsing.
+
+### Methods & Data
+
+![](https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/methods.png)
+
+A transparency-focused section documenting:
+
+-   Framework overview and workflow diagram
+-   Data sources (FDA approvals, SEC EDGAR filings, published
+    literature)
+-   Inclusion and exclusion criteria
+-   Key assumptions with explicit discussion
+-   "What This Framework Does NOT Do" section
+-   Technical implementation details
+
+------------------------------------------------------------------------
+
+## [8. The analog set]{.smallcaps}
+
+The framework includes 10 established oncology launches with
+product-level revenue disclosed in SEC filings:
+
+**Solid tumors (6):**\
+Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq
+
+**Hematology (4):**\
+Imbruvica, Darzalex, Venclexta, Calquence
+
+The 6/4 split reflects real-world prevalence rather than forced
+symmetry. Adding weaker products to achieve balance would introduce more
+noise than signal.
+
+Approval years range from 2013–2017, providing sufficient follow-up to
+observe peak revenue while remaining recent enough to reflect modern
+launch dynamics.
+
+------------------------------------------------------------------------
+
+## [9. Technical lessons from the build]{.smallcaps}
+
+This project surfaced an important technical insight about Shiny
+development with CSS-based UI frameworks.
+
+### The Problem
+
+When using shiny.semantic (which relies on Semantic UI's CSS-based tab
+switching), outputs don't render automatically when users navigate to a
+tab. Shiny's lazy evaluation assumes it knows when tabs become
+visible—but CSS-based tabs don't notify Shiny of visibility changes.
+
+### The Solution
+
+Adding `outputOptions(output, "output_name", suspendWhenHidden = FALSE)`
+to all outputs forces Shiny to render regardless of perceived
+visibility. This pattern isn't documented in standard Shiny guides but
+is essential for CSS-based tab frameworks.
+
+This discovery—after several hours of debugging—became the most valuable
+technical lesson from the project.
+
+------------------------------------------------------------------------
+
+## [10. Why this framing matters for commercial analytics]{.smallcaps}
+
+In pharmaceutical commercial planning, forecasts are rarely wrong
+because of poor algorithms. They're wrong because:
+
+-   Analog selection was post-hoc rationalized
+-   Assumptions weren't documented or tested
+-   Ranges were too narrow to capture actual uncertainty
+-   Trade-offs weren't made explicit to decision-makers
+
+This framework addresses these failure modes directly:
+
+-   **Governance-first selection** prevents cherry-picking
+-   **Documented assumptions** create audit trails
+-   **P25/P50/P75 bands** acknowledge inherent uncertainty
+-   **Explicit trade-off framing** connects analysis to decisions
+
+The goal is not better predictions, but **better-structured
+conversations** about what forecasts can and cannot support.
+
+------------------------------------------------------------------------
+
+## [Appendix: Methodology & Build Notes]{.smallcaps}
+
+### Data Sources
+
+-   **FDA Drug Approvals:** Approval dates (T=0), initial indications
+-   **SEC EDGAR Filings:** Product-level revenue from 10-K and 10-Q
+    reports
+-   **Published Literature:** Launch curve patterns and benchmarks from
+    peer-reviewed sources
+
+### Technical Stack
+
+-   **Language:** R (4.3+)
+-   **Framework:** Shiny (modular architecture)
+-   **UI:** shiny.semantic (Appsilon)
+-   **Visualization:** ggplot2, ggiraph
+-   **Tables:** reactable, reactablefmtr
+-   **Deployment:** shinyapps.io
+
+### Key Design Choices
+
+-   Revenue normalized to launch quarter (T=0) for comparability
+-   Percentiles calculated across analog set (not confidence intervals)
+-   Revenue scaled to millions USD for readability
+-   All data from public sources to ensure reproducibility
+
+------------------------------------------------------------------------
+
+## Purpose, Scope, and Disclaimer
+
+This project is a **portfolio case study** intended to demonstrate
+analytical framing, governance, and decision-support design using
+publicly available data.
+
+It is **not intended for real-world commercial decision-making** and is
+not affiliated with any pharmaceutical company. Product names are used
+for analytical illustration only.
+
+All data are derived from publicly available sources including SEC
+filings and FDA databases. No proprietary or confidential information is
+included.
+
+This work does not constitute investment advice, commercial guidance, or
+strategic recommendations.
+
+------------------------------------------------------------------------
+
+## Closing Reflection
+
+::: callout-note
+The value of this framework lies not in its predictions, but in its
+structure. By making analog selection defensible, assumptions
+transparent, and trade-offs explicit, it provides a foundation for
+**disciplined commercial planning conversations**—conversations that
+connect forecast ranges to revenue-at-risk and timing decisions to
+resource commitments.
+
+In launch planning, clarity about what we don't know is often more
+valuable than false confidence about what we do.
+:::
