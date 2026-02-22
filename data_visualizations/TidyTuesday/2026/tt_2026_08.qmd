@@ -1,0 +1,512 @@
+---
+title: "More Than Money: How Science Foundation Ireland Built a National Research Ecosystem"
+subtitle: "Funding fluctuated with economic cycles, but the number of institutions entering SFI grew steadily — accelerating in the 2010s before dissolution in July 2024."
+description: "A two-panel time series examining Science Foundation Ireland's 24-year legacy (2001–2024). While annual grant commitments fluctuated with economic cycles — peaking at €469M in 2019 — the number of institutions entering the SFI ecosystem grew steadily, with 59 new institutions joining in 2013–2017 alone."
+date: "2026-02-22"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_08.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "Science Foundation Ireland",
+  "Research Funding",
+  "Higher Education",
+  "Ireland",
+  "Time Series",
+  "Area Chart",
+  "Bar Chart",
+  "Patchwork",
+  "Institutional Analysis",
+  "STEM",
+  "Public Policy",
+  "ggplot2"
+]
+image: "thumbnails/tt_2026_08.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![A two-panel time series (2001–2024) exploring Science Foundation Ireland's legacy. The top panel shows annual grant commitments as a teal area chart, peaking at €469M in 2019 before a sharp 2024 drop reflecting SFI's July dissolution. The bottom panel shows new institutions funded each year as a bar chart, with 2013–2017 highlighted in teal, during which 59 new institutions entered the ecosystem. Together, the panels argue that while SFI's funding fluctuated, its institutional reach grew steadily until the end. Note: totals reflect commitments by grant start year, not annual expenditure; 2024 is a partial year.](tt_2026_08.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, 
+    scales, glue, patchwork
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 08)
+sfi_grants_raw <- tt$sfi_grants |> clean_names()
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(sfi_grants_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- base clean ----
+sfi <- sfi_grants_raw |>
+  filter(
+    !is.na(current_total_commitment),
+    current_total_commitment > 0,
+    !is.na(start_date),
+    !is.na(research_body),
+    research_body != ""
+  ) |>
+  mutate(year = lubridate::year(start_date))
+
+### |- Panel 1: annual funding totals ----
+annual_funding <- sfi |>
+  group_by(year) |>
+  summarise(
+    total_funding = sum(current_total_commitment, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(year)
+
+peak_year <- annual_funding |> slice_max(total_funding, n = 1)
+
+### |- Panel 2: new institutions per year ----
+inst_by_year <- sfi |>
+  group_by(research_body) |>
+  summarise(first_year = min(year, na.rm = TRUE), .groups = "drop") |>
+  count(first_year, name = "new_inst") |>
+  arrange(first_year)
+
+# Surge callout stat
+surge_total <- inst_by_year |>
+  filter(first_year >= 2013, first_year <= 2017) |>
+  summarise(n = sum(new_inst)) |>
+  pull(n)
+
+total_inst <- sum(inst_by_year$new_inst)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+      "accent"       = "#006D77",  
+      "accent_light" = "#83C5BE",   
+      "bar_muted"    = "#CFD8DC",   
+      "peak"         = "#E29578",
+      "text_light"   = "#90A4AE"
+    )
+)
+
+### |- titles and caption ----
+title_text <- str_glue(
+    "More Than Money: How Science Foundation Ireland Built a National Research Ecosystem"
+)
+
+subtitle_text <- str_glue(
+    "Funding fluctuated with economic cycles, but the number of institutions entering SFI grew steadily \u2014
+accelerating in the 2010s before dissolution in July 2024.
+Annual totals reflect commitments for grants starting that year (not annual expenditure). 2024 is a partial year."
+)
+
+caption_text <- create_social_caption(
+    tt_year     = 2026,
+    tt_week     = 08,
+    source_text = "Ireland's Open Data Portal"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(
+      face = "bold", family = fonts$title, size = rel(1.3),
+      color = colors$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_text(
+      face = "italic", family = fonts$subtitle, lineheight = 1.2,
+      color = colors$subtitle, size = rel(0.8), margin = margin(b = 20), hjust = 0
+    ),
+
+    # Grid
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.25),
+
+    # Axes
+    axis.title = element_text(size = rel(0.8), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.85)),
+    axis.ticks = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(0.9),
+      margin = margin(t = 6, b = 4)
+    ),
+    panel.spacing = unit(1.5, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$subtitle,
+      color = colors$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(10, 20, 10, 20),
+    
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Panel 1: C1 — Annual Funding ----
+p1 <- annual_funding |>
+  ggplot(aes(x = year, y = total_funding)) +
+  # Annotate
+  annotate("rect",
+    xmin = 2008, xmax = 2009.5,
+    ymin = -Inf, ymax = Inf,
+    fill = "gray85", alpha = 0.5
+  ) +
+  annotate("text",
+    x = 2008.75, y = max(annual_funding$total_funding) * 0.96,
+    label = "Financial\nCrisis",
+    size = 2.5, color = colors$palette["text_light"],
+    hjust = 0.5, lineheight = 0.85,
+    family = fonts$text
+  ) +
+  # Geom
+  geom_area(fill = colors$palette["accent_light"], alpha = 0.35) +
+  geom_line(color = colors$palette["accent"], linewidth = 0.9) +
+  geom_point(
+    data = peak_year,
+    aes(x = year, y = total_funding),
+    color = colors$palette["peak"],
+    size = 3,
+    shape = 21,
+    fill = colors$palette["peak"],
+    stroke = 0.5
+  ) +
+  geom_text(
+    data = peak_year,
+    aes(
+      x = year,
+      y = total_funding,
+      label = glue(
+        "Peak: {dollar(total_funding, prefix = '\u20ac', suffix = 'M', scale = 1e-6, accuracy = 1)}\n({year})"
+      )
+    ),
+    nudge_y = max(annual_funding$total_funding) * 0.07,
+    nudge_x = -1.5,
+    size = 3,
+    color = colors$palette["peak"],
+    fontface = "bold",
+    family = fonts$text,
+    lineheight = 0.9
+  ) +
+  geom_vline(
+    xintercept = 2024, linetype = "dashed",
+    color = colors$palette["text_light"], linewidth = 0.5
+  ) +
+  annotate("text",
+    x = 2023.8, y = max(annual_funding$total_funding) * 0.55,
+    label = "SFI Dissolved\nJul 2024\n(partial year)",
+    size = 2.5, color = colors$palette["text_light"],
+    hjust = 1, lineheight = 0.9,
+    family = fonts$text
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = label_dollar(prefix = "\u20ac", suffix = "M", scale = 1e-6, accuracy = 1),
+    expand = expansion(mult = c(0.02, 0.12))
+  ) +
+  scale_x_continuous(breaks = seq(2001, 2024, 4), limits = c(2001, 2025)) +
+  # Labs
+  labs(
+      x = "Year",
+      y = "Total Annual\nCommitment"
+      ) +
+  # Theme
+  theme(
+    axis.title.y = element_text(
+      angle = 0,
+      vjust = 1.02,
+      hjust = 0.5,
+      margin = margin(r = -50)
+    )
+  )
+
+### |- Panel 2: C18 — New Institutions per Year ----
+p2 <- inst_by_year |>
+  ggplot(aes(x = first_year, y = new_inst)) +
+  # Annotate
+  annotate("rect",
+    xmin = 2012.5, xmax = 2017.5,
+    ymin = -Inf, ymax = Inf,
+    fill = colors$palette["accent"], alpha = 0.07
+  ) +
+  # Geoms
+  geom_col(
+    aes(fill = first_year >= 2013 & first_year <= 2017),
+    width = 0.75,
+    show.legend = FALSE
+  ) +
+  geom_vline(
+    xintercept = 2024, linetype = "dashed",
+    color = colors$palette["text_light"], linewidth = 0.5
+  ) +
+  annotate("text",
+    x = 2015, y = 21,
+    label = glue("{surge_total} new institutions\nentered in 2013\u20132017 alone"),
+    hjust = 0.5, size = 3,
+    color = colors$palette["accent"],
+    fontface = "bold",
+    lineheight = 0.9,
+    family = fonts$text
+  ) +
+  annotate("text",
+    x = 2023.8, y = max(inst_by_year$new_inst) * 0.6,
+    label = "SFI Dissolved\nJul 2024",
+    size = 2.5, color = colors$text,
+    hjust = 1, lineheight = 0.9,
+    family = fonts$text
+  ) +
+  # Scales
+  scale_fill_manual(
+    values = c(
+      "TRUE" = colors$palette["accent"],
+      "FALSE" = colors$palette["bar_muted"]
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, max(inst_by_year$new_inst), 5),
+    expand = expansion(mult = c(0.02, 0.15))
+  ) +
+  scale_x_continuous(breaks = seq(2001, 2024, 4), limits = c(2001, 2025)) +
+  # Labs
+  labs(
+      x = " First Year",
+      y = "New Institutions\nFunded (per year)"
+      ) +
+  # Theme
+  theme(
+    axis.title.y = element_text(
+      angle = 0,
+      vjust = 1.02,
+      hjust = 0.5,
+      margin = margin(r = -50)
+    )
+  )
+
+### |- Combined Plots ----
+combined_plots <- p1 / p2 +
+  plot_layout(heights = c(1, 1)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      axis.title.y = element_text(
+        angle = 0,
+        vjust = 1.04,
+        hjust = 0.5,
+        margin = margin(r = -100)
+      ),
+      plot.title = element_text(
+        size = rel(1.3),
+        family = fonts$title,
+        face = "bold",
+        color = colors$title,
+        lineheight = 1.15,
+        margin = margin(t = 0, b = 5)
+      ),
+      plot.subtitle = element_text(
+        size = rel(0.8),
+        family = fonts$subtitle,
+        color = alpha(colors$subtitle, 0.88),
+        lineheight = 1.5,
+        margin = margin(t = 5, b = 30)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.55),
+        family = fonts$subtitle,
+        color = colors$caption,
+        hjust = 0,
+        lineheight = 1.4,
+        margin = margin(t = 20, b = 5)
+      )
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 08, 
+  width  = 10,
+  height = 8,
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_08.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_08.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 08: [Science Foundation Ireland Grants Commitments](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-02-24/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
