@@ -145,6 +145,7 @@ ahrf_list |> walk(glimpse)
 
 ```{r}
 #| label: tidy
+#| output: false
 
 ### |- safe cleaner: replace NA and negative codes with 0 ----
 # AHRF sometimes encodes missing as -1, -9, etc.
@@ -302,6 +303,7 @@ theme_set(weekly_theme)
 
 ```{r}
 #| label: plot
+#| output: false
 
 ### |- county geometry ----
 counties_sf <- counties(cb = TRUE, year = 2022, resolution = "20m") |>
