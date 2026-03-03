@@ -1,0 +1,534 @@
+---
+title: "Too Many Males, Too Few Females"
+subtitle: "Island captures show a persistent male bias; females are in poorer condition and lay smaller clutches."
+description: "A three-panel patchwork visualization exploring 16 years of capture-recapture data from a Hermann's tortoise population on Golem Grad island (Lake Prespa, North Macedonia). Island captures show a persistent and severe male bias — females represent fewer than 10% of annual captures — and island females exhibit lower body condition scores and smaller clutch sizes compared to mainland counterparts."
+date: "2026-03-03"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_09.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "Hermann's Tortoise",
+  "Wildlife Ecology",
+  "Population Biology",
+  "Sex Ratio",
+  "Patchwork",
+  "Multi-Panel",
+  "Line Chart",
+  "Violin Plot",
+  "Dot Plot",
+  "Confidence Intervals",
+  "ggplot2",
+  "Conservation"
+]
+image: "thumbnails/tt_2026_09.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![A three-panel data visualization titled "Too Many Males, Too Few Females" examines Hermann's tortoise captures from Golem Grad island (Lake Prespa) over 16 years. Panel A shows a line chart of the percentage of female captures on the island from 2008 to 2023, consistently hovering near 5–10% — far below the 50% parity reference line. Panel B displays violin plots comparing the body condition index of mainland versus island females; mainland females (median: 8.1, n=976) show notably higher body condition than island females (median: 6.3, n=268). Panel C presents a dot plot of clutch size by locality; island females average 3 eggs per clutch (n=22) compared to a mainland average of 6 eggs per clutch (n=31). Together, the panels illustrate a cause-to-consequence chain: extreme male bias on the island is associated with poorer female body condition and reduced reproductive output.](tt_2026_09.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, 
+    scales, glue, patchwork, binom
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 9,
+  height = 9,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 09)
+clutch_size_raw <- tt$clutch_size_cleaned |> clean_names()
+tortoise_body_raw <- tt$tortoise_body_condition_cleaned |> clean_names()
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(clutch_size_raw)
+glimpse(tortoise_body_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- locality label mapping ----
+loc_map <- c(
+  "Plateau" = "Island",
+  "Konjsko" = "Mainland",
+  "Beach"   = "Island (Beach)"
+)
+
+### |- clean tortoise body data ----
+tortoise_body <- tortoise_body_raw |>
+  mutate(
+    sex          = str_to_upper(sex),
+    locality     = str_to_title(locality),
+    season       = str_to_title(season),
+    locality_lbl = recode(locality, !!!loc_map),
+    locality_lbl = factor(locality_lbl, levels = c("Mainland", "Island"))
+  )
+
+### |- clean clutch data ----
+clutch_size <- clutch_size_raw |>
+  mutate(
+    locality     = str_to_title(locality),
+    locality_lbl = recode(locality, !!!loc_map),
+    locality_lbl = factor(locality_lbl, levels = c("Mainland", "Island"))
+  )
+
+## ── PANEL A: % Female Captures Over Time ----
+pa_data <- tortoise_body |>
+    filter(
+        sex %in% c("M", "F"),
+        locality == "Plateau"
+    ) |> # island only — matches headline claim
+    count(year, sex) |>
+    pivot_wider(names_from = sex, values_from = n, values_fill = 0) |>
+    mutate(
+        total    = M + F,
+        ci       = binom::binom.wilson(F, total),
+        pct_f    = F / total,
+        ci_lower = ci$lower,
+        ci_upper = ci$upper
+    )
+
+## ── PANEL B: Female Body Condition Index — Island vs. Mainland ----
+pb_data <- tortoise_body |>
+    filter(
+        sex == "F",
+        locality %in% c("Plateau", "Konjsko"),
+        !is.na(body_condition_index)
+    )
+
+# summary stats for annotation
+pb_stats <- pb_data |>
+    group_by(locality_lbl) |>
+    summarise(
+        med = median(body_condition_index, na.rm = TRUE),
+        n = n(),
+        .groups = "drop"
+    )
+
+## ── PANEL C: Clutch Size by Locality ----
+pc_data <- clutch_size |>
+    filter(
+        !is.na(eggs),
+        locality %in% c("Beach", "Konjsko", "Plateau")
+    ) |>
+    # consolidate island localities
+    mutate(
+        locality_lbl = case_when(
+            locality_lbl == "Mainland" ~ "Mainland",
+            TRUE ~ "Island"
+        ),
+        locality_lbl = factor(locality_lbl, levels = c("Mainland", "Island"))
+    )
+
+pc_stats <- pc_data |>
+    group_by(locality_lbl) |>
+    summarise(
+        mean_eggs = mean(eggs, na.rm = TRUE),
+        med_eggs  = median(eggs, na.rm = TRUE),
+        n         = n(),
+        .groups   = "drop"
+    )
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+      "accent" = "#C0392B",   
+      "neutral" = "gray70",    
+      "ribbon"  = "#C0392B"   
+    )
+)
+
+### |- titles and caption ----
+title_text    <- str_glue("Too Many Males, Too Few Females")
+
+subtitle_text <- str_glue(
+    "Island captures show a persistent male bias; ",
+    "females are in poorer condition and lay smaller clutches."
+)
+
+caption_text <- create_social_caption(
+    tt_year      = 2026,
+    tt_week      = 09,
+    source_text  = "Bertolero et al. (2026) · Ecology Letters · #TidyTuesday"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(
+      face = "bold", family = 'sans', size = rel(1.1),
+      color = colors$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_text(
+      face = "italic", family = 'sans', lineheight = 1.2,
+      color = colors$subtitle, size = rel(0.7), margin = margin(b = 20), hjust = 0
+    ),
+
+    # Grid
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major = element_line(color = "gray90", linewidth = 0.25),
+
+    # Axes
+    axis.title = element_text(size = rel(0.6), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.6)),
+    axis.ticks = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(0.9),
+      margin = margin(t = 6, b = 4)
+    ),
+    panel.spacing = unit(1.5, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$subtitle,
+      color = colors$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(10, 20, 10, 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+## ── PANEL A: % Female Captures Over Time ----
+pa <- ggplot(pa_data, aes(x = year, y = pct_f)) +
+  # Geom
+  geom_hline(
+    yintercept = 0.5, linetype = "dashed",
+    color = "gray80", linewidth = 0.4
+  ) +
+  annotate("text",
+    x = 2008, y = 0.52, label = "50% parity",
+    size = 2.6, color = "gray65", hjust = 0, fontface = "italic"
+  ) +
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper),
+    fill = colors$palette$ribbon, alpha = 0.15
+  ) +
+  geom_line(color = colors$palette$accent, linewidth = 1) +
+  geom_point(
+    color = colors$palette$accent, size = 2.2, shape = 21,
+    fill = "white", stroke = 1.2
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = label_percent(accuracy = 1),
+    limits = c(0, 0.55),
+    breaks = seq(0, 0.5, 0.1)
+  ) +
+  scale_x_continuous(breaks = seq(2008, 2023, 3)) +
+  # Labs
+  labs(
+    title    = "A · Persistent male bias in captures",
+    subtitle = "Island (Plateau) captures only · Wilson 95% CI shaded",
+    x        = NULL,
+    y        = "% of captures that are female"
+  )
+
+## ── PANEL B: Female Body Condition Index — Island vs. Mainland ----
+pb <- ggplot(
+  pb_data,
+  aes(
+    x = locality_lbl, y = body_condition_index,
+    fill = locality_lbl
+  )
+) +
+  # Geoms
+  geom_violin(alpha = 0.55, color = NA, width = 0.85) +
+  geom_boxplot(
+    width = 0.12, fill = "white", color = "gray40",
+    outlier.shape = NA, linewidth = 0.5
+  ) +
+  geom_text(
+    data = pb_stats,
+    aes(
+      x = locality_lbl,
+      y = max(pb_data$body_condition_index, na.rm = TRUE) + 0.3,
+      label = glue("median: {round(med, 1)}")
+    ),
+    size = 2.6, color = "gray45", fontface = "italic",
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = pb_stats,
+    aes(
+      x = locality_lbl,
+      y = min(pb_data$body_condition_index, na.rm = TRUE) - 0.4,
+      label = glue("n = {comma(n)}")
+    ),
+    size = 2.8, color = "gray50", inherit.aes = FALSE
+  ) +
+  # Scales
+  scale_fill_manual(values = c("Mainland" = colors$palette$neutral, "Island" = colors$palette$accent)) +
+  scale_y_continuous(
+    n.breaks = 5,
+    limits = c(
+      min(pb_data$body_condition_index, na.rm = TRUE) - 0.6,
+      max(pb_data$body_condition_index, na.rm = TRUE) + 0.7
+    )
+  ) +
+  # Labs
+  labs(
+    title    = "B · Island females in poorer condition",
+    subtitle = "Body condition index · Females only",
+    x        = NULL,
+    y        = "Body condition index"
+  )
+
+## ── PANEL C: Clutch Size by Locality ----
+pc <- ggplot(pc_data, aes(x = eggs, y = locality_lbl, color = locality_lbl)) +
+  # Geoms
+  geom_jitter(
+    size = 3, alpha = 0.75,
+    position = position_jitter(height = 0.12, seed = 42)
+  ) +
+  geom_point(
+    data = pc_stats,
+    aes(x = mean_eggs, y = locality_lbl, color = locality_lbl),
+    shape = 23, size = 5.5, fill = "white",
+    stroke = 1.5, inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = pc_stats,
+    aes(
+      x = mean_eggs, y = locality_lbl,
+      label = glue("mean: {round(mean_eggs, 1)}")
+    ),
+    nudge_y = 0.28, size = 2.8, color = "gray40",
+    fontface = "italic", inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = pc_stats,
+    aes(
+      x = 13.8, y = locality_lbl,
+      label = glue("n = {n}")
+    ),
+    size = 2.8, color = "gray50", hjust = 1, inherit.aes = FALSE
+  ) +
+  # Scales
+  scale_color_manual(values = c("Mainland" = colors$palette$neutral, "Island" = colors$palette$accent)) +
+  scale_x_continuous(breaks = 2:14, limits = c(2, 14)) +
+  scale_y_discrete() +
+  # Labs
+  labs(
+    title    = "C · Island females lay fewer eggs",
+    subtitle = "Eggs per clutch · Diamond = mean per group",
+    x        = "Eggs per clutch",
+    y        = NULL
+  )
+
+
+## ── Combined Plots ----
+combined_plots <- (pa / pb / pc) +
+    plot_annotation(
+        title    = title_text,
+        subtitle = subtitle_text,
+        caption  = caption_text,
+        theme    = theme(
+            plot.title = element_text(
+                size = rel(1.4),
+                family = 'sans',
+                face = "bold",
+                color = colors$title,
+                lineheight = 1.15,
+                margin = margin(t = 0, b = 5)
+            ),
+            plot.subtitle = element_text(
+                size = rel(0.8),
+                family = 'sans',
+                color = alpha(colors$subtitle, 0.88),
+                lineheight = 1.5,
+                margin = margin(t = 5, b = 5)
+            ),
+            plot.caption = element_markdown(
+                size = rel(0.5),
+                family = fonts$subtitle,
+                color = colors$caption,
+                hjust = 0,
+                lineheight = 1.4,
+                margin = margin(t = 20, b = 5)
+            )
+        )
+    )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 09, 
+  width  = 9,
+  height = 9,
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_09.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_09.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 09: [Golem Grad Tortoise Data](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-03-03/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
