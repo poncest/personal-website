@@ -1,0 +1,644 @@
+---
+title: "Norway's Farmed Salmon Mortality Shows Little Improvement Since 2020"
+subtitle: "National trend, regional gaps, and loss composition in Atlantic salmon farming, 2020–2025"
+description: "A three-panel analysis of Norwegian farmed salmon mortality data (2020–2025) from the Norwegian Veterinary Institute. Explores whether national mortality rates have improved over time, how much variation exists across farming counties, and what types of losses — beyond death — characterize the industry."
+date: "2026-03-16"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_11.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "Aquaculture",
+  "Animal Welfare",
+  "Norway",
+  "Mortality",
+  "Time Series",
+  "Lollipop Chart",
+  "Stacked Area Chart",
+  "Multi-Panel",
+  "Patchwork",
+  "ggplot2"
+]
+image: "thumbnails/tt_2026_11.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![A three-panel chart titled "Norway's Farmed Salmon Mortality Shows Little Improvement Since 2020." Panel A shows national median monthly mortality for Atlantic salmon from 2020 to 2025 with an interquartile range ribbon. The trend fluctuates seasonally but hovers near the 2020 baseline of roughly 0.5%, with no sustained downward movement. Panel B is a horizontal lollipop chart of average median mortality by Norwegian county. Vestland, Agder & Rogaland, and Møre og Romsdal sit above the national average in burgundy; Nordland, Troms, and Finnmark fall well below in slate blue; Trøndelag sits near the national average in gray. Panel C shows stacked area charts of monthly loss composition for Atlantic Salmon and Rainbow Trout from 2020 to 2025. Dead fish in burgundy dominate both species, accounting for roughly 75–90% of losses, with discarded, escaped, and other losses forming a smaller but persistent share at the base.](tt_2026_11.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor,      
+    scales, glue, skimr, patchwork, lubridate    
+    )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 12,
+  height = 10,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 11)
+monthly_losses_data <- tt$monthly_losses_data |> clean_names()
+monthly_mortality_data <- tt$monthly_mortality_data |> clean_names()
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(monthly_losses_data)
+glimpse(monthly_mortality_data)
+
+skim_without_charts(monthly_losses_data)
+skim_without_charts(monthly_mortality_data)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- species label lookup ----
+species_labels <- c(
+  "salmon"       = "Atlantic Salmon",
+  "rainbowtrout" = "Rainbow Trout"
+)
+
+### |- Panel A: national trend (Atlantic Salmon only) ----
+panel_a_data <- monthly_mortality_data |>
+  filter(
+    geo_group == "country",
+    species == "salmon"
+  ) |>
+  arrange(date)
+
+baseline_2020 <- panel_a_data |>
+  filter(year(date) == 2020) |>
+  summarise(baseline = mean(median, na.rm = TRUE)) |>
+  pull(baseline)
+
+### |- Panel B: county-level regional comparison (Atlantic Salmon) ----
+panel_b_data <- monthly_mortality_data |>
+  filter(
+    geo_group == "county",
+    species == "salmon"
+  ) |>
+  group_by(region) |>
+  summarise(
+    avg_median = mean(median, na.rm = TRUE),
+    avg_q1     = mean(q1, na.rm = TRUE),
+    avg_q3     = mean(q3, na.rm = TRUE),
+    .groups    = "drop"
+  )
+
+# Tolerance band around national average to handle near-average regions
+national_avg_b <- mean(panel_b_data$avg_median, na.rm = TRUE)
+tol <- 0.015
+
+panel_b_data <- panel_b_data |>
+  mutate(
+    rank_high = min_rank(desc(avg_median)),
+    rank_low = min_rank(avg_median),
+    region_group = case_when(
+      abs(avg_median - national_avg_b) <= tol ~ "Near average",
+      avg_median > national_avg_b & rank_high <= 3 ~ "Highest",
+      avg_median < national_avg_b & rank_low <= 3 ~ "Lowest",
+      TRUE ~ "Middle"
+    ),
+    region = fct_reorder(region, avg_median)
+  )
+
+### |- Panel C: national loss composition (country level, both species) ----
+panel_c_data <- monthly_losses_data |>
+  filter(
+    geo_group == "country",
+    losses > 0
+  ) |>
+  mutate(
+    species_label = factor(
+      species_labels[species],
+      levels = c("Atlantic Salmon", "Rainbow Trout")
+    ),
+    pct_dead = dead / losses,
+    pct_discarded = discarded / losses,
+    pct_escaped = escaped / losses,
+    pct_other = other / losses
+  ) |>
+  select(
+    date, species_label,
+    pct_dead, pct_discarded, pct_escaped, pct_other
+  ) |>
+  pivot_longer(
+    cols      = starts_with("pct_"),
+    names_to  = "loss_type",
+    values_to = "proportion"
+  ) |>
+  mutate(
+    loss_type = recode(
+      loss_type,
+      "pct_dead"      = "Dead",
+      "pct_discarded" = "Discarded",
+      "pct_escaped"   = "Escaped",
+      "pct_other"     = "Other"
+    ),
+    # Keep minority categories at the bottom for visibility
+    loss_type = factor(
+      loss_type,
+      levels = c("Other", "Escaped", "Discarded", "Dead")
+    )
+  )
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = list(
+        col_salmon    = "#7A1E3A",  
+        col_discarded = "#B86B4B",  
+        col_escaped   = "#7C93B6",  
+        col_other     = "#A7B0AB",   
+        col_high      = "#7A1E3A",   
+        col_low       = "#6F7D8C",   
+        col_mid       = "#C9CDD3",  
+        col_ribbon    = "#C9A3AE",   
+        col_ref       = "#6B6B6B",   
+        col_dark      = "#1F2430",   
+        col_gray      = "gray50"
+    )
+)
+
+### |- titles and caption ----
+title_text <- "Norway's Farmed Salmon Mortality Shows Little Improvement Since 2020"
+
+subtitle_text <- paste(
+    "National trend, regional gaps, and loss composition",
+    "in Atlantic salmon farming, 2020–2025"
+)
+
+caption_text <- create_social_caption(
+    tt_year     = 2026,
+    tt_week     = 11,
+    source_text = "Norwegian Veterinary Institute · Laksetap Shiny App & API"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+# Start with base theme
+base_theme <- create_base_theme(colors)
+
+# Add weekly-specific theme elements
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Text styling
+    plot.title = element_text(
+      face = "bold", family = fonts$title, size = rel(1.1),
+      color = colors$title, margin = margin(b = 10), hjust = 0
+    ),
+    plot.subtitle = element_text(
+      face = "italic", family = fonts$subtitle, lineheight = 1.2,
+      color = colors$subtitle, size = rel(0.7), margin = margin(b = 20), hjust = 0
+    ),
+
+    # Grid
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor   = element_blank(),
+    
+    # Axes
+    axis.title = element_text(size = rel(0.6), color = "gray30"),
+    axis.text = element_text(color = "gray30"),
+    axis.text.y = element_text(size = rel(0.6)),
+    axis.ticks = element_blank(),
+    axis.title.y = element_blank(),
+
+    # Facets
+    strip.background = element_rect(fill = "gray95", color = NA),
+    strip.text = element_text(
+      face = "bold",
+      color = "gray20",
+      size = rel(0.9),
+      margin = margin(t = 6, b = 4)
+    ),
+    panel.spacing = unit(1.5, "lines"),
+
+    # Legend elements
+    legend.position = "plot",
+    legend.title = element_text(
+      family = fonts$subtitle,
+      color = colors$text, size = rel(0.8), face = "bold"
+    ),
+    legend.text = element_text(
+      family = fonts$tsubtitle,
+      color = colors$text, size = rel(0.7)
+    ),
+    legend.margin = margin(t = 15),
+
+    # Plot margin
+    plot.margin = margin(10, 20, 10, 20),
+  )
+)
+
+# Set theme
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Panel A: National Trend ----
+pa <- panel_a_data |>
+  ggplot(aes(x = date)) +
+  # Geoms
+  geom_ribbon(
+    aes(ymin = q1, ymax = q3),
+    fill = colors$palette$col_ribbon,
+    alpha = 0.28
+  ) +
+  geom_line(
+    aes(y = median),
+    color = colors$palette$col_salmon,
+    linewidth = 1.0
+  ) +
+  geom_hline(
+    yintercept = baseline_2020 * 1.06,
+    linetype   = "dashed",
+    color      = colors$palette$col_ref,
+    linewidth  = 0.5,
+    alpha      = 0.75
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x      = as.Date("2020-03-30"),
+    y      = baseline_2020 * 1.35,
+    label  = "2020 baseline",
+    size   = 2.8,
+    color  = colors$palette$col_ref,
+    hjust  = 0,
+    family = fonts$text
+  ) +
+  # Scales
+  scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y",
+    expand      = c(0.01, 0)
+  ) +
+  scale_y_continuous(
+    labels = label_number(suffix = "%", accuracy = 0.1),
+    expand = expansion(mult = c(0.03, 0.12))
+  ) +
+  # Labs
+  labs(
+    title    = "A. Has Mortality Improved?",
+    subtitle = "National median monthly mortality with IQR · Atlantic salmon",
+    x        = NULL,
+    y        = "Median monthly\nmortality rate (%)"
+  ) +
+  # Theme
+  theme(
+    axis.title.y = element_text(
+      size       = rel(0.78),
+      lineheight = 1.2,
+      angle      = 90,
+      margin     = margin(r = 6)
+    )
+  )
+
+### |- Panel B: Regional Gaps ----
+pb <- panel_b_data |>
+  ggplot(aes(y = region)) +
+  # Geoms
+  geom_vline(
+    xintercept = national_avg_b,
+    linetype   = "dashed",
+    color      = colors$palette$col_ref,
+    linewidth  = 0.5,
+    alpha      = 0.8
+  ) +
+  geom_segment(
+    aes(
+      x    = avg_q1,
+      xend = avg_q3,
+      yend = region
+    ),
+    color = "gray80",
+    linewidth = 0.5,
+    alpha = 0.9
+  ) +
+  geom_segment(
+    aes(
+      x     = national_avg_b,
+      xend  = avg_median,
+      yend  = region,
+      color = region_group
+    ),
+    linewidth = 0.9,
+    alpha = 0.95
+  ) +
+  geom_point(
+    aes(x = avg_median, color = region_group),
+    size = 2.8
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x          = national_avg_b + 0.02,
+    y          = 6.5,
+    label      = "National\naverage",
+    size       = 2.5,
+    hjust      = 0,
+    lineheight = 1.05,
+    color      = colors$palette$col_ref,
+    family     = fonts$text
+  ) +
+  # Scales
+  scale_color_manual(
+    values = c(
+      "Highest"      = colors$palette$col_high,
+      "Lowest"       = colors$palette$col_low,
+      "Near average" = "#8A8F99",
+      "Middle"       = colors$palette$col_mid
+    )
+  ) +
+  scale_x_continuous(
+    limits = c(0.25, 1.0),
+    labels = label_number(suffix = "%", accuracy = 0.1),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  # Labs
+  labs(
+    title    = "B. How Wide Are Regional Gaps?",
+    subtitle = "Average median mortality by county · Atlantic salmon",
+    x        = "Average median mortality (%)",
+    y        = NULL
+  ) +
+  # Theme
+  theme(
+    axis.text.y = element_text(size = rel(0.75)),
+    panel.grid.major.x = element_line(color = "gray93", linewidth = 0.3),
+    panel.grid.major.y = element_blank(),
+    legend.position = "none",
+  )
+
+### |- Panel C: Loss Composition ----
+pc <- panel_c_data |>
+  ggplot(aes(x = date, y = proportion, fill = loss_type)) +
+  # Geoms
+  geom_area(
+    position = "fill",
+    alpha    = 0.88
+  ) +
+  geom_hline(
+    yintercept = 0.75,
+    linetype   = "dotted",
+    color      = "white",
+    linewidth  = 0.45,
+    alpha      = 0.55
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    breaks = c(0, 0.25, 0.50, 0.75, 1.00),
+    expand = c(0, 0)
+  ) +
+  scale_x_date(
+    breaks = as.Date(c("2020-01-01", "2023-01-01", "2025-01-01")),
+    labels = c("2020", "2023", "2025"),
+    expand = c(0.01, 0)
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Dead"      = colors$palette$col_salmon,
+      "Discarded" = colors$palette$col_discarded,
+      "Escaped"   = colors$palette$col_escaped,
+      "Other"     = colors$palette$col_other
+    ),
+    breaks = c("Dead", "Discarded", "Escaped", "Other")
+  ) +
+  # Faceta
+  facet_wrap(~species_label, ncol = 2) +
+  # Labs
+  labs(
+    title    = "C. Death Dominates — But Not Entirely",
+    subtitle = "Monthly composition of total losses · Country level",
+    x        = NULL,
+    y        = "Share of\nmonthly losses",
+    fill     = "Loss type"
+  ) +
+  # Theme
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal",
+    legend.justification = "left",
+    legend.key.size = unit(0.55, "lines"),
+    legend.text = element_text(size = rel(0.75), family = fonts$text),
+    legend.title = element_text(
+      size   = rel(0.78),
+      family = fonts$text,
+      face   = "bold"
+    ),
+    legend.margin = margin(b = 2),
+    axis.title.y = element_text(
+      size       = rel(0.78),
+      lineheight = 1.2,
+      angle      = 90,
+      margin     = margin(r = 6)
+    ),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray93", linewidth = 0.3),
+    plot.tag = element_text(
+      face   = "bold",
+      size   = rel(1.05),
+      family = fonts$title,
+      color  = colors$palette$col_dark
+    )
+  )
+
+### |- Combined Plots ----
+layout <- "
+AAAA
+BBCC
+"
+
+comnined_plot <- pa + pb + pc +
+  plot_layout(
+    design  = layout,
+    heights = c(1.45, 1)
+  ) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        face       = "bold",
+        size       = rel(1.22),
+        family     = fonts$title,
+        color      = colors$palette$col_dark,
+        margin     = margin(b = 4),
+        lineheight = 1.15
+      ),
+      plot.subtitle = element_text(
+        size       = rel(0.88),
+        family     = fonts$text,
+        color      = "gray40",
+        lineheight = 1.35,
+        margin     = margin(b = 12)
+      ),
+      plot.caption = element_markdown(
+        size   = rel(0.68),
+        family = fonts$text,
+        color  = "gray50",
+        hjust  = 0,
+        margin = margin(t = 10)
+      ),
+      plot.margin = margin(t = 20, r = 20, b = 12, l = 20)
+    )
+  )
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = comnined_plot, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 11, 
+  width  = 12,
+  height = 10,
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_11.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_11.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 11: [Salmonid Mortality Data](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-03-17/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
