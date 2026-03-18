@@ -1,6 +1,6 @@
 ---
-title: "The World's Fastest Cars: Engineering Value and Extreme Scarcity"
-subtitle: "Burgundy = above median cost / below median efficiency.  Steel blue = below median cost / above median efficiency."
+title: "The World's Fastest Cars: Some Sell Engineering, Others Sell Exclusivity"
+subtitle: "Top: deviation from the median in cost per horsepower and speed delivered per horsepower. Burgundy = worse value; steel blue = better value. Bottom: the same cars by  units produced. Each filled square = one car built."
 description: "Redesigning a raw data table into a two-panel patchwork: diverging bars comparing cost vs. speed efficiency per horsepower, paired with a unit chart showing the extreme scarcity of each model."
 date: "2026-03-17"
 author:
@@ -20,7 +20,9 @@ tags: [
   "hypercars",
   "engineering",
   "performance-metrics",
-  ]
+  "scarcity",
+  "2026"
+]
 image: "thumbnails/mm_2026_11.png"
 format:
   html:
@@ -98,7 +100,7 @@ The original visualization comes from `r create_link("Fastest Cars in the World 
 
 ### Makeover
 
-![A two-panel data visualization titled "The World's Fastest Cars: Engineering Value and Extreme Scarcity." The top panel features two diverging bar charts comparing eight hypercars against the median cost and speed per horsepower. The Bugatti Chiron SS 300+ stands out as the most expensive per horsepower at +\$1,151 above median, while the SSC Tuatara delivers the least speed per horsepower at -0.089 km/h below median. Hennessey models consistently fall below the median cost, indicating stronger engineering value. The bottom panel is a unit chart where each square represents one car produced, arranged in facets ordered from most to fewest units. The Rimac C Two leads with 150 units, while the Hennessey Venom GT is the rarest with just 13 units ever built. Cars are color-coded by country: burgundy for the USA, steel blue for France, light blue for Sweden, and dark blue for Croatia.](mm_2026_11.png){#fig-1}
+![A three-panel chart about the world's fastest cars. The top two panels are diverging bar charts showing deviation from the median in cost per horsepower (left) and speed per horsepower (right). Burgundy bars indicate worse value; steel blue indicates better value. The Bugatti Chiron SS 300+ is the most expensive per horsepower at +$1,151 above median, while the Rimac C Two and Hennessey models sit below median cost. The bottom panel is a waffle chart showing the total units produced for all eight cars. Each dark gray square represents one car built against a light gray grid of equal size, making rarity directly comparable. The Rimac C Two leads with 150 units; the Hennessey Venom GT is the rarest at just 13 units.](mm_2026_11.png){#fig-1}
 
 ### [**Steps to Create this Graphic**]{.mark}
 
@@ -124,7 +126,7 @@ camcorder::gg_record(
   dir    = here::here("temp_plots"),
   device = "png",
   width  = 14,
-  height = 12,
+  height = 11,
   units  = "in",
   dpi    = 320
 )
@@ -180,76 +182,27 @@ df <- df_raw |>
     speed_per_hp  = speed_per_hp_km_h_per_hp
   ) |>
   mutate(
-    # Full readable label: "Manufacturer Model"
     car_label = case_when(
-      car == "Hennessey Venom F5" ~ "Hennessey Venom F5",
+      car == "Hennessey Venom F5"              ~ "Hennessey Venom F5",
       car == "Bugatti Chiron Super Sport 300+" ~ "Bugatti Chiron SS 300+",
-      car == "SSC Tuatara" ~ "SSC Tuatara",
-      car == "Koenigsegg Jesko" ~ "Koenigsegg Jesko",
-      car == "Koenigsegg Agera RS" ~ "Koenigsegg Agera RS",
-      car == "Hennessey Venom GT" ~ "Hennessey Venom GT",
+      car == "SSC Tuatara"                     ~ "SSC Tuatara",
+      car == "Koenigsegg Jesko"                ~ "Koenigsegg Jesko",
+      car == "Koenigsegg Agera RS"             ~ "Koenigsegg Agera RS",
+      car == "Hennessey Venom GT"              ~ "Hennessey Venom GT",
       car == "Bugatti Veyron 16.4 Super Sport" ~ "Bugatti Veyron SS",
-      car == "Rimac C Two" ~ "Rimac C Two"
+      car == "Rimac C Two"                     ~ "Rimac C Two"
     ),
-    # Short label for C14 facet headers (space-constrained)
     car_short = case_when(
-      car == "Hennessey Venom F5" ~ "Venom F5",
+      car == "Hennessey Venom F5"              ~ "Venom F5",
       car == "Bugatti Chiron Super Sport 300+" ~ "Chiron SS 300+",
-      car == "SSC Tuatara" ~ "SSC Tuatara",
-      car == "Koenigsegg Jesko" ~ "Koenigsegg Jesko",
-      car == "Koenigsegg Agera RS" ~ "Agera RS",
-      car == "Hennessey Venom GT" ~ "Venom GT",
-      car == "Bugatti Veyron 16.4 Super Sport" ~ "Bugatti Veyron SS",
-      car == "Rimac C Two" ~ "Rimac C Two"
+      car == "SSC Tuatara"                     ~ "Tuatara",
+      car == "Koenigsegg Jesko"                ~ "Jesko",
+      car == "Koenigsegg Agera RS"             ~ "Agera RS",
+      car == "Hennessey Venom GT"              ~ "Venom GT",
+      car == "Bugatti Veyron 16.4 Super Sport" ~ "Veyron SS",
+      car == "Rimac C Two"                     ~ "C Two"
     )
   )
-
-### |- PANEL A: Diverging Bars — Luxury Premium vs. Engineering Efficiency ----
-
-### |-  data prep ----
-med_price_hp <- median(df$price_per_hp)
-med_speed_hp <- median(df$speed_per_hp)
-
-df_efficiency <- df |>
-  mutate(
-    price_hp_dev = price_per_hp - med_price_hp,
-    speed_hp_dev = speed_per_hp - med_speed_hp,
-    over_price   = price_hp_dev > 0,
-    over_speed   = speed_hp_dev > 0,
-    # Each panel sorted independently by its own deviation
-    label_price  = fct_reorder(car_label, price_hp_dev),
-    label_speed  = fct_reorder(car_label, speed_hp_dev)
-  )
-
-### |- PANEL B: Unit Chart — How Many Were Ever Built? ----
-
-### |-  data prep ----
-df_rarity <- df |>
-  select(car_short, manufacturer, units, country) |>
-  arrange(desc(units)) |>
-  mutate(
-    # Facet label: name + unit count
-    facet_label = glue("{car_short}\n{units} unit{ifelse(units == 1, '', 's')}"),
-    facet_label = factor(facet_label, levels = facet_label),
-    country     = factor(country, levels = c("USA", "France", "Sweden", "Croatia"))
-  )
-
-# Expand: one row per unit produced
-df_rarity_expanded <- df_rarity |>
-  rowwise() |>
-  reframe(
-    car_short = car_short,
-    facet_label = facet_label,
-    manufacturer = manufacturer,
-    country = country,
-    unit_id = seq_len(units)
-  ) |>
-  group_by(facet_label) |>
-  mutate(
-    col = (unit_id - 1) %% 15 + 1,
-    row = (unit_id - 1) %/% 15 + 1
-  ) |>
-  ungroup()
 ```
 
 #### [5. Visualization Parameters]{.smallcaps}
@@ -267,25 +220,20 @@ colors <- get_theme_colors(
     neutral_dark  = "#2B2B2B",
     neutral_mid   = "#6B6B6B",
     neutral_light = "#E5E5E5",
-    segment_neut  = "#C8C8C8",
-    highlight_bg  = "#F5EEF1"
+    grid_light    = "#D9D9D9",
+    empty_tile    = "#F0F0F0"
   )
 )
 
-# Country colors 
-country_cols <- list(
-  "USA"     = "#6D1A36",
-  "France"  = "#4A6FA5",
-  "Sweden"  = "#6B9DC2",   
-  "Croatia" = "#2B2B2B"    
-)
-
 ### |- Titles and caption ----
-title_text <- "The World's Fastest Cars: Engineering Value and Extreme Scarcity"
+title_text <- "The World's Fastest Cars: Some Sell Engineering, Others Sell Exclusivity"
 
 subtitle_text <- glue(
-  "<span style='color:{colors$palette$burgundy}'>**Burgundy**</span> = above median cost / below median efficiency.  ",
-  "<span style='color:{colors$palette$steel}'>**Steel blue**</span> = below median cost / above median efficiency."
+  "Top: deviation from the median in <b>cost per horsepower</b> and ",
+  "<b>speed delivered per horsepower</b>. ",
+  "<span style='color:{colors$palette$burgundy}'>Burgundy</span> = worse value; ",
+  "<span style='color:{colors$palette$steel}'>steel blue</span> = better value.<br>",
+  "Bottom: the same cars by <b>units produced</b>. Each filled square = one car built."
 )
 
 caption_text <- create_mm_caption(
@@ -304,26 +252,22 @@ base_theme <- create_base_theme(colors)
 weekly_theme <- extend_weekly_theme(
   base_theme,
   theme(
-    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.major.x = element_line(color = colors$palette$grid_light, linewidth = 0.3),
     panel.grid.major.y = element_blank(),
     axis.ticks         = element_blank(),
-    # axis.text.y handled per-panel (p_left uses selective bold; p_right hides it)
-    axis.text.x        = element_text(size = 9,   color = colors$palette$gray_mid),
-    axis.title.x = element_text(
-      face = "bold", size = rel(0.85),
-      margin = margin(t = 10), family = fonts$subtitle,
-      color = "gray40"
-    ),
+    axis.text.x        = element_text(size = 9, color = colors$palette$neutral_mid),
+    axis.text.y        = element_text(size = 10, color = colors$palette$neutral_mid),
+    axis.title         = element_blank(),
     plot.title = element_text(
-      size = rel(1.3), family = fonts$title, face = "bold",
-      color = colors$title, lineheight = 1.1, hjust = 0,
-      margin = margin(t = 5, b = 3)
+      size = rel(1.25), family = fonts$title, face = "bold",
+      color = colors$palette$neutral_dark, lineheight = 1.05,
+      margin = margin(t = 3, b = 4)
     ),
     plot.subtitle = element_text(
-      size = rel(0.8), family = fonts$subtitle, face = "italic",
-      color = alpha(colors$subtitle, 0.9), lineheight = 1.1,
+      size = rel(0.8), family = fonts$subtitle,
+      color = colors$palette$neutral_mid, lineheight = 1.1,
       margin = margin(t = 0, b = 8)
-    ),
+    )
   )
 )
 
@@ -338,155 +282,210 @@ theme_set(weekly_theme)
 
 ### |- PANEL A: Diverging Bars — Luxury Premium vs. Engineering Efficiency ----
 
+# Derived Data ----
+med_price_hp <- median(df$price_per_hp)
+med_speed_hp <- median(df$speed_per_hp)
+
+plot_df <- df |>
+  mutate(
+    price_hp_dev = price_per_hp - med_price_hp,
+    speed_hp_dev = speed_per_hp - med_speed_hp,
+    cost_flag    = if_else(price_hp_dev > 0, "Above median cost", "Below median cost"),
+    eff_flag     = if_else(speed_hp_dev > 0, "Above median efficiency", "Below median efficiency")
+  ) |>
+  arrange(desc(price_hp_dev)) |>
+  mutate(car_order = factor(car_short, levels = rev(car_short)))
+
 ### |-  left panel: cost per HP ----
-p_cost <- df_efficiency |>
-  ggplot(aes(x = price_hp_dev, y = label_price, fill = over_price)) +
-  geom_col(width = 0.65) +
+p_cost <- plot_df |>
+  ggplot(aes(x = price_hp_dev, y = car_order, fill = cost_flag)) +
+  geom_col(width = 0.62) +
   geom_vline(xintercept = 0, linewidth = 0.6, color = colors$palette$neutral_dark) +
   geom_text(
-    data = df_efficiency |> filter(over_price),
     aes(
-      x = price_hp_dev, y = label_price,
-      label = paste0("+", dollar(round(price_hp_dev)))
+      label = if_else(price_hp_dev > 0,
+                      paste0("+", dollar(round(price_hp_dev))),
+                      dollar(round(price_hp_dev))),
+      x = if_else(price_hp_dev > 0, price_hp_dev + 28, price_hp_dev - 28)
     ),
-    hjust = -0.15, size = 3.0, color = colors$palette$burgundy, fontface = "bold",
-    inherit.aes = FALSE
+    size = 3,
+    color = colors$palette$neutral_dark,
+    fontface = "bold",
+    hjust = if_else(plot_df$price_hp_dev > 0, 0, 1)
   ) +
-  geom_text(
-    data = df_efficiency |> filter(!over_price),
-    aes(
-      x = price_hp_dev, y = label_price,
-      label = dollar(round(price_hp_dev))
-    ),
-    hjust = 1.15, size = 3.0, color = colors$palette$steel, fontface = "bold",
-    inherit.aes = FALSE
+  annotate(
+    "segment",
+    x = 0, xend = 0, y = 0.55, yend = 1.15,
+    color = colors$palette$neutral_mid, linewidth = 0.35, linetype = 2
   ) +
   annotate(
     "text",
-    x = 125, y = 8.5,
-    label = glue("Median: {dollar(round(med_price_hp))}/HP"),
-    size = 2.6, color = colors$palette$neutral_mid, hjust = 0.5, fontface = "italic"
+    x = 20, y = 0.95,
+    label = glue("median = {dollar(round(med_price_hp))}/HP"),
+    hjust = 0, size = 2.7,
+    color = colors$palette$neutral_mid, fontface = "italic"
   ) +
   scale_fill_manual(
-    values = c("TRUE" = colors$palette$burgundy, "FALSE" = colors$palette$steel),
-    guide  = "none"
+    values = c(
+      "Above median cost" = colors$palette$burgundy,
+      "Below median cost" = colors$palette$steel
+    ),
+    guide = "none"
   ) +
   scale_x_continuous(
     labels = label_dollar(),
-    expand = expansion(mult = c(0.18, 0.25))
+    limits = c(-520, 1325),
+    expand = expansion(mult = c(0, 0))
   ) +
   labs(
-    title = "Cost per Horsepower",
-    subtitle = "Deviation from median ($/HP) — sorted most to least expensive",
-    x = NULL, y = NULL
+    title    = "Cost per horsepower",
+    subtitle = "Deviation from median ($/HP) · sorted most to least expensive"
+  ) +
+  theme(
+    plot.title    = element_text(size = rel(1.0), face = "bold"),
+    plot.subtitle = element_text(size = rel(0.76), margin = margin(b = 8)),
+    axis.text.y   = element_text(color = colors$palette$neutral_mid)
   )
 
 ### |-  right panel: speed per HP ----
-p_speed_eff <- df_efficiency |>
-  ggplot(aes(x = speed_hp_dev, y = label_speed, fill = over_speed)) +
-  geom_col(width = 0.65) +
+p_speed <- plot_df |>
+  ggplot(aes(x = speed_hp_dev, y = car_order, fill = eff_flag)) +
+  geom_col(width = 0.62) +
   geom_vline(xintercept = 0, linewidth = 0.6, color = colors$palette$neutral_dark) +
   geom_text(
-    data = df_efficiency |> filter(over_speed),
     aes(
-      x = speed_hp_dev, y = label_speed,
-      label = paste0("+", number(speed_hp_dev, accuracy = 0.001))
+      label = if_else(speed_hp_dev > 0,
+                      paste0("+", number(speed_hp_dev, accuracy = 0.001)),
+                      number(speed_hp_dev, accuracy = 0.001)),
+      x = if_else(speed_hp_dev > 0, speed_hp_dev + 0.004, speed_hp_dev - 0.004)
     ),
-    hjust = -0.15, size = 3.0, color = colors$palette$steel, fontface = "bold",
-    inherit.aes = FALSE
+    size = 3,
+    color = colors$palette$neutral_dark,
+    fontface = "bold",
+    hjust = if_else(plot_df$speed_hp_dev > 0, 0, 1)
   ) +
-  geom_text(
-    data = df_efficiency |> filter(!over_speed),
-    aes(
-      x = speed_hp_dev, y = label_speed,
-      label = number(speed_hp_dev, accuracy = 0.001)
-    ),
-    hjust = 1.15, size = 3.0, color = colors$palette$burgundy, fontface = "bold",
-    inherit.aes = FALSE
+  annotate(
+    "segment",
+    x = 0, xend = 0, y = 0.55, yend = 1.15,
+    color = colors$palette$neutral_mid, linewidth = 0.35, linetype = 2
   ) +
   annotate(
     "text",
-    x = 0.015, y = 8.5,
-    label = glue("Median: {number(med_speed_hp, accuracy = 0.001)} km/h per HP"),
-    size = 2.6, color = colors$palette$neutral_mid, hjust = 0.5, fontface = "italic"
+    x = 0.002, y = 0.95,
+    label = glue("median = {number(med_speed_hp, accuracy = 0.001)} km/h/HP"),
+    hjust = 0, size = 2.7,
+    color = colors$palette$neutral_mid, fontface = "italic"
   ) +
   scale_fill_manual(
-    values = c("TRUE" = colors$palette$steel, "FALSE" = colors$palette$burgundy),
-    guide  = "none"
+    values = c(
+      "Above median efficiency" = colors$palette$steel,
+      "Below median efficiency" = colors$palette$burgundy
+    ),
+    guide = "none"
   ) +
   scale_x_continuous(
     labels = label_number(accuracy = 0.01),
-    expand = expansion(mult = c(0.25, 0.25))
+    limits = c(-0.10, 0.07),
+    expand = expansion(mult = c(0, 0))
   ) +
   labs(
-    title = "Speed per Horsepower",
-    subtitle = "Deviation from median (km/h per HP) — sorted most to least efficient",
-    x = NULL, y = NULL
+    title    = "Speed per horsepower",
+    subtitle = "Deviation from median (km/h per HP) · same car order as left panel"
   ) +
   theme(
-    axis.text.y = element_blank()
+    plot.title    = element_text(size = rel(1.0), face = "bold"),
+    plot.subtitle = element_text(size = rel(0.76), margin = margin(b = 8)),
+    axis.text.y   = element_blank()
   )
 
 ### |- PANEL B: Unit Chart — How Many Were Ever Built? ----
 
+# Derived Data ----
+rarity_base <- df |>
+  transmute(
+    car_short,
+    units,
+    facet_label = glue("{car_short}\n{units} units")
+  ) |>
+  arrange(desc(units)) |>
+  mutate(facet_label = factor(facet_label, levels = facet_label))
+
+max_units <- max(rarity_base$units)
+n_cols    <- 15
+n_rows    <- ceiling(max_units / n_cols)
+
+rarity_full <- rarity_base |>
+  rowwise() |>
+  reframe(
+    car_short   = car_short,
+    facet_label = facet_label,
+    units       = units,
+    unit_id     = seq_len(n_cols * n_rows)
+  ) |>
+  mutate(
+    filled = unit_id <= units,
+    col    = (unit_id - 1) %% n_cols + 1,
+    row    = (unit_id - 1) %/% n_cols + 1
+  )
+
 ### |-  unit chart ----
-p_rarity <- df_rarity_expanded |>
-  ggplot(aes(x = col, y = -row, fill = country)) +
-  geom_tile(width = 0.82, height = 0.82, color = "white", linewidth = 0.5) +
-  scale_fill_manual(values = country_cols, name = "Country") +
+p_rarity <- rarity_full |>
+  ggplot(aes(x = col, y = -row, fill = filled)) +
+  geom_tile(width = 0.8, height = 0.8, color = "white", linewidth = 0.45) +
   facet_wrap(~facet_label, ncol = 4) +
-  labs(
-    title = "How Many Were Ever Built?",
-    subtitle = "Each square = one car produced. Ordered most to fewest.",
-    x = NULL, y = NULL
+  scale_fill_manual(
+    values = c("TRUE" = "#4A4A4A", "FALSE" = "#E8E8E8"),
+    guide  = "none"   # filled vs. empty is self-evident; no legend needed
   ) +
+  labs(
+    title    = "How many were ever built?",
+    subtitle = "Each square represents one car. Common empty grid makes rarity comparable across models."
+  ) +
+  coord_equal() +
   theme(
-    axis.text.x = element_blank(),
-    axis.text.y = element_blank(),
-    axis.line = element_blank(),
-    panel.grid = element_blank(),
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank(),
+    axis.text.x        = element_blank(),
+    axis.text.y        = element_blank(),
+    axis.line          = element_blank(),
+    panel.grid         = element_blank(),
+    panel.grid.major   = element_blank(),
+    panel.grid.minor   = element_blank(),
     panel.grid.major.x = element_blank(),
     strip.text = element_text(
       size = rel(0.8), face = "bold",
       color = colors$palette$neutral_dark,
       lineheight = 1.3
     ),
-    panel.spacing = unit(1.1, "lines"),
-    legend.position = "bottom",
-    legend.title = element_text(size = rel(0.8)),
-    legend.text = element_text(size = rel(0.75)),
-    legend.key.size = unit(0.4, "cm"),
+    panel.spacing   = unit(1.1, "lines"),
+    legend.position = "none"
   )
 
 ### |-  Combined Plots ----
-p_diverging <- (p_cost + p_speed_eff) +
-  plot_layout(widths = c(1.1, 1))
+p_top <- p_cost + p_speed + plot_layout(widths = c(1.15, 1))
 
-combined_plots <- p_diverging / p_rarity +
-  plot_layout(heights = c(1.1, 1)) +
+combined_plots <- p_top / p_rarity +
+  plot_layout(heights = c(1.05, 1)) +
   plot_annotation(
-    title = title_text,
+    title    = title_text,
     subtitle = subtitle_text,
-    caption = caption_text,
+    caption  = caption_text,
     theme = theme(
       plot.title = element_text(
-        size = rel(1.4), face = "bold",
+        size = rel(1.42), face = "bold",
         color = colors$palette$neutral_dark,
-        margin = margin(b = 4)
+        margin = margin(b = 5)
       ),
       plot.subtitle = element_markdown(
-        size = rel(0.9),
+        size = rel(0.88),
         color = colors$palette$neutral_mid,
+        lineheight = 1.15,
         margin = margin(b = 12)
       ),
       plot.caption = element_markdown(
-        size = rel(0.7),
+        size = rel(0.70),
         color = colors$palette$neutral_mid,
         hjust = 0
       ),
-      plot.margin = margin(t = 16, r = 16, b = 12, l = 16)
+      plot.margin = margin(t = 14, r = 16, b = 12, l = 16)
     )
   )
 
@@ -505,7 +504,7 @@ save_plot_patchwork(
   year = current_year,
   week = current_week,
   width = 14, 
-  height = 12
+  height = 11
   )
 ```
 
