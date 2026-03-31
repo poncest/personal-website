@@ -1,0 +1,653 @@
+---
+title: "Low-quality AI output is common —<br>and it scales into millions in hidden cost"
+subtitle: "53% of AI-using workers admit sending at least some 'workslop': AI-generated content that looks complete but lacks substance. Each incident costs ~2 hours to resolve. Individual behavior scales into organizational cost."
+description: "A two-panel makeover redesigning an HBR bar chart on AI 'workslop' into a behavior-to-cost system narrative. The left panel uses a stacked composition bar to show that 64% of AI-using workers send at least some low-quality AI output, binned into four severity levels. The right panel presents a cost cascade — 2 hours per incident, $186 per employee per month, $9 million per year — using progressive typography to convey compounding organizational impact."
+date: "2026-03-30"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_13.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]   
+tags: [
+  "makeover-monday",
+  "ai-workplace",
+  "workslop",
+  "stacked-bar-chart",
+  "patchwork",
+  "ggplot2",
+  "survey-data",
+  "behavioral-data",
+  "cost-analysis",
+  "typography",
+  "two-panel",
+  "hbr",
+  "workforce",
+  "organizational-cost"
+]
+image: "thumbnails/mm_2026_13.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 13
+project_file <- "mm_2026_13.qmd"
+project_image <- "mm_2026_13.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026w13-ai-workslop"
+data_secondary <- "https://data.world/makeovermonday/2026w13-ai-workslop"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_13/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/datasets/regionalunemploymentbyagex02"
+org_secondary <- "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/datasets/regionalunemploymentbyagex02"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Why People Create AI Workslop", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_13/original_chart.png)
+
+### Makeover
+
+![A two-panel data visualization titled "Low-quality AI output is common — and it scales into millions in hidden cost." The left panel shows a horizontal stacked bar chart depicting the workforce workslop profile among AI-using workers (n ≈ 952). Segments are color-coded by severity: Heavy (7%, deep crimson), Regular (11%, burnt orange), Occasional (46%, amber), and None (36%, gray-blue). A bracket above the three non-zero segments highlights that 64% of AI-using workers send at least some workslop. The right panel presents a cost cascade in progressively larger typography: 2 hours per incident (average time to resolve), $186 per employee per month (invisible productivity tax), and $9 million per year for a 10,000-person organization (annual organizational cost). A footnote states that 17% of respondents who did not use AI at work are excluded. Source: BetterUp Labs and Stanford Social Media Lab survey of 1,150 U.S. desk workers, September 2025; Niederhoffer, Robichaux, and Hancock (2026), Harvard Business Review.](mm_2026_13.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, 
+  glue, janitor, readxl, patchwork
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 13,
+  height = 10,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- readxl::read_xlsx(
+  here::here("data/MakeoverMonday/2026/MM 2026W13.xlsx")) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- left panel: bin the distribution ----
+df_bins <- df_raw |>
+  mutate(
+    workslop_num = suppressWarnings(as.numeric(workslop_pct)),
+    bin = case_when(
+      is.na(workslop_num) ~ NA_character_,
+      workslop_num == 0 ~ "None",
+      workslop_num <= 30 ~ "Occasional",
+      workslop_num <= 60 ~ "Regular",
+      workslop_num >= 70 ~ "Heavy"
+    ),
+    bin = factor(bin, levels = c("None", "Occasional", "Regular", "Heavy"))
+  ) |>
+  filter(!is.na(bin)) |>
+  group_by(bin) |>
+  summarise(pct = sum(respondent_pct), .groups = "drop") |>
+  mutate(pct_rescaled = pct / sum(pct) * 100)
+
+### |- right panel: cost cascade values (hand-encoded, BetterUp/Stanford) ----
+# Source: BetterUp Labs + Stanford Social Media Lab, n=1,150, Sept 2025
+# https://www.betterup.com/workslop
+# Values: 2 hrs/incident; $186/employee/month; $9M/year for 10k-person org
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- Colors ----
+colors <- get_theme_colors(
+  palette = list(
+    none       = "#B8C4C8",   
+    occasional = "#B8922A",   
+    regular    = "#C75B2A",   
+    heavy      = "#6B1F14",  
+    # Supporting
+    background = "#F8F5F0",
+    text_dark  = "#1A1A1A",
+    text_mid   = "#4A4A4A",
+    text_light = "#8A8A8A",
+    divider    = "#D0C8BC",
+    # Annotation accent
+    anchor     = "#1A1A1A"
+  )
+)
+
+# Named vector for stacked bar fill mapping
+bin_colors <- c(
+  "None"       = colors$palette$none,
+  "Occasional" = colors$palette$occasional,
+  "Regular"    = colors$palette$regular,
+  "Heavy"      = colors$palette$heavy
+)
+
+### |- titles and caption ----
+title_text    <- str_glue("Low-quality AI output is common —\nand it scales into millions in hidden cost")
+
+subtitle_text <- str_glue(
+  "53% of AI-using workers admit sending at least some 'workslop': AI-generated content that looks complete but lacks substance.\n",
+  "Each incident costs ~2 hours to resolve. Individual behavior scales into organizational cost."
+)
+
+caption_text <- create_mm_caption(
+   mm_year     = 2026,
+  mm_week     = 13,
+  source_text = "BetterUp Labs & Stanford Social Media Lab (n=1,150, Sept 2025)<br>
+                 Niederhoffer, Robichaux & Hancock (2026), Harvard Business Review"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Panel
+    plot.background  = element_rect(fill = colors$palette$background, color = NA),
+    panel.background = element_rect(fill = colors$palette$background, color = NA),
+    panel.grid       = element_blank(),
+    axis.ticks       = element_blank(),
+    # Text
+    axis.text        = element_blank(),
+    axis.title       = element_blank(),
+    # Margins
+    plot.margin      = margin(8, 12, 8, 12)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- LEFT PANEL: Stacked composition bar ----
+
+# Derived annotation values
+sends_some_pct <- df_bins |>
+  filter(bin != "None") |>
+  summarise(total = sum(pct_rescaled)) |>
+  pull(total) |>
+  round(0)
+
+none_pct <- df_bins |>
+  filter(bin == "None") |>
+  pull(pct_rescaled)
+
+df_bins_pos <- df_bins |>
+  arrange(desc(as.integer(bin))) |>
+  mutate(
+    x_end   = cumsum(pct_rescaled),
+    x_start = x_end - pct_rescaled,
+    x_mid   = (x_start + x_end) / 2
+  )
+
+p_left <- ggplot(df_bins, aes(x = pct_rescaled, y = "", fill = bin)) +
+  geom_col(
+    position  = position_stack(reverse = FALSE),
+    width     = 0.42,
+    color     = colors$palette$background,
+    linewidth = 1.2
+  ) +
+  geom_text(
+    data = df_bins |> filter(pct_rescaled >= 9),
+    aes(label = glue("{round(pct_rescaled, 0)}%")),
+    position = position_stack(vjust = 0.5, reverse = FALSE),
+    color = "white",
+    size = 4.5,
+    fontface = "bold",
+    family = fonts$text
+  ) +
+  geom_text(
+    data = df_bins_pos,
+    aes(x = x_mid, label = bin),
+    y = 1.22,
+    color = colors$palette$text_mid,
+    size = 2.8,
+    fontface = "plain",
+    family = fonts$text,
+    hjust = 0.5,
+    inherit.aes = FALSE
+  ) +
+  annotate(
+    "text",
+    x = sends_some_pct / 2,
+    y = 1.58,
+    label = glue("{sends_some_pct}% send at least\nsome workslop"),
+    size = 3.6,
+    color = colors$palette$text_dark,
+    fontface = "bold",
+    family = fonts$text,
+    hjust = 0.5,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "segment",
+    x = 1, xend = sends_some_pct - 1,
+    y = 1.44, yend = 1.44,
+    color = colors$palette$text_mid, linewidth = 0.5
+  ) +
+  annotate("segment",
+    x = 1, xend = 1,
+    y = 1.40, yend = 1.44,
+    color = colors$palette$text_mid, linewidth = 0.5
+  ) +
+  annotate("segment",
+    x = sends_some_pct - 1, xend = sends_some_pct - 1,
+    y = 1.40, yend = 1.44,
+    color = colors$palette$text_mid, linewidth = 0.5
+  ) +
+  annotate(
+    "text",
+    x = 0, y = 0.58,
+    label = "Excludes 17% of respondents who did not use AI at work",
+    size = 2.3,
+    color = colors$palette$text_light,
+    hjust = 0,
+    family = fonts$text,
+    fontface = "italic"
+  ) +
+  scale_fill_manual(values = bin_colors) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0, 0.01)),
+    limits = c(0, 100)
+  ) +
+  scale_y_discrete(expand = expansion(add = c(0.55, 1.05))) +
+  labs(
+    title    = "Workforce workslop profile",
+    subtitle = "Share of AI-using workers by amount of workslop sent"
+  ) +
+  theme(
+    legend.position = "none",
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    plot.title = element_text(
+      size   = 18,
+      face   = "bold",
+      color  = colors$palette$text_dark,
+      family = fonts$title,
+      margin = margin(b = 3)
+    ),
+    plot.subtitle = element_text(
+      size   = 10,
+      color  = colors$palette$text_mid,
+      family = 'sans',
+      margin = margin(b = 12)
+    ),
+    plot.margin = margin(12, 24, 12, 12)
+  )
+
+
+### |- RIGHT PANEL: Cost cascade ----
+
+y_pos <- c(0.82, 0.50, 0.14)
+
+cascade_sizes <- c(8.5, 13, 20)
+
+p_right <- ggplot() +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  annotate("text",
+    x = 0.5, y = y_pos[1] + 0.09,
+    label = "2 hours",
+    size = cascade_sizes[1],
+    fontface = "bold",
+    color = colors$palette$text_dark,
+    family = fonts$text,
+    hjust = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[1] - 0.02,
+    label = "PER INCIDENT",
+    size = 2.5,
+    color = colors$palette$text_light,
+    family = fonts$text,
+    hjust = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[1] - 0.08,
+    label = "average time to resolve",
+    size = 2.8,
+    color = colors$palette$text_mid,
+    family = fonts$text,
+    hjust = 0.5,
+    fontface = "italic"
+  ) +
+  annotate("segment",
+    x = 0.15, xend = 0.85,
+    y = (y_pos[1] + y_pos[2]) / 2,
+    yend = (y_pos[1] + y_pos[2]) / 2,
+    color = colors$palette$divider,
+    linewidth = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[2] + 0.09,
+    label = "$186",
+    size = cascade_sizes[2],
+    fontface = "bold",
+    color = colors$palette$regular,
+    family = fonts$text,
+    hjust = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[2] - 0.02,
+    label = "PER EMPLOYEE / MONTH",
+    size = 2.5,
+    color = colors$palette$text_light,
+    family = fonts$text,
+    hjust = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[2] - 0.08,
+    label = "invisible productivity tax",
+    size = 2.8,
+    color = colors$palette$text_mid,
+    family = fonts$text,
+    hjust = 0.5,
+    fontface = "italic"
+  ) +
+  annotate("segment",
+    x = 0.15, xend = 0.85,
+    y = (y_pos[2] + y_pos[3]) / 2,
+    yend = (y_pos[2] + y_pos[3]) / 2,
+    color = colors$palette$divider,
+    linewidth = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[3] + 0.09,
+    label = "$9 million",
+    size = cascade_sizes[3],
+    fontface = "bold",
+    color = colors$palette$heavy,
+    family = fonts$text,
+    hjust = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[3] - 0.02,
+    label = "PER YEAR (10K ORG)",
+    size = 2.5,
+    color = colors$palette$text_light,
+    family = fonts$text,
+    hjust = 0.5
+  ) +
+  annotate("text",
+    x = 0.5, y = y_pos[3] - 0.08,
+    label = "annual organizational cost",
+    size = 2.8,
+    color = colors$palette$text_mid,
+    family = fonts$text,
+    hjust = 0.5,
+    fontface = "italic"
+  ) +
+  labs(
+    title    = "The compounding cost",
+    subtitle = "Individual behavior \u2192 organizational scale"
+  ) +
+  theme(
+    plot.title = element_text(
+      size   = 18,
+      face   = "bold",
+      color  = colors$palette$text_dark,
+      family = fonts$title,
+      margin = margin(b = 3)
+    ),
+    plot.subtitle = element_text(
+      size   = 10,
+      color  = colors$palette$text_mid,
+      family = 'sans',
+      margin = margin(b = 12)
+    ),
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    plot.margin = margin(12, 12, 12, 24)
+  )
+
+### |- Combined Plots ----
+combined_plots <- p_left + p_right +
+  plot_layout(widths = c(1, 1)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size        = 30,
+        face        = "bold",
+        color       = colors$palette$text_dark,
+        family      = fonts$title,
+        lineheight  = 1.3,
+        margin      = margin(b = 8)
+      ),
+      plot.subtitle = element_text(
+        size        = 11,
+        color       = colors$palette$text_mid,
+        family      = fonts$text,
+        lineheight  = 1.5,
+        margin      = margin(b = 18)
+      ),
+      plot.caption = element_markdown(
+        size        = 7,
+        color       = colors$palette$text_light,
+        family      = fonts$caption,
+        linewidth   = 1.3,
+        hjust       = 0,
+        margin      = margin(t = 14)
+      ),
+      plot.background = element_rect(fill = colors$palette$background, color = NA),
+      plot.margin = margin(20, 20, 14, 20)
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plots , 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 13, 
+  height = 10
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("AI Workslop Survey", data_main)`
+
+2. Original Article: `r create_link("Why People Create AI 'Workslop'—and How to Stop It", "https://hbr.org/2026/01/why-people-create-ai-workslop-and-how-to-stop-it")`
+   - Authors: Kate Niederhoffer, Alexi Robichaux, and Jeffrey T. Hancock
+   - Source: Harvard Business Review, January 2026
+
+**Source Data:**
+
+3. Dataset: `r create_link("2026 Week 13 — AI Workslop Survey", "https://data.world/makeovermonday/2026w13")`
+   - Source: BetterUp Labs & Stanford Social Media Lab via data.world/makeovermonday
+   - Data includes: Distribution of respondents by self-reported share of AI-generated work sent to colleagues that is unhelpful, low-effort, or low-quality (0%–100% in 10-point bins, plus non-users)
+   - Scope: 12 response categories; n = 1,150 full-time U.S. desk workers, online survey conducted September 2025
+
+4. Supplementary Research: `r create_link("Workslop: The Hidden Cost of AI-Generated Busywork", "https://www.betterup.com/workslop")`
+   - Source: BetterUp Labs & Stanford Social Media Lab
+   - Coverage: Organizational cost metrics (2 hrs/incident, $186/employee/month, $9M/year for 10k-person org); emotional impact; workslop flow direction (peer/up/down)
+
+5. Related HBR Article: `r create_link("AI-Generated 'Workslop' Is Destroying Productivity", "https://hbr.org/2025/09/ai-generated-workslop-is-destroying-productivity")`
+   - Authors: Kate Niederhoffer et al.
+   - Source: Harvard Business Review, September 2025
+
+**Note:** The 12-row MM dataset covers self-reported sending behavior only. Supplementary cost metrics (2 hrs, $186/month, $9M/year) are drawn directly from BetterUp Labs & Stanford Social Media Lab published findings and are not derived from the MM dataset. The 17% of respondents who did not use AI at work were excluded before rescaling the remaining distribution to 100%; all percentages shown in the left panel reflect AI-using workers only (n ≈ 952).
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::

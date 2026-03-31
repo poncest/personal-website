@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -36,18 +36,19 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-8ef56b68f8fa1e9d2ba328e99e439f80.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-e1a5c8363afafaef2c763b6775fbf3ca.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-7de437f657f27bccd1827461fa74f06e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-adb16eabd1a6c1be11eca2c2cf900a53.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-7de437f657f27bccd1827461fa74f06e.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-6a33d667bbd14c81c93bf10b35cb47ea.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-24213e109d8bbed18eec8eaf03f81353.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-6a33d667bbd14c81c93bf10b35cb47ea.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script src="site_libs/quarto-contrib/iconify-2.1.0/iconify-icon.min.js"></script>
@@ -169,7 +170,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -370,7 +371,8 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./assets/img/SP_avatar.png" alt="" class="navbar-logo">
+    <img src="./assets\img\SP_avatar.png" alt="" class="navbar-logo light-content">
+    <img src="./assets\img\SP_avatar.png" alt="" class="navbar-logo dark-content">
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -482,12 +484,6 @@ window.Quarto = {
   </div>
     
   
-    <div>
-    <div class="quarto-title-meta-heading">Modified</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date-modified">January 27, 2026</p>
-    </div>
-  </div>
     
   </div>
   
@@ -519,7 +515,7 @@ window.Quarto = {
   </div>
 </div>
 <div class="list grid quarto-listing-cols-4">
-<div class="g-col-1" data-index="0" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNQaGFybWFjZXV0aWNhbCUyMEFuYWx5dGljcyUyQ0NvbW1lcmNpYWwlMjBTdHJhdGVneSUyQzIwMjY=" data-listing-date-sort="1769576400000" data-listing-file-modified-sort="1769565711872" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1601">
+<div class="g-col-1" data-index="0" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNQaGFybWFjZXV0aWNhbCUyMEFuYWx5dGljcyUyQ0NvbW1lcmNpYWwlMjBTdHJhdGVneSUyQzIwMjY=" data-listing-date-sort="1769576400000" data-listing-file-modified-sort="1769565711000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1601">
 <a href="./projects/standalone_visualizations/sa_2026-01-28.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -537,7 +533,7 @@ January 28, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="1" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQ0RhdGElMjBWaXN1YWxpemF0aW9uJTJDUiUyMFByb2dyYW1taW5nJTJDMjAyNg==" data-listing-date-sort="1769144400000" data-listing-file-modified-sort="1769195765706" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2252">
+<div class="g-col-1" data-index="1" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQ0RhdGElMjBWaXN1YWxpemF0aW9uJTJDUiUyMFByb2dyYW1taW5nJTJDMjAyNg==" data-listing-date-sort="1769144400000" data-listing-file-modified-sort="1769195765000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2252">
 <a href="./projects/standalone_visualizations/sa_2026-01-23.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -555,7 +551,7 @@ January 23, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="2" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQ0RhdGElMjBWaXN1YWxpemF0aW9uJTJDUiUyMFByb2dyYW1taW5nJTJDMjAyNg==" data-listing-date-sort="1769058000000" data-listing-file-modified-sort="1769109453251" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2112">
+<div class="g-col-1" data-index="2" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQ0RhdGElMjBWaXN1YWxpemF0aW9uJTJDUiUyMFByb2dyYW1taW5nJTJDMjAyNg==" data-listing-date-sort="1769058000000" data-listing-file-modified-sort="1769109453000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2112">
 <a href="./projects/standalone_visualizations/sa_2026-01-22.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -573,7 +569,7 @@ January 22, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="3" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQ0RhdGElMjBWaXN1YWxpemF0aW9uJTJDUiUyMFByb2dyYW1taW5nJTJDMjAyNg==" data-listing-date-sort="1768971600000" data-listing-file-modified-sort="1769039958900" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2479">
+<div class="g-col-1" data-index="3" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQ0RhdGElMjBWaXN1YWxpemF0aW9uJTJDUiUyMFByb2dyYW1taW5nJTJDMjAyNg==" data-listing-date-sort="1768971600000" data-listing-file-modified-sort="1769039958000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2479">
 <a href="./projects/standalone_visualizations/sa_2026-01-21.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -591,7 +587,7 @@ January 21, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="4" data-categories="UiUyMFBhY2thZ2UlMkNEYXRhJTIwU2NpZW5jZSUyQ0JvYidzJTIwQnVyZ2VycyUyQzIwMjY=" data-listing-date-sort="1768885200000" data-listing-file-modified-sort="1768993828554" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="346">
+<div class="g-col-1" data-index="4" data-categories="UiUyMFBhY2thZ2UlMkNEYXRhJTIwU2NpZW5jZSUyQ0JvYidzJTIwQnVyZ2VycyUyQzIwMjY=" data-listing-date-sort="1768885200000" data-listing-file-modified-sort="1768993828000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="346">
 <a href="./projects/r_packages/2026-01-20-bobsburgersr-v0.2.0.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -609,7 +605,7 @@ January 20, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="5" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNIZWFsdGhjYXJlJTIwQW5hbHl0aWNzJTJDTWFjaGluZSUyMExlYXJuaW5nJTJDMjAyNg==" data-listing-date-sort="1768798800000" data-listing-file-modified-sort="1768847267631" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="989">
+<div class="g-col-1" data-index="5" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNIZWFsdGhjYXJlJTIwQW5hbHl0aWNzJTJDTWFjaGluZSUyMExlYXJuaW5nJTJDMjAyNg==" data-listing-date-sort="1768798800000" data-listing-file-modified-sort="1768847267000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="989">
 <a href="./projects/standalone_visualizations/sa_2026-01-19.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -627,7 +623,7 @@ January 19, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="6" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNQaGFybWFjZXV0aWNhbCUyMFN0cmF0ZWd5JTJDMjAyNg==" data-listing-date-sort="1767762000000" data-listing-file-modified-sort="1767810165842" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="966">
+<div class="g-col-1" data-index="6" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNQaGFybWFjZXV0aWNhbCUyMFN0cmF0ZWd5JTJDMjAyNg==" data-listing-date-sort="1767762000000" data-listing-file-modified-sort="1767810165000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="966">
 <a href="./projects/standalone_visualizations/sa_2026-01-07.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -645,7 +641,7 @@ January 7, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="7" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNGaW5hbmNpYWwlMjBBbmFseXNpcyUyQzIwMjY=" data-listing-date-sort="1767416400000" data-listing-file-modified-sort="1767134696618" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="686">
+<div class="g-col-1" data-index="7" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNGaW5hbmNpYWwlMjBBbmFseXNpcyUyQzIwMjY=" data-listing-date-sort="1767416400000" data-listing-file-modified-sort="1767134696000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="686">
 <a href="./projects/standalone_visualizations/sa_2026-01-03.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -663,7 +659,7 @@ January 3, 2026
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="8" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNFU0clMjBBbmFseXRpY3MlMkMyMDI1" data-listing-date-sort="1766293200000" data-listing-file-modified-sort="1766403051851" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="10" data-listing-word-count-sort="1940">
+<div class="g-col-1" data-index="8" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNFU0clMjBBbmFseXRpY3MlMkMyMDI1" data-listing-date-sort="1766293200000" data-listing-file-modified-sort="1766403051000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="10" data-listing-word-count-sort="1940">
 <a href="./projects/standalone_visualizations/sa_2025-12-21.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -681,7 +677,7 @@ December 21, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="9" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNCdXNpbmVzcyUyMEludGVsbGlnZW5jZSUyQzIwMjU=" data-listing-date-sort="1766120400000" data-listing-file-modified-sort="1766365993575" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1094">
+<div class="g-col-1" data-index="9" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNCdXNpbmVzcyUyMEludGVsbGlnZW5jZSUyQzIwMjU=" data-listing-date-sort="1766120400000" data-listing-file-modified-sort="1766365993000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="6" data-listing-word-count-sort="1094">
 <a href="./projects/standalone_visualizations/sa_2025-12-19.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -699,7 +695,7 @@ December 19, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="10" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNNZXRlb3JpdGUlMjBMYW5kaW5ncyUyQzIwMjU=" data-listing-date-sort="1765774800000" data-listing-file-modified-sort="1766364720384" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="831">
+<div class="g-col-1" data-index="10" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNNZXRlb3JpdGUlMjBMYW5kaW5ncyUyQzIwMjU=" data-listing-date-sort="1765774800000" data-listing-file-modified-sort="1766364720000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="831">
 <a href="./projects/standalone_visualizations/sa_2025-12-15.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -717,7 +713,7 @@ December 15, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="11" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNTdXBwbHklMjBDaGFpbiUyQzIwMjU=" data-listing-date-sort="1739682000000" data-listing-file-modified-sort="1747957410418" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="517">
+<div class="g-col-1" data-index="11" data-categories="UiUyMFByb2dyYW1taW5nJTJDU2hpbnklMkNTdXBwbHklMjBDaGFpbiUyQzIwMjU=" data-listing-date-sort="1739682000000" data-listing-file-modified-sort="1747957410000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3" data-listing-word-count-sort="517">
 <a href="./projects/standalone_visualizations/sa_2025-02-16.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -735,7 +731,7 @@ February 16, 2025
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="12" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1731474000000" data-listing-file-modified-sort="1747957390955" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="10" data-listing-word-count-sort="1986">
+<div class="g-col-1" data-index="12" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1731474000000" data-listing-file-modified-sort="1747957390000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="10" data-listing-word-count-sort="1986">
 <a href="./projects/standalone_visualizations/sa_2024-11-13.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -753,7 +749,7 @@ November 13, 2024
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="13" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1731301200000" data-listing-file-modified-sort="1747957377809" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2524">
+<div class="g-col-1" data-index="13" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1731301200000" data-listing-file-modified-sort="1747957377000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="13" data-listing-word-count-sort="2524">
 <a href="./projects/standalone_visualizations/sa_2024-11-11.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -771,7 +767,7 @@ November 11, 2024
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="14" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1730088000000" data-listing-file-modified-sort="1747957360067" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1535">
+<div class="g-col-1" data-index="14" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1730088000000" data-listing-file-modified-sort="1747957360000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1535">
 <a href="./projects/standalone_visualizations/sa_2024-10-28.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -789,7 +785,7 @@ October 28, 2024
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="15" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1730001600000" data-listing-file-modified-sort="1747957331126" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1585">
+<div class="g-col-1" data-index="15" data-categories="Qm9iJ3MlMjBCdXJnZXJzJTJDU3RhbmRhbG9uZSUyQzIwMjQ=" data-listing-date-sort="1730001600000" data-listing-file-modified-sort="1747957331000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="8" data-listing-word-count-sort="1585">
 <a href="./projects/standalone_visualizations/sa_2024-10-27.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top">
@@ -807,7 +803,7 @@ October 27, 2024
 </div>
 </div></a>
 </div>
-<div class="g-col-1" data-index="16" data-categories="UiUyMFBhY2thZ2UlMkNEYXRhJTIwU2NpZW5jZSUyQ0JvYidzJTIwQnVyZ2Vycw==" data-listing-date-sort="1729915200000" data-listing-file-modified-sort="1739392356445" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="221">
+<div class="g-col-1" data-index="16" data-categories="UiUyMFBhY2thZ2UlMkNEYXRhJTIwU2NpZW5jZSUyQ0JvYidzJTIwQnVyZ2Vycw==" data-listing-date-sort="1729915200000" data-listing-file-modified-sort="1739392356000" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="221">
 <a href="./projects/r_packages/2024-10-26-introducing-bobsburgersr.html" class="quarto-grid-link">
 <div class="quarto-grid-item card h-100 card-left borderless">
 <p class="card-img-top"><img data-src="assets\img\bobsburgersR.png" style="height: 200px;"  class="thumbnail-image card-img"/></p>
@@ -899,13 +895,14 @@ October 26, 2024
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
