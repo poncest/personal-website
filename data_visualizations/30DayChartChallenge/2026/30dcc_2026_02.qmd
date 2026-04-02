@@ -1,0 +1,583 @@
+---
+title: "Norway runs on water. India runs on coal. Electricity generation, shown in 10 icons."
+subtitle: "Each icon represents 10% of electricity generation (2023). Countries ordered from cleanest to most fossil-heavy."
+description: "A pictogram chart showing the electricity generation mix for 8 countries in 2023. Each country gets exactly 10 icons — the icon type reveals the energy source. Countries range from Norway (98% renewable, nearly all hydro) to Saudi Arabia (99% fossil fuels). Built with R, ggplot2, FontAwesome icons, and patchwork."
+date: "2026-04-02" 
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2026/30dcc_2026_02.html"
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "30DayChartChallenge",
+  "Comparisons",
+  "Pictogram",
+  "Energy",
+  "Electricity Mix",
+  "FontAwesome",
+  "Icon Chart",
+  "Unit Chart",
+  "Our World in Data",
+  "Ember",
+  "Climate",
+  "ggplot2",
+  "patchwork",
+  "showtext",
+  "geom_text"
+]
+image: "thumbnails/30dcc_2026_02.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Pictogram chart showing the electricity generation mix for 8 countries in 2023, with 10 icons per country, each representing 10% of generation. Icon type indicates the energy source — droplets for hydro, flames for gas, factory icons for coal, and others. Countries are ordered from cleanest to most fossil-heavy. Norway leads with 98% renewable energy (mostly hydro), while Saudi Arabia and India rely on 99% and 75% fossil fuels, respectively. France stands out mid-table with 65% nuclear electricity. Denmark shows a wind-dominant mix, and China and the United States display mixed fossil and clean profiles.](30dcc_2026_02.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse, ggtext, showtext, sysfonts, systemfonts,    
+  janitor, scales, glue, patchwork   
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+
+### |- load FontAwesome ----
+font_add("FontAwesome6",
+  regular = here::here("fonts/6.6.0/Font Awesome 6 Free-Solid-900.otf"))
+
+showtext_auto()
+showtext_opts(dpi = 320)
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+### |- OWID energy data ----
+# Download: https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv
+energy_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/owid-energy-data.csv")
+)
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(energy_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- target countries ----
+target_countries <- c(
+  "Norway", "Brazil", "Denmark", "France",
+  "China", "United States", "India", "Saudi Arabia"
+)
+
+### |- column -> source lookup ----
+col_source_map <- c(
+  "coal_electricity"                        = "coal",
+  "gas_electricity"                         = "gas",
+  "oil_electricity"                         = "oil",
+  "nuclear_electricity"                     = "nuclear",
+  "hydro_electricity"                       = "hydro",
+  "wind_electricity"                        = "wind",
+  "solar_electricity"                       = "solar",
+  "biofuel_electricity"                     = "bioenergy",
+  "other_renewable_exc_biofuel_electricity" = "other_renewables"
+  # NOTE: other_renewables retained for data completeness;
+  # excluded from legend since none of the 8 countries use it in 2023
+)
+
+### |- sort orders (defined once, used throughout) ----
+# Within-row display: renewables block | nuclear | fossil block
+source_sort_order <- c(
+  "hydro"            = 1,
+  "wind"             = 2,
+  "solar"            = 3,
+  "bioenergy"        = 4,
+  "other_renewables" = 5,
+  "nuclear"          = 6,
+  "gas"              = 7,
+  "oil"              = 8,
+  "coal"             = 9
+)
+
+# Legend order: same clean -> fossil sequence, other_renewables excluded
+legend_order <- c(
+  "hydro", "wind", "solar", "bioenergy",
+  "nuclear", "gas", "oil", "coal"
+)
+
+### |- source group lookup ----
+source_group_map <- c(
+  "hydro"            = "renewable",
+  "wind"             = "renewable",
+  "solar"            = "renewable",
+  "bioenergy"        = "renewable",
+  "other_renewables" = "renewable",
+  "nuclear"          = "nuclear",
+  "gas"              = "fossil",
+  "oil"              = "fossil",
+  "coal"             = "fossil"
+)
+
+### |- icon unicode (FontAwesome 6 Solid) ----
+icon_map <- c(
+  "hydro"            = "\uf043", # fa-droplet
+  "wind"             = "\uf72e", # fa-wind
+  "solar"            = "\uf185", # fa-sun
+  "bioenergy"        = "\uf06c", # fa-leaf
+  "other_renewables" = "\uf0e7", # fa-bolt
+  "nuclear"          = "\uf5d2", # fa-atom
+  "gas"              = "\uf06d", # fa-fire
+  "oil"              = "\uf1e6", # fa-plug
+  "coal"             = "\uf275" # fa-industry
+)
+
+### |- display labels ----
+source_labels <- c(
+  "hydro"            = "Hydro",
+  "wind"             = "Wind",
+  "solar"            = "Solar",
+  "bioenergy"        = "Bioenergy",
+  "other_renewables" = "Other Renew.",
+  "nuclear"          = "Nuclear",
+  "gas"              = "Natural Gas",
+  "oil"              = "Oil",
+  "coal"             = "Coal"
+)
+
+### |- largest-remainder allocation: icons always sum to exactly 10 ----
+allocate_icons <- function(shares, n_total = 10) {
+  shares <- tidyr::replace_na(shares, 0)
+
+  if (sum(shares) == 0) {
+    return(rep(0L, length(shares)))
+  }
+
+  shares <- shares / sum(shares)
+
+  floors <- floor(shares * n_total)
+  remainder <- shares * n_total - floors
+  n_remaining <- as.integer(n_total - sum(floors))
+
+  if (n_remaining > 0) {
+    top_idx <- order(remainder, decreasing = TRUE)[seq_len(n_remaining)]
+    floors[top_idx] <- floors[top_idx] + 1L
+  }
+
+  floors
+}
+
+### |- filter, reshape, compute shares + icon counts ----
+energy_clean <- energy_raw |>
+  filter(country %in% target_countries, year == 2023) |>
+  select(country, year, all_of(names(col_source_map))) |>
+  pivot_longer(
+    cols      = all_of(names(col_source_map)),
+    names_to  = "col",
+    values_to = "twh"
+  ) |>
+  mutate(
+    source = col_source_map[col],
+    twh    = replace_na(twh, 0)
+  ) |>
+  select(-col) |>
+  group_by(country) |>
+  mutate(
+    total_twh = sum(twh, na.rm = TRUE),
+    share     = if_else(total_twh > 0, twh / total_twh, 0),
+    n_icons   = allocate_icons(share)
+  ) |>
+  ungroup() |>
+  mutate(
+    source = factor(source, levels = names(source_sort_order))
+  ) |>
+  # Keep only sources that receive at least one pictogram icon
+  # after largest-remainder allocation
+  filter(n_icons > 0)
+
+### |- sanity check: every country must sum to exactly 10 icons ----
+icon_check <- energy_clean |>
+  group_by(country) |>
+  summarise(total_icons = sum(n_icons), .groups = "drop")
+
+stopifnot(all(icon_check$total_icons == 10))
+
+### |- country order: cleanest -> most fossil-heavy ----
+# left_join retains countries with zero fossil icons (e.g. Norway)
+country_order <- energy_clean |>
+  distinct(country) |>
+  left_join(
+    energy_clean |>
+      filter(source %in% c("coal", "gas", "oil")) |>
+      group_by(country) |>
+      summarise(fossil_icons = sum(n_icons), .groups = "drop"),
+    by = "country"
+  ) |>
+  mutate(fossil_icons = replace_na(fossil_icons, 0)) |>
+  arrange(fossil_icons, country) |>
+  pull(country)
+
+### |- expand to one row per icon, sorted within each row ----
+energy_expanded <- energy_clean |>
+  uncount(n_icons) |>
+  mutate(sort_key = source_sort_order[as.character(source)]) |>
+  group_by(country) |>
+  arrange(sort_key, .by_group = TRUE) |>
+  mutate(
+    icon_pos = row_number(),
+    x        = icon_pos,
+    y        = 0,
+    icon     = icon_map[as.character(source)]
+  ) |>
+  ungroup() |>
+  mutate(
+    country = factor(country, levels = country_order),
+    source  = factor(as.character(source), levels = legend_order)
+  )
+
+### |- right-side annotations (selected countries only) ----
+annotation_df <- energy_clean |>
+  mutate(group = source_group_map[as.character(source)]) |>
+  group_by(country, group) |>
+  summarise(pct = round(sum(share) * 100), .groups = "drop") |>
+  pivot_wider(names_from = group, values_from = pct, values_fill = 0) |>
+  mutate(
+    annotation = case_when(
+      country == "Norway" ~ glue("{renewable}% renewable"),
+      country == "France" ~ glue("{nuclear}% nuclear electricity"),
+      country %in% c("India", "Saudi Arabia") ~ glue("{fossil}% fossil fuels"),
+      TRUE ~ NA_character_
+    )
+  ) |>
+  filter(!is.na(annotation)) |>
+  mutate(country = factor(country, levels = country_order))
+
+### |- legend data ----
+legend_df <- tibble(
+  source = legend_order,
+  label  = source_labels[legend_order],
+  icon   = icon_map[legend_order]
+) |>
+  mutate(
+    col = c(1, 2, 3, 4, 1, 2, 3, 4),
+    row = c(2, 2, 2, 2, 1, 1, 1, 1)
+  ) |>
+  mutate(
+    x_icon  = (col - 1) * 2.2 + 1,
+    x_label = x_icon + 0.55,
+    y       = row
+  )
+```
+
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "coal"             = "#525252",
+    "gas"              = "#E67E22",
+    "oil"              = "#1a1a2e",
+    "nuclear"          = "#7A1E3A",
+    "hydro"            = "#4A90D9",
+    "wind"             = "#27AE60",
+    "solar"            = "#F39C12",
+    "bioenergy"        = "#52b788",
+    "other_renewables" = "#1ABC9C"
+  )
+)
+
+### |- titles and caption ----
+title_text <- "Norway runs on water. India runs on coal.\nElectricity generation, shown in 10 icons."
+
+subtitle_text <- str_glue(
+  "Each icon represents 10% of electricity generation (2023).\n",
+  "Countries ordered from cleanest to most fossil-heavy."
+)
+
+caption_text <- create_dcc_caption(
+  dcc_year = 2026,
+  dcc_day = 02,
+  source_text = "Our World in Data · Energy Institute Statistical Review of World Energy"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    strip.text.y.left = element_text(
+      angle = 0, hjust = 1, vjust = 0.5,
+      face = "bold", size = rel(1.0),
+      margin = margin(r = 6, l = 0)
+    ),
+    plot.title = element_text(
+      size = rel(1.5),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.75),
+      family = fonts$subtitle,
+      color = colors$subtitle,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 15)
+    ),
+    strip.background = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.spacing.y = unit(0.3, "lines"),
+    legend.position = "none",
+    plot.margin = margin(t = 10, r = 10, b = 10, l = 10)
+  )
+)
+
+theme_set(weekly_theme)
+
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p_main <- energy_expanded |>
+  ggplot(aes(x = x, y = y, color = source, label = icon)) +
+  geom_text(
+    family      = "FontAwesome6",
+    size        = 8,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = annotation_df,
+    aes(x = 11.2, y = 0, label = annotation),
+    inherit.aes = FALSE,
+    hjust = 0,
+    vjust = 0.5,
+    size = 3.5,
+    color = "gray30",
+    fontface = "bold",
+    family = "sans"
+  ) +
+  scale_color_manual(values = colors$palette) +
+  scale_x_continuous(limits = c(0.5, 14.5)) +
+  scale_y_continuous(limits = c(-0.5, 0.5)) +
+  coord_equal() +
+  facet_wrap(
+    ~country,
+    ncol           = 1,
+    strip.position = "left"
+  ) +
+  labs(
+    title    = title_text,
+    subtitle = subtitle_text
+  )
+
+### |- custom legend as its own ggplot ----
+p_legend <- ggplot(legend_df) +
+  geom_text(
+    aes(x = x_icon, y = y, label = icon, color = source),
+    family = "FontAwesome6",
+    size = 5
+  ) +
+  geom_text(
+    aes(x = x_label, y = y, label = label),
+    hjust = 0,
+    vjust = 0.5,
+    size = 3.5,
+    color = "gray20",
+    family = "sans"
+  ) +
+  scale_color_manual(values = colors$palette) +
+  scale_x_continuous(limits = c(0.5, 11.5)) +
+  scale_y_continuous(limits = c(0.4, 2.6)) +
+  theme_void() +
+  theme(
+    legend.position  = "none",
+    plot.background  = element_rect(fill = colors$background, color = colors$background),
+    panel.background = element_rect(fill = colors$background, color = colors$background),
+    plot.margin      = margin(t = 0, r = 0, b = 0, l = 0)
+  )
+
+### |- caption panel ----
+p_caption <- ggplot() +
+  labs(caption = caption_text) +
+  theme_void() +
+  theme(
+    plot.background = element_rect(fill = colors$background, color = colors$background),
+    panel.background = element_rect(fill = colors$background, color = colors$background),
+    plot.caption = element_markdown(
+      size = rel(0.65),
+      family = fonts$caption,
+      color = colors$caption,
+      lineheight = 1.1,
+      hjust = 0,
+      halign = 0,
+      margin = margin(t = 5, b = 5)
+    )
+  )
+
+### |- combine with patchwork ----
+combined_plots <- p_main / p_legend / p_caption +
+  plot_layout(heights = c(8, 1.2, 0.35)) +
+  plot_annotation(
+    theme = theme(
+      plot.margin = margin(15, 15, 10, 15)
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  combined_plots, 
+  type = "30daychartchallenge", 
+  year = 2026, 
+  day = 02, 
+  width = 10, 
+  height = 7
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps} 
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2026_02.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/30dcc_2026_02.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1. Data Sources:
+   - Our World in Data. (2023). *Electricity Mix*. Based on data from Ember and the 
+   Energy Institute Statistical Review of World Energy. 
+   Retrieved from https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv
+   
+   - Ember. (2023). *Yearly Electricity Data*. Retrieved from https://ember-energy.org
+   
+   - Energy Institute. (2023). *Statistical Review of World Energy*. 
+   Retrieved from https://www.energyinst.org/statistical-review
+:::
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
