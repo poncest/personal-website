@@ -1,0 +1,457 @@
+---
+title: "Whose Grid Got Cleaner?"
+subtitle: "Carbon intensity of electricity generation (gCO₂/kWh), 2020 to 2024. Highlighted lines = the 3 largest absolute declines in carbon intensity. Lower values mean cleaner electricity."
+description: "Slope chart comparing the carbon intensity of electricity generation (gCO₂/kWh) across 20 countries between 2020 and 2024. Chile, Poland, and Australia recorded the three largest absolute declines. A reference line marks the 100 gCO₂/kWh clean grid benchmark. Built with R and ggplot2. as part of the #30DayChartChallenge 2026 — Day 4: Comparisons | Slope."
+date: "2026-04-04" 
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2026/30dcc_2026_04.html"
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "30DayChartChallenge",
+  "Comparisons",
+  "Slope",
+  "Energy",
+  "Climate",
+  "Carbon Intensity",
+  "Electricity",
+  "Energy Transition",
+  "Our World in Data",
+  "ggplot2",
+  "ggrepel"
+]
+image: "thumbnails/30dcc_2026_04.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Slope chart showing carbon intensity of electricity generation (gCO₂/kWh) for 20 countries, comparing 2020 to 2024. Three countries are highlighted in green as the largest absolute improvers: Chile (−172 g), Poland (−126 g), and Australia (−88 g). A dashed blue line marks the 100 gCO₂/kWh clean grid benchmark. France, Sweden, Norway, and Brazil already fall below this threshold in both years. All other countries are shown in gray and show modest or no improvement over the period.](30dcc_2026_04.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse, ggtext, showtext,     
+  janitor, scales, glue, ggrepel     
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 6,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+### |- OWID energy data ----
+# Download: https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv
+energy_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/owid-energy-data.csv")
+)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(energy_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- define curated country list ----
+countries_keep <- c(
+  "United Kingdom", "Germany", "Estonia", "Poland",
+  "South Africa", "Australia", "United States", "Canada",
+  "France", "Sweden", "Norway", "Brazil",
+  "India", "China", "Vietnam", "Indonesia",
+  "Chile", "Mexico", "Japan", "South Korea"
+)
+
+### |- filter to 2020 and 2024 ----
+slope_data <- energy_raw |>
+  filter(
+    country %in% countries_keep,
+    year %in% c(2020, 2024),
+    !is.na(carbon_intensity_elec)
+  ) |>
+  select(country, year, carbon_intensity_elec) |>
+  group_by(country) |>
+  filter(n() == 2) |>
+  ungroup()
+
+### |- compute delta ----
+country_delta <- slope_data |>
+  pivot_wider(
+    names_from   = year,
+    values_from  = carbon_intensity_elec,
+    names_prefix = "yr_"
+  ) |>
+  mutate(
+    delta     = yr_2024 - yr_2020,
+    delta_pct = (yr_2024 - yr_2020) / yr_2020 * 100
+  ) |>
+  arrange(delta)
+
+### |- identify top 3 improvers (largest absolute drop) ----
+top_improvers <- country_delta |>
+  slice_min(order_by = delta, n = 3) |>
+  pull(country)
+
+### |- join highlight flag back to slope data ----
+slope_data <- slope_data |>
+  left_join(
+    country_delta |> select(country, delta, delta_pct),
+    by = "country"
+  ) |>
+  mutate(
+    highlight = country %in% top_improvers
+  )
+
+### |- endpoint data for geom_point ----
+endpoints <- slope_data |>
+  filter(year %in% c(2020, 2024))
+
+### |- pre-build label data frames ----
+labels_highlighted <- slope_data |> filter(highlight, year == 2024)
+labels_other <- slope_data |> filter(!highlight, year == 2024)
+```
+
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    "TRUE"  = "#007F5F",
+    "FALSE" = "gray80"
+  )
+)
+
+col_ref_line <- "#457B9D"
+col_bg       <- colors$background
+
+### |- titles and caption ----
+title_text <- str_glue("Whose Grid Got Cleaner?")
+
+subtitle_text <- str_glue(
+  "Carbon intensity of electricity generation (gCO\u2082/kWh), <b>2020 \u2192 2024</b>.<br>",
+  "Highlighted lines = the <b>3 largest absolute declines</b> in carbon intensity.<br>",
+  "Lower values mean cleaner electricity."
+)
+
+caption_text <- create_dcc_caption(
+  dcc_year    = 2026,
+  dcc_day     = 04,
+  source_text = "Our World in Data \u2014 Energy Dataset"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Canvas
+    plot.background = element_rect(fill = col_bg, color = NA),
+    panel.background = element_rect(fill = col_bg, color = NA),
+    #
+    # Grid
+    panel.grid.major.y = element_line(color = "gray92", linewidth = 0.3),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Axes
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(
+      size = 11, face = "bold", color = "gray30",
+      family = fonts$text, margin = margin(t = 6)
+    ),
+    axis.text.y = element_text(size = 9, color = "gray50", family = fonts$text),
+    axis.title = element_blank(),
+
+    # Text hierarchy
+    plot.title = element_text(
+      size = 25, face = "bold", family = fonts$title,
+      color = "gray10", margin = margin(b = 6)
+    ),
+    plot.subtitle = element_markdown(
+      size = 10, family = "sans", color = "gray35",
+      lineheight = 1.4, margin = margin(b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = 7, color = "gray55", family = fonts$caption,
+      hjust = 0, margin = margin(t = 16), lineheight = 1.3
+    ),
+    plot.margin = margin(t = 24, r = 25, b = 16, l = 24)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p <-
+  slope_data |>
+  # Geoms
+  ggplot(aes(
+    x = year,
+    y = carbon_intensity_elec,
+    group = country,
+    color = as.character(highlight)
+  )) +
+  geom_hline(
+    yintercept = 100,
+    linetype = "dashed",
+    color = col_ref_line,
+    linewidth  = 0.5,
+    alpha = 0.7
+  ) +
+  annotate(
+    "text",
+    x = 2019,
+    y = 110,
+    label = "~100 gCO\u2082/kWh clean grid benchmark",
+    color = col_ref_line,
+    size = 2.6,
+    fontface = "italic",
+    family = fonts$text,
+    hjust = 0,
+    vjust = 0
+  ) +
+  geom_line(
+    data = slope_data |> filter(!highlight),
+    linewidth = 0.45,
+    alpha = 0.50
+  ) +
+  geom_line(
+    data = slope_data |> filter(highlight),
+    linewidth = 1.55,
+    alpha = 0.98,
+    color = colors$palette["TRUE"]
+  ) +
+  geom_point(
+    data = endpoints |> filter(!highlight),
+    size  = 1.5,
+    alpha = 0.45
+  ) +
+  geom_point(
+    data = endpoints |> filter(highlight),
+    size  = 3.2,
+    alpha = 0.98,
+    color = colors$palette["TRUE"]
+  ) +
+  geom_text_repel(
+    data = labels_highlighted,
+    aes(label = glue("{country} (-{round(abs(delta), 0)} g)")),
+    hjust = 0,
+    nudge_x = 0.55,
+    direction = "y",
+    segment.size = 0.3,
+    segment.color = "gray70",
+    size = 3.5,
+    lineheight = 1.15,
+    family = fonts$text,
+    fontface = "bold",
+    color = colors$palette["TRUE"],
+    box.padding = 0.30,
+    point.padding = 0.20,
+    min.segment.length = 0
+  ) +
+  geom_text_repel(
+    data = labels_other,
+    aes(label = country),
+    hjust = 0,
+    nudge_x = 0.45,
+    direction = "y",
+    segment.size = 0.12,
+    segment.color = "gray88",
+    size = 1.8,
+    color = "gray70",
+    family = fonts$text,
+    box.padding = 0.07,
+    point.padding = 0.05,
+    min.segment.length = 0,
+    force = 0.8,
+    seed = 42
+  ) +
+
+  # Scales
+  scale_color_manual(
+    values = c("TRUE" = colors$palette["TRUE"], "FALSE" = colors$palette["FALSE"])
+  ) +
+  scale_x_continuous(
+    breaks = c(2020, 2024),
+    labels = c("2020", "2024"),
+    limits = c(2019, 2026),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(
+    labels = label_number(suffix = " g"),
+    breaks = seq(0, 800, by = 200),
+    limits = c(0, NA),
+    expand = expansion(mult = c(0.02, 0.05))
+  ) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = NULL
+  ) +
+  guides(color = "none")
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2026, 
+  day = 04, 
+  width = 6, 
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps} 
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2026_04.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/30dcc_2026_04.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1. Data Sources:
+   - Ritchie, H., Rosado, P., & Roser, M. (2024). *Our World in Data — Energy Dataset*.
+     Based on data from Ember and the Energy Institute Statistical Review of World Energy.
+     Retrieved April 2026 from
+     https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv
+
+   - Ember. (2024). *Yearly Electricity Data*. Retrieved from https://ember-energy.org
+
+   - Energy Institute. (2024). *Statistical Review of World Energy*.
+     Retrieved from https://www.energyinst.org/statistical-review
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
