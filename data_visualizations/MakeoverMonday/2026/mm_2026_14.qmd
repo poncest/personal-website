@@ -1,0 +1,501 @@
+---
+title: "The Rivalry That Became a Gap"
+subtitle: "U.S. and Saudi oil production tracked closely for decades. After 2009, U.S. production surged — creating a gap that has continued to widen."
+description: "U.S. and Saudi Arabia oil production tracked closely for decades — then shale changed everything. This gap chart uses dual-shaded ribbon fills to encode two eras: competitive parity before 2009 and accelerating U.S. dominance after. Redesigned from an Our World in Data multi-line chart to reduce cognitive load and foreground the structural shift in global oil leadership."
+date: "2026-04-06"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_14.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]   
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "energy",
+  "oil-production",
+  "geopolitics",
+  "ribbon-chart",
+  "time-series",
+  "United-States",
+  "Saudi-Arabia",
+  "shale-revolution",
+  "two-country-comparison"
+]
+image: "thumbnails/mm_2026_14.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 14
+project_file <- "mm_2026_14.qmd"
+project_image <- "mm_2026_14.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026w14"
+data_secondary <- "https://data.world/makeovermonday/2026w14"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_14/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://ourworldindata.org/grapher/oil-production-by-country"
+org_secondary <- "https://ourworldindata.org/grapher/oil-production-by-country"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Global Oil Production", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_14/original_chart.png)
+
+### Makeover
+
+![A gap chart showing U.S. and Saudi Arabia oil production in terawatt-hours from 1965 to 2024. The area between the two lines is shaded in two colors: warm gray before 2009, labeled "Production tracked closely," and steel blue after 2009, labeled "U.S. pulls ahead." A dashed vertical line marks the 2009 shale boom inflection point. The U.S. line ends at 10k TWh in 2024; Saudi Arabia at 5.9k TWh. An annotation notes that U.S. output is approximately 1.7 times that of Saudi Arabia. The chart illustrates a structural shift from decades of competitive parity to clear U.S. dominance following the shale revolution.](mm_2026_14.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, 
+  glue, janitor
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- read_csv(
+  here::here("data/MakeoverMonday/2026/oil-production-by-country.csv")) |>
+  clean_names()
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+df_two <- df_raw |>
+  filter(
+    entity %in% c("United States", "Saudi Arabia"),
+    year >= 1965
+  ) |>
+  mutate(oil_k = oil / 1000) |>
+  select(entity, year, oil_k)
+
+df_wide <- df_two |>
+  pivot_wider(names_from = entity, values_from = oil_k) |>
+  rename(us = `United States`, saudi = `Saudi Arabia`) |>
+  mutate(era = if_else(year < 2009, "rivalry", "gap"))
+
+# Endpoint values for labels
+us_2024    <- df_wide |> filter(year == 2024) |> pull(us)
+saudi_2024 <- df_wide |> filter(year == 2024) |> pull(saudi)
+
+# Ratio for "nearly 2×" annotation 
+ratio_2024 <- round(us_2024 / saudi_2024, 1)
+
+# Label anchor positions
+us_1988    <- df_wide |> filter(year == 1988) |> pull(us)
+saudi_1988 <- df_wide |> filter(year == 1988) |> pull(saudi)
+rival_mid  <- (us_1988 + saudi_1988) / 2
+
+# Gap label
+us_2018    <- df_wide |> filter(year == 2018) |> pull(us)
+saudi_2018 <- df_wide |> filter(year == 2018) |> pull(saudi)
+gap_mid    <- (us_2018 + saudi_2018) / 2
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    us         = "#2E5B8A",
+    saudi      = "#722F37",
+    fill_gap   = "#C8DAE8",
+    fill_rival = "#E8E4DC",
+    annot      = "#5A5A5A",
+    text       = "#2C2C2A"
+  )
+)
+
+### |-  titles and caption ----
+title_text    <- str_glue("The Rivalry That Became a Gap")
+
+subtitle_text <- str_glue(
+  "<span style='color:{colors$palette$us}'>**U.S.**</span> and ",
+  "<span style='color:{colors$palette$saudi}'>**Saudi**</span> oil production ",
+  "tracked closely for decades. After 2009, U.S. production surged — ",
+  "creating a gap that has continued to widen."
+)
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 14,
+  source_text = "Energy Institute — Statistical Review of World Energy (2025);<br>The Shift Data Portal (2019) via Our World in Data"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme   <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    axis.title        = element_blank(),
+    axis.text.x       = element_text(size = 9, color = "gray45"),
+    axis.text.y       = element_text(size = 9, color = "gray45"),
+    axis.line.x       = element_line(color = "gray80", linewidth = 0.3),
+    axis.ticks.x      = element_line(color = "gray80", linewidth = 0.3),
+    axis.ticks.length = unit(3, "pt"),
+    
+    panel.grid.major.y = element_line(color = "gray92", linewidth = 0.3),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    
+    plot.margin = margin(t = 20, r = 90, b = 10, l = 20)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  main plot ----
+p <- ggplot(df_wide, aes(x = year)) +
+  
+  # Geoms
+  geom_ribbon(
+    data    = df_wide |> filter(era == "rivalry"),
+    mapping = aes(ymin = saudi, ymax = us),
+    fill    = colors$palette$fill_rival,
+    alpha   = 0.9
+  ) +
+  geom_ribbon(
+    data    = df_wide |> filter(era == "gap"),
+    mapping = aes(ymin = saudi, ymax = us),
+    fill    = colors$palette$fill_gap,
+    alpha   = 0.85
+  ) +
+  annotate(
+    "segment",
+    x = 2009, xend = 2009,
+    y = 0, yend = 10,
+    color = "gray70",
+    linewidth = 0.35,
+    linetype = "dashed"
+  ) +
+  geom_line(
+    aes(y = saudi),
+    color = colors$palette$saudi,
+    linewidth = 1.1,
+    lineend = "round"
+  ) +
+  geom_line(
+    aes(y = us),
+    color = colors$palette$us,
+    linewidth = 1.4,
+    lineend = "round"
+  ) +
+  
+  # Annotate
+  annotate(
+    "text",
+    x = 2024.5,
+    y = us_2024,
+    label = glue("U.S.\n{round(us_2024, 1)}k TWh"),
+    hjust = 0,
+    size = 3.1,
+    fontface = "bold",
+    color = colors$palette$us,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = 2024.5,
+    y = saudi_2024,
+    label = glue("Saudi\n{round(saudi_2024, 1)}k TWh"),
+    hjust = 0,
+    size = 3.1,
+    fontface = "bold",
+    color = colors$palette$saudi,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x        = 2024.5,
+    y        = us_2024 - 1.2,
+    label    = glue("\u007e{ratio_2024}\u00d7 Saudi Arabia"),
+    hjust    = 0,
+    size     = 2.7,
+    color    = "gray50",
+    fontface = "italic"
+  ) +
+  annotate(
+    "text",
+    x          = 1988,
+    y          = rival_mid,
+    label      = "Production\ntracked closely",
+    hjust      = 0.5,
+    size       = 2.8,
+    color      = "gray55",
+    fontface   = "italic",
+    lineheight = 1.3
+  ) +
+  annotate(
+    "text",
+    x          = 2017,
+    y          = gap_mid + 0.8,
+    label      = "U.S. pulls ahead",
+    hjust      = 0.5,
+    size       = 2.8,
+    color      = colors$palette$us,
+    fontface   = "italic"
+  ) +
+  annotate(
+    "text",
+    x          = 2009,
+    y          = 9.7,
+    label      = "Shale boom\nbegins",
+    hjust      = 0.5,
+    size       = 2.7,
+    color      = "gray50",
+    lineheight = 1.2
+  ) +
+  
+  # Scales
+  scale_x_continuous(
+    breaks = seq(1970, 2020, by = 10),
+    expand = expansion(mult = c(0.01, 0.16))
+  ) +
+  scale_y_continuous(
+    labels = label_number(suffix = "k TWh", accuracy = 1),
+    breaks = seq(0, 10, by = 2),
+    limits = c(0, 10.5),
+    expand = expansion(mult = c(0, 0.02))
+  ) +
+  
+  # Labs
+  labs(
+    title    = title_text,
+    subtitle = subtitle_text,
+    caption  = caption_text
+  ) +
+  
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = 24, face = "bold", color = colors$palette$text,
+      margin = margin(b = 6), family = fonts$title
+    ),
+    plot.subtitle = element_textbox_simple(
+      size = 11, color = "gray35",
+      margin = margin(b = 16), family = fonts$subtitle,
+      lineheight = 1.4
+    ),
+    plot.caption = element_textbox_simple(
+      size = 8, color = "gray55", family = fonts$caption,
+      margin = margin(t = 12),
+      lineheight = 1.3
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 8, 
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+**Primary Data (Makeover Monday):**
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("Global Oil Production", data_main)`
+2. Original Chart: `r create_link("Oil Production by Country — Our World in Data", "https://ourworldindata.org/grapher/oil-production-by-country")`
+   - Source: Our World in Data interactive explorer (CC BY 4.0)
+   - Authors: Hannah Ritchie, Pablo Rosado, and Max Roser (2023)
+
+**Source Data:**
+3. `r create_link("Energy Institute — Statistical Review of World Energy (2025)", "https://www.energyinst.org/statistical-review/")`
+   - Coverage: Oil production by country, 1965–2024
+   - Unit: Terawatt-hours (converted from exajoules by Our World in Data)
+
+4. `r create_link("The Shift Data Portal — Energy Production from Fossil Fuels (2019)", "https://www.theshiftdataportal.org/")`
+   - Coverage: Historical production series, 1900–1964 (pre-Energy Institute period)
+   - Note: Not used in this chart — visualization begins at 1965
+
+**Full citation (per Our World in Data):**
+> Energy Institute - Statistical Review of World Energy (2025); The Shift Data Portal (2019) – with major processing by Our World in Data. "Oil production" [dataset]. Retrieved from https://ourworldindata.org/grapher/oil-production-by-country
+
+**Note:** This redesign focuses on the United States and Saudi Arabia only (1965–2024), where the rivalry-to-gap narrative is most legible. The five remaining countries in the dataset (Iraq, UAE, Norway, Qatar, Oman) are excluded from the final chart; at this scale they compress to near-zero and add no analytical value to the central story. Production values are reported in terawatt-hours as supplied by Our World in Data; no additional unit conversion was applied.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
