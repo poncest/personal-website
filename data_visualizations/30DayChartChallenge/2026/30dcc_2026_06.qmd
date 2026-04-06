@@ -1,0 +1,473 @@
+---
+title: "A Decade of Divergence in Press Freedom"
+subtitle: "The 10 biggest improvements and declines in RSF rank since 2015"
+description: "An arrow chart tracking the 10 biggest improvements and 10 biggest
+  declines in RSF Press Freedom rankings over a decade (2015–2025). Built in R
+  with ggplot2 using direct RSF data. Rank movement used in place of scores to
+  ensure comparability across methodology changes."
+date: "2026-04-06" 
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2026/30dcc_2026_06.html"
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "30DayChartChallenge",
+  "Comparisons",
+  "Data Day",
+  "Reporters Without Borders",
+  "RSF",
+  "Press Freedom",
+  "Arrow Chart",
+  "Ranking",
+  "ggplot2",
+  "geom_segment"
+]
+image: "thumbnails/30dcc_2026_06.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![An arrow chart showing the 10 biggest improvements and 10 biggest declines in RSF Press Freedom rankings between 2015 and 2025. Blue arrows point leftward — from a higher 2015 rank to a lower 2025 rank — indicating improvement in press freedom. Burgundy arrows point to the right, indicating decline. Top improvers include Gambia (+93 places), Montenegro, and North Macedonia. The biggest decliners include Nicaragua (−98 places), El Salvador, and Hong Kong. The x-axis runs from rank 1 (most free) on the left to rank 180 (least free) on the right. A gray dot marks each country's 2015 starting rank.](30dcc_2026_06.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse, ggtext, showtext,     
+  janitor, scales, glue        
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 6,
+  height = 9,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+### |- RSF 2025 ----
+rsf_2025 <- read_delim(
+  here::here("data/30DayChartChallenge/2026/RSF_2025.csv"),
+  delim          = ";",
+  locale         = locale(encoding = "windows-1252", decimal_mark = ","),
+  show_col_types = FALSE
+)
+
+### |- RSF 2015 ----
+rsf_2015 <- read_delim(
+  here::here("data/30DayChartChallenge/2026/RSF_2015.csv"),
+  delim          = ";",
+  locale         = locale(encoding = "windows-1252", decimal_mark = ","),
+  show_col_types = FALSE
+)
+
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(rsf_2025)
+glimpse(rsf_2015)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- standardise 2025 ----
+r2025 <- rsf_2025 |>
+  clean_names() |>
+  select(
+    iso = iso,
+    country = country_en,
+    rank_2025 = rank
+  ) |>
+  mutate(rank_2025 = as.integer(rank_2025))
+
+### |- standardise 2015 ----
+r2015 <- rsf_2015 |>
+  clean_names() |>
+  select(
+    iso       = iso,
+    rank_2015 = rank_n
+  ) |>
+  mutate(rank_2015 = as.integer(rank_2015))
+
+### |- join on ISO ----
+rsf <- r2025 |>
+  inner_join(r2015, by = "iso") |>
+  filter(!is.na(rank_2015), !is.na(rank_2025)) |>
+  mutate(
+    rank_change = rank_2015 - rank_2025,
+    direction = case_when(
+      rank_change > 5 ~ "improved",
+      rank_change < -5 ~ "declined",
+      TRUE ~ "stable"
+    )
+  )
+
+### |- top 10 improvers + top 10 decliners ----
+top_improved <- rsf |>
+  filter(direction == "improved") |>
+  slice_max(rank_change, n = 10, with_ties = FALSE)
+
+top_declined <- rsf |>
+  filter(direction == "declined") |>
+  slice_min(rank_change, n = 10, with_ties = FALSE)
+
+rsf_plot <- bind_rows(top_improved, top_declined) |>
+  arrange(
+    direction,
+    if_else(direction == "declined", rank_change, -rank_change)
+  ) |>
+  mutate(country = fct_inorder(country))
+```
+
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    bg       = "#F5F3EE",
+    text     = "#2C2C2C",
+    grid     = "#E8E5E0",
+    improved = "#2E6B9E",
+    declined = "#8B3030",
+    dot_2015 = "#AAAAAA"
+  )
+)
+
+col_bg <- colors$palette$bg
+col_text <- colors$palette$text
+col_grid <- colors$palette$grid
+col_improved <- colors$palette$improved
+col_declined <- colors$palette$declined
+col_dot_2015 <- colors$palette$dot_2015
+
+### |- pre-extract arrow color as scalar vector ----
+arrow_color_vec <- rsf_plot |>
+  mutate(col = if_else(direction == "improved", col_improved, col_declined)) |>
+  pull(col) |>
+  setNames(as.character(rsf_plot$country))
+
+### |- delta label formatting — compact ----
+rsf_plot <- rsf_plot |>
+  mutate(
+    # compact: ↑51 or ↓48
+    delta_label = if_else(
+      direction == "improved",
+      paste0("\u2191", rank_change),
+      paste0("\u2193", abs(rank_change))
+    ),
+    # delta label
+    label_x = rank_2025,
+    label_hjust = if_else(direction == "improved", 1.15, -0.15),
+    name_x = if_else(direction == "improved", rank_2015, rank_2015),
+    name_hjust = if_else(direction == "improved", -0.15, 1.12)
+  )
+
+### |- section separator y position ----
+n_declined <- sum(rsf_plot$direction == "declined")
+sep_y <- n_declined + 0.5
+
+### |- titles and caption ----
+title_text    <- "A Decade of Divergence in Press Freedom"
+
+subtitle_text <- glue(
+  "The 10 biggest improvements and declines in RSF rank since 2015 &nbsp;<br>",
+  "<span style='color:{col_dot_2015}'>&#9679;</span> 2015 rank &nbsp; ",
+  "<span style='color:{col_improved}'>&#9658;</span> 2025 rank (improved) &nbsp; ",
+  "<span style='color:{col_declined}'>&#9658;</span> 2025 rank (declined)"
+)
+
+caption_text  <- create_dcc_caption(
+  dcc_year    = 2026,
+  dcc_day     = 6,
+  source_text = "Reporters Without Borders (RSF) | rsf.org/en/index — Rank comparison only;<br>scores not comparable across methodology changes"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- base + weekly theme ----
+base_theme   <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.background = element_rect(fill = col_bg, color = NA),
+    panel.background = element_rect(fill = col_bg, color = NA),
+    panel.grid.major.x = element_line(color = col_grid, linewidth = 0.3),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(
+      family = fonts$text, size = 7.5, color = "#777777"
+    ),
+    axis.title.x = element_text(
+      family = fonts$text, size = 7.5, color = "#777777",
+      margin = margin(t = 6)
+    ),
+    plot.title = element_markdown(
+      family = fonts$title, size = 14, face = "bold",
+      color = col_text, margin = margin(b = 4)
+    ),
+    plot.subtitle = element_markdown(
+      family = "sans", size = 8, color = "#555555",
+      lineheight = 1.4, margin = margin(b = 12)
+    ),
+    plot.caption = element_markdown(
+      family = fonts$text, size = 6, color = "#999999",
+      hjust = 0, margin = margin(t = 10)
+    ),
+    plot.margin = margin(t = 16, r = 16, b = 12, l = 16)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p <- ggplot(rsf_plot) +
+
+  # Geoms
+  geom_hline(
+    yintercept = sep_y,
+    color      = "#DDDDDD",
+    linewidth  = 0.3,
+    linetype   = "dashed"
+  ) +
+  geom_segment(
+    aes(
+      x     = rank_2015, xend = rank_2025,
+      y     = country,   yend = country,
+      color = country
+    ),
+    linewidth = 1.1,
+    arrow = arrow(length = unit(0.09, "inches"), type = "closed"),
+    show.legend = FALSE
+  ) +
+  geom_point(
+    aes(x = rank_2015, y = country),
+    size  = 1.6,
+    color = col_dot_2015
+  ) +
+  geom_text(
+    aes(x = rank_2015, y = country, label = rank_2015),
+    family = fonts$text,
+    size = 2.0,
+    color = "#BBBBBB",
+    vjust = -0.9
+  ) +
+  geom_text(
+    aes(
+      x     = name_x,
+      y     = country,
+      label = country,
+      hjust = name_hjust
+    ),
+    family = fonts$text,
+    size = 2.55,
+    color = col_text
+  ) +
+  geom_text(
+    aes(
+      x     = label_x,
+      y     = country,
+      label = delta_label,
+      hjust = label_hjust,
+      color = country
+    ),
+    family = "sans",
+    size = 2.5,
+    fontface = "bold",
+    show.legend = FALSE
+  ) +
+
+  # Annotate
+  annotate(
+    "text",
+    x = 10, y = sep_y + 1.0,
+    label = "Improved",
+    family = fonts$text,
+    size = 2.5, fontface = "bold",
+    color = col_improved, hjust = 0
+  ) +
+  annotate(
+    "text",
+    x = 10, y = sep_y - 0.4,
+    label = "Declined",
+    family = fonts$text,
+    size = 2.5, fontface = "bold",
+    color = col_declined, hjust = 0
+  ) +
+
+  # Scales
+  scale_color_manual(values = arrow_color_vec) +
+  scale_x_continuous(
+    breaks = c(1, 50, 100, 150, 180),
+    labels = c("1\nMore free", "50", "100", "150", "180\nLess free"),
+    expand = expansion(mult = c(0.22, 0.22))
+  ) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    title    = title_text,
+    subtitle = subtitle_text,
+    caption  = caption_text,
+    x        = "RSF Rank",
+    y        = NULL
+  )
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2026, 
+  day = 06, 
+  width = 6, 
+  height = 9
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps} 
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2026_06.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/30dcc_2026_06.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1. Data Sources:
+   - Reporters Without Borders. (2025). *World Press Freedom Index 2025*.
+     Retrieved April 2026 from https://rsf.org/en/index?year=2025
+   - Reporters Without Borders. (2015). *World Press Freedom Index 2015*.
+     Retrieved April 2026 from https://rsf.org/en/index?year=2015
+
+2. Methodology Note:
+   - RSF revised its scoring methodology in 2022. Scores are not directly
+     comparable across editions. Rank position is used instead to enable
+     valid 2015–2025 comparisons.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
