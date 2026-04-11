@@ -1,0 +1,518 @@
+---
+title: "Rough Seas Suppress Feeding — They Don't Enhance It"
+subtitle: "Seabird feeding rates decline sharply as sea states worsen — calm-to-slight conditions yield the highest foraging activity."
+description: "Analysis of seabird feeding behavior across ocean conditions using 1969–1990 ship log data from New Zealand waters. A two-panel visualization reveals that feeding rates peak under calm-to-slight sea states and decline steadily as conditions worsen — evidence of opportunistic rather than forced foraging. Built with ggplot2 and patchwork, using Wilson confidence intervals for proportion estimation."
+date: "2026-04-11"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_15.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "Seabirds",
+  "Marine Biology",
+  "Ocean Conditions",
+  "Behavioral Ecology",
+  "Beaufort Scale",
+  "Sea State",
+  "Proportions",
+  "Wilson Confidence Intervals",
+  "Heatmap",
+  "Dot Plot",
+  "Patchwork",
+  "Two-Panel Layout",
+  "New Zealand",
+  "Historical Data"
+]
+image: "thumbnails/tt_2026_15.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Two-panel data visualization titled "Rough Seas Suppress Feeding — They Don't Enhance It." Panel A is a heatmap showing survey effort by wind condition (Beaufort scale, binned Calm to Gale+) and sea state (SS1–SS6). Observation density peaks at slight-to-moderate seas with light-to-moderate winds, shown in deep navy. Panel B is a dot plot with Wilson 95% confidence intervals showing seabird feeding rates by sea state. Feeding peaks at 11.9% under calm, rippled conditions (SS1) and declines steadily through rough (SS5, ~4%) and very rough seas (SS6, ~2%). A dashed reference line marks the peak feeding rate. Data from Te Papa Tongarewa, Museum of New Zealand, 1969–1990.](tt_2026_15.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, ggrepel,      
+    scales, glue, skimr, patchwork, binom  
+    )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 15)
+beaufort_scale <- tt$beaufort_scale |> clean_names()
+birds <- tt$birds |> clean_names()
+sea_states <- tt$sea_states |> clean_names()
+ships <- tt$ships |> clean_names()
+rm(tt)
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(beaufort_scale)
+glimpse(birds)
+glimpse(sea_states)
+glimpse(ships)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+# Join birds to ship conditions via record_id
+# Filter sentinel count values (99999 = "over 100,000")
+# Only use full 10-minute census records for comparability
+
+bird_ship <- birds |>
+    filter(!is.na(record_id)) |>
+    inner_join(ships, by = "record_id") |>
+    filter(
+        census_method == "full",
+        count < 99999,
+        !is.na(sea_state_class),
+        !is.na(wind_speed_class)
+    )
+
+### |- Panel A: Environmental Envelope ----
+# Collapse 12 Beaufort classes into 5 meaningful bins for readability.
+
+beaufort_bins <- tibble::tribble(
+    ~wind_speed_class, ~wind_bin, ~wind_bin_order,
+    0,  "Calm\n(Bf 0–1)",     1,
+    1,  "Calm\n(Bf 0–1)",     1,
+    2,  "Light\n(Bf 2–3)",    2,
+    3,  "Light\n(Bf 2–3)",    2,
+    4,  "Moderate\n(Bf 4–5)", 3,
+    5,  "Moderate\n(Bf 4–5)", 3,
+    6,  "Strong\n(Bf 6–7)",   4,
+    7,  "Strong\n(Bf 6–7)",   4,
+    8,  "Gale+\n(Bf 8–11)",   5,
+    9,  "Gale+\n(Bf 8–11)",   5,
+    10, "Gale+\n(Bf 8–11)",   5,
+    11, "Gale+\n(Bf 8–11)",   5
+)
+
+envelope_data <- bird_ship |>
+    distinct(record_id, wind_speed_class, sea_state_class) |>
+    left_join(beaufort_bins, by = "wind_speed_class") |>
+    left_join(
+        sea_states |> select(sea_state_class, sea_state_description),
+        by = "sea_state_class"
+    ) |>
+    count(wind_bin, wind_bin_order, sea_state_class, sea_state_description,
+          name = "n_obs") |>
+    mutate(
+        wind_label = fct_reorder(wind_bin, wind_bin_order),
+        sea_label  = glue("SS {sea_state_class}: {str_to_title(sea_state_description)}"),
+        sea_label  = fct_reorder(sea_label, sea_state_class)
+    )
+
+### |- Panel B: Feeding Rate × Sea State ----
+# For each sea state class: compute feeding rate with Wilson CI
+# Feeding rate = proportion of bird observations where feeding = TRUE
+# Restrict to sea states with >= 30 observations for reliability
+
+feeding_rate_data <- bird_ship |>
+    filter(!is.na(feeding)) |>
+    group_by(sea_state_class) |>
+    summarise(
+        n_obs      = n(),
+        n_feeding  = sum(feeding, na.rm = TRUE),
+        .groups    = "drop"
+    ) |>
+    filter(n_obs >= 30) |>
+    # Wilson confidence intervals (statistically appropriate for proportions)
+    mutate(
+        ci    = map2(n_feeding, n_obs, ~ binom.wilson(.x, .y)),
+        rate  = map_dbl(ci, ~ .x$mean),
+        lower = map_dbl(ci, ~ .x$lower),
+        upper = map_dbl(ci, ~ .x$upper)
+    ) |>
+    left_join(
+        sea_states |> select(sea_state_class, sea_state_description),
+        by = "sea_state_class"
+    ) |>
+    # Complete sea states 0-6 after CI computation so ghost rows never hit binom.wilson.
+    # Missing states join sea_states for labels, then bind cleanly as NA rows.
+    (\(computed) {
+        present <- unique(computed$sea_state_class)
+        missing <- setdiff(0:6, present)
+        if (length(missing) > 0) {
+            ghost <- tibble::tibble(sea_state_class = missing) |>
+                left_join(
+                    sea_states |> select(sea_state_class, sea_state_description),
+                    by = "sea_state_class"
+                ) |>
+                mutate(
+                    n_obs = 0L, n_feeding = 0L,
+                    ci = list(NULL), rate = NA_real_, lower = NA_real_, upper = NA_real_
+                )
+            dplyr::bind_rows(computed, ghost)
+        } else {
+            computed
+        }
+    })() |>
+    mutate(
+        sea_label = glue("SS {sea_state_class}\n{str_to_title(sea_state_description)}"),
+        sea_label = fct_reorder(sea_label, sea_state_class),
+        # na.rm = TRUE so ghost NA rows don't poison max()
+        is_peak   = !is.na(rate) & rate == max(rate, na.rm = TRUE)
+    )
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+    palette = list(
+        "accent"   = "#1B6CA8",   
+        "low"      = "#D9EAF7",  
+        "high"     = "#0D3B6E",   
+        "peak"     = "#722F37",   
+        "gray"     = "gray75",
+        "bg"       = "#F8F9FA"
+    )
+)
+
+### |- titles and caption ----
+title_text    <- str_glue("Rough Seas Suppress Feeding — They Don't Enhance It")
+
+subtitle_text <- str_glue(
+    "Seabird feeding rates **decline sharply as sea states worsen** — calm-to-slight conditions<br>",
+    "yield the highest foraging activity. Surveys clustered in moderate wind and wave conditions<br>",
+    "*(Panel A)*, yet feeding rates *(Panel B)* decline steadily beyond slight conditions — suggesting<br>",
+    "birds feed opportunistically, not because rough water forces prey to the surface."
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2026,
+    tt_week = 15,
+    source_text = "Te Papa Tongarewa — Museum of New Zealand"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Panel
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line(color = "gray92", linewidth = 0.3),
+        panel.grid.minor   = element_blank(),
+        
+        # Axes
+        axis.ticks = element_blank(),
+        axis.text = element_text(family = fonts$text, size = 7.5, color = "gray40"),
+        axis.title = element_text(family = fonts$text, size = 8.5, color = "gray30"),
+        
+        # Strip (for any facets)
+        strip.text  = element_text(family = fonts$text, size = 8, face = "bold"),
+        
+        # Legend
+        legend.position = "right",
+        legend.title = element_text(family = fonts$text, size = 7.5),
+        legend.text = element_text(family = fonts$text, size = 7),
+        legend.key.size = unit(0.4, "cm")
+    )
+)
+
+theme_set(weekly_theme)
+
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Panel A: Environmental Envelope heatmap ----
+
+p_envelope <- envelope_data |>
+  ggplot(aes(x = wind_label, y = sea_label, fill = n_obs)) +
+  # Geoms
+  geom_tile(color = "white", linewidth = 0.6) +
+  scale_fill_gradient(
+    low = colors$palette$low,
+    high = colors$palette$high,
+    name = "Observations",
+    labels = comma,
+    guide = guide_colorbar(barwidth = 0.4, barheight = 4)
+  ) +
+  # Scales
+  scale_x_discrete(position = "bottom") +
+  # Labs
+  labs(
+    title = "Panel A — Survey Conditions",
+    subtitle = "Surveys concentrate in slight–moderate seas with light–moderate winds — rougher conditions were rarely sampled",
+    x = "Wind Condition",
+    y  = "Sea State"
+  ) +
+  # Them
+  theme(
+    plot.title = element_text(
+      family = fonts$title, size = 10, face = "bold", color = "gray20",
+      margin = margin(b = 3)
+    ),
+    plot.subtitle = element_text(
+      family = fonts$text, size = 7.5, color = "gray45",
+      margin = margin(b = 8)
+    ),
+    axis.text.x = element_text(size = 7.5, lineheight = 1.3),
+    axis.text.y = element_text(size = 7.5),
+    panel.grid = element_blank()
+  )
+
+### |-  Panel B: Feeding Rate × Sea State ----
+
+# Identify peak for annotation
+peak_row <- feeding_rate_data |> filter(is_peak)
+
+p_feeding <- feeding_rate_data |>
+  ggplot(aes(x = sea_label, y = rate)) +
+
+  # Geoms
+  geom_pointrange(
+    aes(ymin = lower, ymax = upper, color = is_peak),
+    linewidth = 0.7,
+    size = 0.2,
+    show.legend = FALSE
+  ) +
+  geom_hline(
+    yintercept = peak_row$rate,
+    color      = "gray80",
+    linewidth  = 0.4,
+    linetype   = "dashed"
+  ) +
+  geom_text(
+    aes(y = lower - 0.007, label = glue("n={comma(n_obs)}")),
+    size = 2.3,
+    color = "gray55",
+    family = fonts$text
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x = as.character(peak_row$sea_label),
+    y = peak_row$upper + 0.009,
+    label = glue("Peak feeding\n({percent(peak_row$rate, accuracy = 0.1)})"),
+    size = 2.8,
+    color = colors$palette$peak,
+    family = fonts$text,
+    lineheight = 1.1,
+    vjust = 0
+  ) +
+  # Scales
+  scale_y_continuous(
+    labels = percent_format(accuracy = 0.1),
+    expand = expansion(mult = c(0.14, 0.18))
+  ) +
+  scale_x_discrete(drop = FALSE) +
+  scale_color_manual(
+    values = c("FALSE" = colors$palette$accent, "TRUE" = colors$palette$peak)
+  ) +
+  # Labs
+  labs(
+    title = "Panel B — Feeding Rate by Sea State",
+    subtitle = "Proportion of observations with active feeding · Wilson 95% CI · full censuses only · n ≥ 30",
+    x = "Sea State",
+    y = "Feeding Rate"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      family = fonts$title, size = 10, face = "bold", color = "gray20",
+      margin = margin(b = 3)
+    ),
+    plot.subtitle = element_text(
+      family = fonts$text, size = 7.5, color = "gray45",
+      margin = margin(b = 8)
+    ),
+    axis.text.x = element_text(size = 7.5, lineheight = 1.3),
+    panel.grid.major.x = element_blank()
+  )
+
+### |-  Combined layout ----
+combined_plot <- p_envelope / p_feeding +
+  plot_layout(heights = c(1, 1.4)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        family = fonts$title,
+        size = 18,
+        face = "bold",
+        color  = "gray10",
+        lineheight = 1.1,
+        margin = margin(b = 6)
+      ),
+      plot.subtitle = element_markdown(
+        family = fonts$text,
+        size = 10,
+        color = "gray35",
+        lineheight = 1.5,
+        margin = margin(b = 16)
+      ),
+      plot.caption = element_markdown(
+        family = fonts$text,
+        size = 7,
+        color = "gray55",
+        hjust = 0,
+        margin = margin(t = 12)
+      ),
+      plot.margin = margin(20, 20, 12, 20),
+      plot.background = element_rect(fill = colors$palette$bg, color = NA),
+      panel.background = element_rect(fill = colors$palette$bg, color = NA)
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 15, 
+  width  = 10,
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_15.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_15.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 15: [Repair Cafes Worldwide
+](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-04-14/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
