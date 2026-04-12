@@ -1,0 +1,528 @@
+---
+title: "Distance from Normal"
+subtitle: "Most countries sit near the global norm. A small group sits far above. Each dot is one country. Deviation from global median (482 gCO₂/kWh)."
+description: "Ordered dot plot showing each country's electricity carbon intensity relative to the global median (482 gCO₂/kWh). The distribution is right-skewed — most countries cluster near the norm, while a small group of coal-dependent systems drives a long upper tail. Built in R/ggplot2 using Our World in Data's energy dataset, styled in the FlowingData editorial tradition: warm gray base, single muted burgundy accent, annotation-driven narrative."
+date: "2026-04-12" 
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2026/30dcc_2026_12.html"
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "30DayChartChallenge",
+  "Distributions",
+  "FlowingData",
+  "Dot Plot",
+  "Ordered Dot Plot",
+  "Carbon Intensity",
+  "Electricity",
+  "Climate",
+  "Energy",
+  "Our World in Data",
+  "Right-Skewed Distribution",
+  "Annotation",
+  "ggplot2",
+  "ggrepel"
+]
+image: "thumbnails/30dcc_2026_12.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Ordered dot plot titled "Distance from Normal." Each dot represents one country, positioned horizontally by its deviation from the global median electricity carbon intensity of 482 gCO₂/kWh. The distribution is right-skewed: most countries cluster near zero, while a small group of coal-dependent systems — led by Turkmenistan (+825), Uzbekistan (+639), and Falkland Islands (+518) — extends far into the right tail. Two countries with hydro-heavy grids, Nepal and Lesotho, anchor the left tail near −460 gCO₂/kWh. Data from Our World in Data Energy Dataset (Ember / Energy Institute).](30dcc_2026_12.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse, ggtext, showtext,  
+  janitor, scales, glue, ggrepel
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+owid_energy_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/owid-energy-data.csv"),
+  show_col_types = FALSE
+  ) |>
+  clean_names() 
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(owid_energy_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- exclude aggregates (OWID uses these non-country entities) ----
+non_countries <- c(
+  "World", "Africa", "Asia", "Europe", "North America", "South America",
+  "Oceania", "Antarctica", "European Union (27)",
+  "High-income countries", "Low-income countries",
+  "Lower-middle-income countries", "Upper-middle-income countries",
+  "OECD (Edelstein)", "Non-OECD (Edelstein)",
+  "Asia Pacific (Ember)", "Europe (Ember)", "Middle East (Ember)",
+  "Africa (Ember)", "Americas (Ember)"
+)
+
+### |- most recent non-NA carbon intensity per country ----
+df_ci <- owid_energy_raw |>
+  filter(
+    !country %in% non_countries,
+    year <= 2023,
+    !is.na(carbon_intensity_elec),
+    carbon_intensity_elec > 0
+  ) |>
+  group_by(country) |>
+  slice_max(year, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  select(country, year, carbon_intensity_elec)
+
+### |- compute global median + deviation ----
+global_median <- median(df_ci$carbon_intensity_elec, na.rm = TRUE)
+
+df_dev <- df_ci |>
+  mutate(
+    deviation    = carbon_intensity_elec - global_median,
+    direction    = if_else(deviation >= 0, "above", "below"),
+    rank_dev     = rank(deviation, ties.method = "first"),
+    country_fct  = fct_reorder(country, deviation)
+  )
+
+### |- identify highlight countries ----
+top_above <- df_dev |>
+  filter(direction == "above") |>
+  arrange(desc(deviation)) |>
+  slice_head(n = 3) |>
+  pull(country)
+
+top_below <- df_dev |>
+  filter(direction == "below") |>
+  arrange(deviation) |>
+  slice_head(n = 2) |>
+  pull(country)
+
+highlight_countries <- c(top_above, top_below)
+
+df_dev <- df_dev |>
+  mutate(
+    highlight = country %in% highlight_countries,
+    highlight_type = case_when(
+      country %in% top_above ~ "above",
+      country %in% top_below ~ "below",
+      TRUE ~ "none"
+    )
+  )
+
+### |- label data (only highlighted countries) ----
+df_labels <- df_dev |>
+  filter(highlight) |>
+  mutate(
+    label = case_when(
+      deviation >= 0 ~ glue("{country}\n+{round(deviation)} gCO₂/kWh"),
+      TRUE ~ glue("{country}\n{round(deviation)} gCO₂/kWh")
+    )
+  )
+```
+
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    col_accent_above = "#7a3b3b",   
+    col_accent_below = "#6b7c85",   
+    col_dot_base     = "#c9c6c1",   
+    col_zero         = "#aaaaaa",  
+    col_grid         = "#eeeeee",
+    col_text_dark    = "#4a4a4a",
+    col_text_mid     = "#6a6a6a",
+    col_text_mute    = "#aaaaaa",
+    col_bg           = "#ffffff"
+  )
+)
+
+# extract scalars
+col_above <- colors$palette$col_accent_above
+col_below <- colors$palette$col_accent_below
+col_base  <- colors$palette$col_dot_base
+
+### |- titles and caption ----
+title_text    <- "Distance from Normal"
+
+subtitle_text <- glue(
+  "Most countries sit near the global norm. A small group sits far above.<br>",
+  "Each dot is one country. Deviation from global median ({round(global_median)} gCO₂/kWh)."
+)
+
+caption_text <- create_dcc_caption(
+  dcc_year    = 2026,
+  dcc_day     = 12,
+  source_text = "Our World in Data — Energy Dataset (Ember / Energy Institute)"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+# FlowingData-specific font additions 
+font_add_google("Special Elite", "special_elite")
+font_add_google("Source Sans 3", "source_sans")
+showtext_auto(enable = TRUE)
+
+### |- theme (FlowingData-inspired) ----
+theme_fd <- theme_minimal(base_size = 11) +
+  theme(
+    plot.background = element_rect(fill = colors$palette$col_bg, color = NA),
+    panel.background = element_rect(fill = colors$palette$col_bg, color = NA),
+
+    # very faint horizontal reference only
+    panel.grid.major.x = element_line(color = colors$palette$col_grid, linewidth = 0.3),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+
+    # y-axis: no country labels 
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(
+      family = "source_sans", size = 8,
+      color = colors$palette$col_text_mute,
+      margin = margin(t = 3)
+    ),
+    axis.title.y = element_blank(),
+    axis.title.x = element_text(
+      family = "source_sans", size = 9,
+      color = colors$palette$col_text_mid,
+      margin = margin(t = 6)
+    ),
+    legend.position = "none",
+    plot.title = element_text(
+      family = "special_elite",
+      size  = 22,
+      color = colors$palette$col_text_dark,
+      hjust = 0,
+      face = "bold",
+      margin = margin(b = 6)
+    ),
+    plot.subtitle = element_textbox_simple(
+      family = "source_sans",
+      size = 10,
+      color = colors$palette$col_text_mid,
+      hjust = 0,
+      lineheight = 1.4,
+      margin = margin(b = 20)
+    ),
+    plot.caption = element_textbox_simple(
+      family = "source_sans",
+      size = 7,
+      color = colors$palette$col_text_mute,
+      hjust = 0,
+      margin = margin(t = 14)
+    ),
+    plot.margin = margin(20, 20, 14, 20)
+  )
+
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p <- df_dev |>
+  ggplot(aes(x = deviation, y = rank_dev)) +
+  
+  # Geoms
+  geom_vline(
+    xintercept = 0,
+    color = colors$palette$col_zero,
+    linewidth  = 0.5,
+    linetype = "solid"
+  ) +
+  geom_point(
+    data = filter(df_dev, !highlight),
+    color = col_base,
+    size = 1.6,
+    alpha = 0.90,
+    shape = 16
+  ) +
+  geom_point(
+    data = filter(df_dev, highlight_type == "above"),
+    color = col_above,
+    size = 2.8,
+    shape = 16
+  ) +
+  geom_point(
+    data = filter(df_dev, highlight_type == "below"),
+    color = col_below,
+    size = 1.8,    
+    shape = 16
+  ) +
+  geom_text_repel(
+    data = filter(df_labels, highlight_type == "above"),
+    aes(label = label),
+    family = "source_sans",
+    size = 2.6,
+    color = col_above,
+    fontface = "bold",
+    hjust = 0,
+    direction = "y",
+    nudge_x = 60,
+    force = 2,
+    force_pull = 0.5,
+    segment.color = col_above,
+    segment.size = 0.3,
+    segment.alpha = 0.4,
+    box.padding = 0.6,
+    min.segment.length = 0.2,
+    seed = 42
+  ) +
+  geom_text_repel(
+    data = filter(df_labels, highlight_type == "below"),
+    aes(label = label),
+    family = "source_sans",
+    size = 2.4,
+    color = colors$palette$col_text_mid,   
+    fontface = "plain",
+    hjust = 1,
+    direction = "y",
+    nudge_x = -40,
+    segment.color = colors$palette$col_text_mute,
+    segment.size  = 0.25,
+    segment.alpha = 0.4,
+    box.padding   = 0.4,
+    min.segment.length = 0.2
+  ) +
+  
+  # Annotate
+  annotate(
+    "text",
+    x = 0,
+    y = nrow(df_dev) * 0.50,
+    label = "Most countries\ncluster here",
+    family = "source_sans",
+    size = 3.0,
+    color = colors$palette$col_text_mid,
+    hjust = 0.5,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = 230,
+    y = nrow(df_dev) * 0.76,
+    label = "Long right tail driven\nby coal-dependent systems",
+    family = "source_sans",
+    size = 2.9,
+    color = col_above,
+    hjust = 0,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = -330,
+    y = nrow(df_dev) * 0.14,
+    label = "A small group of low-carbon\nsystems sits well below the norm",
+    family = "source_sans",
+    size = 2.8,
+    color = colors$palette$col_text_mid,
+    hjust = 0.5,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = 4,
+    y = nrow(df_dev) + 2,
+    label = "Global median\n(typical country)",
+    family = "source_sans",
+    size = 2.7,
+    color = colors$palette$col_zero,
+    hjust = 0,
+    vjust = 1,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = min(df_dev$deviation) * 0.95,
+    y = -3,
+    label = "\u2190 cleaner",
+    family = "source_sans",
+    size = 2.7,
+    color = colors$palette$col_text_mute,
+    hjust = 0,
+    fontface = "italic"
+  ) +
+  annotate(
+    "text",
+    x = max(df_dev$deviation) * 0.82,   
+    y = -3,
+    label = "dirtier \u2192",
+    family = "source_sans",
+    size = 2.7,
+    color = col_above,
+    hjust = 1,
+    fontface = "italic"
+  ) +
+  
+  # Scales
+  scale_x_continuous(
+    labels = function(x) ifelse(x > 0, glue("+{x}"), as.character(x)),
+    breaks = c(-600, -400, -200, 0, 200, 400, 600, 800)
+  ) +
+  
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption  = caption_text,
+    x  = "Deviation from global median carbon intensity (gCO₂/kWh)"
+  ) +
+  
+  # Theme
+  theme_fd
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p, 
+  type = "30daychartchallenge", 
+  year = 2026, 
+  day = 12, 
+  width = 10, 
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps} 
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2026_12.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/30dcc_2026_12.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1. Data Sources:
+   - Renewable Energy Statistics Team. (2024). *Our World in Data Energy Dataset* [Dataset].
+     Our World in Data (based on Ember and Energy Institute data).
+     https://raw.githubusercontent.com/owid/energy-data/master/owid-energy-data.csv
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
