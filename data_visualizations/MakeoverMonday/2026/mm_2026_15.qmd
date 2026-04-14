@@ -1,0 +1,489 @@
+---
+title: "Big Tech Is Hiring, But Not Always Growing"
+subtitle: "Hiring vs. layoffs as % of workforce. Companies above the line are expanding; those below are still shrinking. Layoffs reflect cumulative reductions over two years."
+description: "A scatter plot redesign of trueup.io's Big Tech hiring table, normalizing both layoff and hiring figures as a percentage of each company's workforce. By plotting the hiring rate against the layoff rate with a net growth threshold line, the chart reveals a contradiction invisible in the original: most major tech companies are hiring and shrinking simultaneously. NVIDIA stands out as the only firm with zero layoffs over two years, while Microsoft carries the highest layoff rate despite active recruiting."
+date: "2026-04-06"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_15.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]   
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "scatter-plot",
+  "tech-industry",
+  "labor-market",
+  "normalization",
+  "workforce",
+  "hiring",
+  "layoffs",
+  "annotations",
+  "2026"
+]
+image: "thumbnails/mm_2026_15.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 15
+project_file <- "mm_2026_15.qmd"
+project_image <- "mm_2026_15.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026w15-tech-hiring"
+data_secondary <- "https://data.world/makeovermonday/2026w15-tech-hiring"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_15/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.trueup.io/big-tech-hiring"
+org_secondary <- "https://www.trueup.io/big-tech-hiring"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Global Oil Production", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_15/original_chart.png)
+
+### Makeover
+
+![A scatter plot comparing seven major tech companies by hiring rate (y-axis) and layoff rate (x-axis), both expressed as a percentage of the current workforce. A dashed diagonal line marks the net growth threshold where hiring equals layoffs. Companies above the line — NVIDIA, Apple, and Google are net expanders, shown in teal. Companies below — Microsoft, Meta, Amazon, and Tesla — are net contractors, shown in burgundy. NVIDIA stands apart in the upper left with the highest hiring rate and zero layoffs. Microsoft anchors the lower right with the highest layoff rate despite active recruiting.](mm_2026_15.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, 
+    glue, janitor, ggrepel
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 7.5,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- readxl::read_excel(
+  here::here("data/MakeoverMonday/2026/MM 2026wk15.xlsx")) |>
+  clean_names()
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+df <- df_raw |>
+  mutate(
+    layoff_rate = layoffs_past_2yr_people / employees,
+    hiring_rate = open_jobs / employees,
+    net_signal  = hiring_rate - layoff_rate,
+    expanding = if_else(net_signal >= 0, "expanding", "contracting"),
+    is_nvidia   = company == "NVIDIA"
+  )
+
+### |- extract point coordinates for segments ----
+nvidia_x <- filter(df, company == "NVIDIA")$layoff_rate
+nvidia_y <- filter(df, company == "NVIDIA")$hiring_rate
+msft_x <- filter(df, company == "Microsoft")$layoff_rate
+msft_y <- filter(df, company == "Microsoft")$hiring_rate
+
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    col_expansion   = "#2A8C7A",
+    col_contraction = "#8B2E3A", 
+    col_diagonal    = "#C8C8C8",  
+    col_annotation  = "#3D3D3D",   
+    col_segment     = "gray55"    
+  )
+)
+
+### |- axis ceiling ----
+axis_max <- 0.13  
+
+### |- titles and caption ----
+title_text <- "Big Tech Is Hiring, But Not Always Growing"
+
+subtitle_text <- str_glue(
+  "Hiring vs. layoffs as % of workforce. Companies ",
+  "**<span style='color:{colors$palette$col_expansion}'>above the line</span>** ",
+  "are expanding; those ",
+  "**<span style='color:{colors$palette$col_contraction}'>below</span>** ",
+  "are still shrinking.<br>",
+  "Layoffs reflect cumulative reductions over two years."
+)
+
+caption_text <- create_mm_caption(
+  mm_year     = 2026,
+  mm_week     = 15,
+  source_text = "trueup.io | Note: Layoff rate = layoffs (2yr) ÷ employees;
+  Hiring rate = open jobs ÷ employees"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- base theme ----
+base_theme   <- create_base_theme()
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    panel.grid.major  = element_line(color = "gray93", linewidth = 0.3),
+    panel.grid.minor  = element_blank(),
+    axis.title        = element_text(size = 10, color = "gray30"),
+    axis.text         = element_text(size = 9, color = "gray40"),
+    axis.ticks        = element_blank(),
+    legend.position   = "none",
+    plot.margin       = margin(t = 20, r = 24, b = 12, l = 16)
+  )
+)
+
+theme_set(weekly_theme)
+
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  main plot ----
+p <-
+  ggplot(df, aes(x = layoff_rate, y = hiring_rate)) +
+
+  # Geoms
+  geom_abline(
+    slope = 1, intercept = 0,
+    color = colors$palette$col_diagonal,
+    linewidth = 0.65,
+    linetype = "dashed"
+  ) +
+  geom_point(
+    data = filter(df, is_nvidia),
+    aes(x = layoff_rate, y = hiring_rate),
+    inherit.aes = FALSE,
+    color = colors$palette$col_expansion,
+    size = 12, alpha = 0.12
+  ) +
+  geom_point(
+    aes(color = expanding, size = is_nvidia),
+    alpha = 0.92,
+    show.legend = FALSE
+  ) +
+  geom_text_repel(
+    aes(label = company, color = expanding),
+    seed = 123,
+    size = 3.2,
+    fontface = "bold",
+    box.padding = 0.45,
+    point.padding = 0.35,
+    min.segment.length = 0.2,
+    segment.color = "gray78",
+    segment.size = 0.28,
+    show.legend = FALSE
+  ) +
+
+  # Annotate
+  annotate(
+    "text",
+    x = axis_max * 0.74, y = axis_max * 0.68,
+    label = "Net growth threshold",
+    color = "gray65", size = 2.9, angle = 42, hjust = 0
+  ) +
+  annotate(
+    "text",
+    x = 0.002, y = axis_max * 0.96,
+    label = "NET EXPANSION",
+    color = colors$palette$col_expansion,
+    size = 2.5, fontface = "bold", hjust = 0, alpha = 0.6
+  ) +
+  annotate(
+    "richtext",
+    x = 0.001, y = 0.070,
+    label = "<b style='font-size:12pt'>NVIDIA</b><br>The only major firm with<br>zero layoffs in 2 years",
+    size = 2.9,
+    color = "#2A8C7A",
+    fill = NA,
+    label.color = NA,
+    label.padding = unit(0.3, "lines"),
+    hjust = 0,
+    lineheight = 1.25
+  ) +
+  annotate(
+    "richtext",
+    x = msft_x + 0.006, y = msft_y + 0.012,
+    label = "<b style='font-size:10pt'>Microsoft</b><br>Highest layoff rate<br>despite active hiring",
+    size = 2.9,
+    color = "#8B2E3A",
+    fill = NA,
+    label.color = NA,
+    label.padding = unit(0.3, "lines"),
+    hjust = 0,
+    lineheight = 1.25
+  ) +
+
+  # Scales
+  scale_color_manual(values = c("expanding" = "#2A8C7A", "contracting" = "#8B2E3A")) +
+  scale_size_manual(values = c("TRUE" = 8, "FALSE" = 5)) +
+  scale_x_continuous(
+    name   = "Layoff Rate (% of workforce, cumulative 2yr)",
+    labels = label_percent(accuracy = 1),
+    limits = c(-0.005, axis_max),
+    breaks = c(0, 0.03, 0.06, 0.09, 0.12),
+    expand = expansion(mult = c(0.02, 0.03))
+  ) +
+  scale_y_continuous(
+    name   = "Hiring Rate (open jobs as % of workforce)",
+    labels = label_percent(accuracy = 1),
+    limits = c(0, axis_max),
+    breaks = c(0, 0.03, 0.06, 0.09, 0.12),
+    expand = expansion(mult = c(0.02, 0.03))
+  ) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    title    = title_text,
+    subtitle = subtitle_text,
+    caption  = caption_text
+  ) +
+
+  # Theme
+  theme(
+    axis.title.x = element_text(
+      angle = 0,
+      vjust = 1.04,
+      hjust = 0.5,
+      margin = margin(t = 10)
+    ),
+    axis.title.y = element_text(
+      angle = 0,
+      vjust = 1.04,
+      hjust = 0.5,
+      margin = margin(r = -150)
+    ),
+    plot.title = element_text(
+      size = rel(1.7),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.15,
+      margin = margin(t = 0, b = 5)
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.7),
+      family = fonts$subtitle,
+      color = "gray25",
+      lineheight = 1.5,
+      margin = margin(t = 5, b = 30)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.5),
+      family = fonts$caption,
+      color = "gray50",
+      hjust = 0,
+      lineheight = 1.3,
+      margin = margin(t = 20, b = 5)
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 8, 
+  height = 7.5
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("Big Tech Hiring", data_main)`
+2. Original Chart: `r create_link("Big Tech Hiring Status — trueup.io", "https://www.trueup.io/big-tech-hiring")`
+   - Source: trueup.io live hiring tracker
+   - Coverage: Amazon, Apple, Microsoft, Google, Meta, NVIDIA, Tesla
+
+**Source Data:**
+
+3. `r create_link("trueup.io — Big Tech Hiring", "https://www.trueup.io/big-tech-hiring")`
+   - Coverage: Current open roles, total employees, and layoff events (past 2 years)
+   - Unit: Raw headcount; rates derived by dividing by total employees
+
+**Note:** Layoff rate and hiring rate are both expressed as a percentage
+of each company's current workforce to enable fair cross-company
+comparison. Layoff figures reflect cumulative reductions over the past
+two years; hiring figures reflect current open roles as a snapshot.
+These two metrics cover different time horizons — a limitation noted in
+the subtitle. No additional data sources were used.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
