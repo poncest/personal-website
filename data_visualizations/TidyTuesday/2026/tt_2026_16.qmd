@@ -1,0 +1,510 @@
+---
+title: "Where Governments Spend Less, Households Spend More"
+subtitle: "Out-of-pocket spending above **<span style='color:#722F37'>40%</span>** signals financial hardship — a threshold exceeded in nearly half of countries, especially where public financing is limited."
+description: "Cross-country analysis of health financing using WHO Global Health Expenditure Database data for 195 countries. Explores the inverse association between government health spending and household out-of-pocket burden, benchmarked against the WHO 40% financial hardship threshold. Built with ggplot2 and patchwork in R."
+date: "2026-04-18"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_16.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "Global Health", "Health Policy", "Health Spending", "Out-of-Pocket",
+  "WHO", "Equity", "Scatter Plot", "Time Series", "Patchwork", "ggplot2"
+]
+image: "thumbnails/tt_2026_16.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![A two-panel data visualization. The left panel is a scatter plot showing government health spending versus out-of-pocket payments as a percentage of current health expenditure for 195 countries in 2023. Countries with lower government spending cluster in the upper-left with high out-of-pocket burden, highlighted in burgundy. Countries with high government spending cluster in the lower-right with low out-of-pocket burden, highlighted in steel blue. A dashed diagonal reference line and a dotted 40% hardship threshold line provide analytical anchors. The right panel shows global median trends from 2000 to 2023: government spending (blue) rising steadily, out-of-pocket payments (burgundy) declining. A shaded band marks COVID-19 years. Together, the panels show where governments spend less, households spend more — and that this pattern has slowly improved globally over two decades.](tt_2026_16.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, ggrepel,      
+    scales, glue, skimr, patchwork 
+    )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 14,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 16)
+
+financing_schemes <- tt$financing_schemes |> clean_names()
+health_spending   <- tt$health_spending   |> clean_names()
+spending_purpose  <- tt$spending_purpose  |> clean_names()
+
+rm(tt)
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(financing_schemes)
+glimpse(health_spending)
+glimpse(spending_purpose)
+
+health_spending |> distinct(indicator_code, expenditure_type, unit)
+health_spending |> summarise(max_year = max(year), min_year = min(year))
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- Panel A: Scatter — government vs. OOP, most recent year per country ----
+
+# Government spending
+gov_data <- health_spending |>
+    filter(
+        indicator_code == "gghed_che",
+        unit == "% of current health expenditure"
+    ) |>
+    group_by(iso3_code, country_name) |>
+    slice_max(year, n = 1, with_ties = FALSE) |>
+    ungroup() |>
+    select(iso3_code, country_name, year_gov = year, gghed_che = value)
+
+# OOP
+oop_data <- financing_schemes |>
+    filter(
+        indicator_code == "hf3_che",
+        unit == "% of current health expenditure"
+    ) |>
+    group_by(iso3_code) |>
+    slice_max(year, n = 1, with_ties = FALSE) |>
+    ungroup() |>
+    select(iso3_code, year_oop = year, oops_che = value)
+
+# Join on iso3_code — years may differ slightly by country
+scatter_data <- gov_data |>
+    inner_join(oop_data, by = "iso3_code") |>
+    drop_na(gghed_che, oops_che) |>
+    filter((gghed_che + oops_che) <= 115)
+
+# Annotate only the most diagnostic cases
+annotate_countries <- c(
+    "AFG", # lowest gov / highest OOP anchor
+    "BGD", # high OOP
+    "NGA", # high OOP, large population
+    "DEU", # well-protected exemplar
+    "USA"  # anomaly: high gov AND moderate OOP
+)
+
+scatter_plot_data <- scatter_data |>
+    mutate(
+        highlight = case_when(
+            oops_che >= 55 ~ "high_oop",
+            oops_che <= 15 & gghed_che >= 60 ~ "protected",
+            TRUE ~ "other"
+        ),
+        label = if_else(iso3_code %in% annotate_countries, country_name, NA_character_)
+    )
+
+### |- Panel B: Time series — global medians 2000–2023 ----
+
+# Government
+trend_gov <- health_spending |>
+    filter(
+        indicator_code == "gghed_che",
+        unit == "% of current health expenditure",
+        year >= 2000
+    ) |>
+    group_by(year) |>
+    summarise(median_pct = median(value, na.rm = TRUE), .groups = "drop") |>
+    mutate(series = "gov", series_label = "Government spending")
+
+# OOP
+trend_oop <- financing_schemes |>
+    filter(
+        indicator_code == "hf3_che",
+        unit == "% of current health expenditure",
+        year >= 2000
+    ) |>
+    group_by(year) |>
+    summarise(median_pct = median(value, na.rm = TRUE), .groups = "drop") |>
+    mutate(series = "oop", series_label = "Out-of-pocket payments")
+
+trend_data <- bind_rows(trend_gov, trend_oop)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+    palette = list(
+        "high_oop"  = "#722F37",   
+        "protected" = "#2E5A87",   
+        "other"     = "gray75",   
+        "gov"       = "#2E5A87",   
+        "oop"       = "#722F37"   
+    )
+)
+
+### |- titles and caption ----
+title_text <- str_glue("Where Governments Spend Less, Households Spend More")
+
+subtitle_text <- str_glue(
+    "Out-of-pocket spending above **<span style='color:#722F37'>40%</span>** signals financial hardship — ",
+    "a threshold exceeded in nearly half of countries, especially where public financing is limited."
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2026,
+    tt_week = 16,
+    source_text = "WHO Global Health Expenditure Database (GHED)"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- base theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        plot.title = element_text(
+            size = 18, face = "bold", family = fonts$title,
+            margin = margin(b = 6)
+        ),
+        plot.subtitle = element_markdown(
+            size = 10.5, family = fonts$text, lineheight = 1.4,
+            margin = margin(b = 16)
+        ),
+        plot.caption = element_markdown(
+            size = 7.5, family = fonts$text, color = "gray50",
+            margin = margin(t = 12)
+        ),
+        axis.title = element_text(size = 9, family = fonts$text, color = "gray30"),
+        axis.text = element_text(size = 8, family = fonts$text, color = "gray40"),
+        panel.grid.major = element_line(color = "gray93", linewidth = 0.3),
+        panel.grid.minor = element_blank(),
+        axis.ticks = element_blank(),
+        strip.text = element_blank()
+    )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Panel A: Scatter ----
+p_scatter <- scatter_plot_data |>
+  ggplot(aes(x = gghed_che, y = oops_che)) +
+
+  # Geoms
+  geom_abline(
+    slope = -1, intercept = 100,
+    linetype = "dashed", color = "gray70", linewidth = 0.4
+  ) +
+  geom_hline(
+    yintercept = 40,
+    linetype = "dotted", color = "#722F37", linewidth = 0.5, alpha = 0.7
+  ) +
+  geom_point(
+    data = filter(scatter_plot_data, highlight == "other"),
+    color = colors$palette$other, size = 1.6, alpha = 0.6
+  ) +
+  geom_point(
+    data = filter(scatter_plot_data, highlight == "high_oop"),
+    color = colors$palette$high_oop, size = 2.2, alpha = 0.85
+  ) +
+  geom_point(
+    data = filter(scatter_plot_data, highlight == "protected"),
+    color = colors$palette$protected, size = 2.2, alpha = 0.85
+  ) +
+  geom_text_repel(
+    aes(label = label),
+    size = 2.5,
+    family = fonts$text,
+    color = "gray25",
+    segment.color = "gray70",
+    segment.size = 0.3,
+    box.padding = 0.4,
+    point.padding = 0.3,
+    max.overlaps = 15,
+    na.rm = TRUE,
+    seed = 123
+  ) +
+
+  # Annotate
+  annotate(
+    "text",
+    x = 1, y = 83, label = "High household burden",
+    size = 2.5, color = "gray50", family = fonts$text, fontface = "italic",
+    hjust = 0, vjust = 1
+  ) +
+  annotate(
+    "text",
+    x = 84, y = 3, label = "Protected systems",
+    size = 2.5, color = "gray50", family = fonts$text, fontface = "italic",
+    hjust = 1, vjust = 0
+  ) +
+  annotate(
+    "text",
+    x = 79, y = 42, label = "40% hardship threshold",
+    size = 2.5, color = "#722F37", family = fonts$text, alpha = 0.8,
+    hjust = 1, vjust = 0
+  ) +
+
+  # Scales
+  scale_x_continuous(
+    limits = c(0, 85),
+    breaks = seq(0, 80, 20),
+    labels = label_number(suffix = "%")
+  ) +
+  scale_y_continuous(
+    limits = c(0, 85),
+    breaks = seq(0, 80, 20),
+    labels = label_number(suffix = "%")
+  ) +
+
+  # Labs
+  labs(
+    x = "Government health spending (% of current health expenditure)",
+    y = "Out-of-pocket payments\n(% of current health expenditure)"
+  )
+
+### |- Panel B: Time series ----
+# End-of-line labels 
+trend_labels <- trend_data |>
+    group_by(series_label) |>
+    slice_max(year, n = 1, with_ties = FALSE)
+
+p_trend <- trend_data |>
+    ggplot(aes(x = year, y = median_pct, color = series)) +
+    
+    # Geoms
+    geom_line(linewidth = 1.1) +
+    geom_text(
+        data = filter(trend_labels, series == "gov"),
+        aes(label = series_label),
+        hjust = 0, nudge_x = 0.3,
+        size = 2.6, family = fonts$text,
+        color = colors$palette$gov
+    ) +
+    geom_text(
+        data = filter(trend_labels, series == "oop") |>
+            mutate(series_label = "Out-of-pocket"),
+        aes(label = series_label),
+        hjust = 0, nudge_x = 0.3,
+        size = 2.6, family = fonts$text,
+        color = colors$palette$oop
+    ) +
+    
+    # Annotate
+    annotate(
+        "rect",
+        xmin = 2019.5, xmax = 2021.5,
+        ymin = -Inf, ymax = Inf,
+        fill = "gray90", alpha = 0.5
+    ) +
+    annotate(
+        "text", x = 2020.5, y = 53.5,
+        label = "COVID-19\ngovernment\nexpansion",
+        size = 2.2, color = "gray50", family = fonts$text,
+        lineheight = 1.2
+    ) +
+    annotate(
+        "text", x = 2000, y = 57,
+        label = "Global shift toward public financing",
+        size = 2.4, color = "gray40", family = fonts$text,
+        fontface = "italic", hjust = 0
+    ) +
+    
+    # Scales
+    scale_color_manual(
+        values = c(
+            "gov" = colors$palette$gov,
+            "oop" = colors$palette$oop
+        )
+    ) +
+    scale_x_continuous(
+        breaks = seq(2000, 2022, 4),
+        expand = expansion(mult = c(0.02, 0.35))  
+    ) +
+    scale_y_continuous(
+        breaks = seq(20, 60, 10),
+        labels = label_number(suffix = "%")
+    ) +
+    
+    # Labs
+    labs(
+        x = "Year",
+        y = "Global median (% of current health expenditure)"
+    ) +
+    # Theme
+    theme(legend.position = "none")
+
+### |- combined plots ----
+combined_plot <- p_scatter + p_trend +
+    plot_layout(widths = c(1.4, 1)) +
+    plot_annotation(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text,
+        theme = theme(
+            plot.title = element_text(
+                size = 24, face = "bold", family = fonts$title,
+                margin = margin(b = 6)
+            ),
+            plot.subtitle = element_markdown(
+                size = 10, family = 'sans', lineheight = 1.4,
+                margin = margin(b = 16)
+            ),
+            plot.caption = element_markdown(
+                size = 7.5, family = fonts$text, color = "gray50",
+                margin = margin(t = 12)
+            ),
+            plot.margin   = margin(t = 16, r = 20, b = 12, l = 16)
+        )
+    )
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 16, 
+  width  = 14,
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_16.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_16.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 16: [Global Health Spending](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-04-21/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
