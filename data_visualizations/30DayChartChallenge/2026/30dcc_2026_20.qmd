@@ -1,0 +1,499 @@
+---
+title: "Three Signals, One Direction"
+subtitle: "Independent indicators of planetary change move in parallel since 1960."
+description: "Three independent climate indicators — atmospheric CO₂, global temperature anomaly, and mean sea level — all trend upward in lockstep from 1960 to 2024. This three-panel stacked line chart shows how separate measurement systems converge on the same signal: sustained, accelerating planetary change. Built with ggplot2 and patchwork using data from NOAA GML, NASA GISS, and CSIRO/NOAA LSA."
+date: "2026-04-20" 
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2026/30dcc_2026_20.html"
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "30DayChartChallenge",
+  "Timeseries",
+  "Global Change",
+  "Multi-panel",
+  "Line Chart",
+  "Climate",
+  "CO2",
+  "Temperature Anomaly",
+  "Sea Level Rise",
+  "NOAA",
+  "NASA GISS",
+  "Patchwork",
+  "ggplot2",
+  "R Programming",
+  "2026"
+]
+image: "thumbnails/30dcc_2026_20.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Three-panel stacked line chart showing independent indicators of planetary change from 1960 to 2024, all trending upward in parallel. Top panel: atmospheric CO₂ concentration rises from 317 ppm to 425 ppm, crossing the 400 ppm threshold in 2013. Middle panel: global mean temperature anomaly (relative to 1951–1980 baseline) climbs from near 0°C to +1.2°C, first exceeding +1°C in 2016. Bottom panel: global mean sea level rises approximately 149 mm (15 cm) above the 1960 baseline. All three signals move in the same direction across six decades, illustrating the convergent trajectory of climate change indicators. Data sources: NOAA GML (CO₂), NASA GISS (temperature), CSIRO Church & White, and NOAA LSA (sea level).](30dcc_2026_20.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse, ggtext, showtext, patchwork,
+  janitor, scales, glue
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 10,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+### |- CO₂: NOAA Mauna Loa monthly mean ----
+co2_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/co2_mauna_loa_raw.csv"),
+  show_col_types = FALSE
+)
+
+### |- Temperature: NASA GISS global annual anomaly ----
+temp_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/nasa_gistemp_global_raw.csv"),
+  show_col_types = FALSE
+)
+
+### |- Sea Level Part A: CSIRO tide gauge ----
+csiro_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/csiro_sea_level_raw.csv"),
+  show_col_types = FALSE
+)
+
+### |- Sea Level Part B: NOAA LSA satellite altimetry ----
+nasa_sea_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/noaa_lsa_sea_level_raw.csv"),
+  show_col_types = FALSE
+)
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(co2_raw)
+glimpse(temp_raw)
+glimpse(csiro_raw)
+glimpse(nasa_sea_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- CO₂: annual mean, 1960–2024 ----
+co2 <- co2_raw |>
+  mutate(
+    year    = as.integer(year),
+    co2_avg = as.numeric(co2_avg)
+  ) |>
+  filter(co2_avg > 0) |> # drop -99.99 fill values
+  group_by(year) |>
+  summarise(co2_ppm = mean(co2_avg, na.rm = TRUE), .groups = "drop") |>
+  filter(year >= 1960, year <= 2024)
+
+### |- Temperature: annual J-D anomaly, 1960–2024 ----
+temp <- temp_raw |>
+  clean_names() |>
+  select(year, j_d) |> # J-D = Jan–Dec annual mean
+  rename(temp_anomaly = j_d) |>
+  mutate(
+    year         = as.integer(year),
+    temp_anomaly = as.numeric(temp_anomaly)
+  ) |>
+  filter(!is.na(temp_anomaly), year >= 1960, year <= 2024)
+
+### |- Sea Level: splice CSIRO + NASA, rebase to 1960 = 0 mm ----
+csiro <- csiro_raw |>
+  clean_names() |>
+  select(year, csiro_adjusted_sea_level) |>
+  rename(sea_mm = csiro_adjusted_sea_level) |>
+  mutate(
+    year   = as.integer(year),
+    sea_mm = as.numeric(sea_mm) * 25.4 # inches → mm
+  ) |>
+  filter(year >= 1960, year <= 1992)
+
+# NOAA LSA structure: year (decimal) + one column per satellite mission.
+nasa_sea <- nasa_sea_raw |>
+  clean_names() |>
+  pivot_longer(
+    cols      = -year,
+    names_to  = "mission",
+    values_to = "sea_mm"
+  ) |>
+  filter(!is.na(sea_mm)) |>
+  mutate(
+    year_int = floor(as.numeric(year)),
+    sea_mm   = as.numeric(sea_mm)
+  ) |>
+  filter(year_int >= 1993, year_int <= 2024) |>
+  group_by(year = year_int) |>
+  summarise(sea_mm = mean(sea_mm, na.rm = TRUE), .groups = "drop")
+
+# Offset NASA to be continuous with CSIRO at the 1992/1993 boundary
+csiro_1992 <- csiro |>
+  filter(year == 1992) |>
+  pull(sea_mm)
+nasa_1993 <- nasa_sea |>
+  filter(year == 1993) |>
+  pull(sea_mm)
+nasa_offset <- csiro_1992 - nasa_1993
+
+sea_spliced <- bind_rows(
+  csiro,
+  nasa_sea |> mutate(sea_mm = sea_mm + nasa_offset)
+)
+
+# Rebase: 1960 value → 0 mm
+sea_base_1960 <- sea_spliced |>
+  filter(year == 1960) |>
+  pull(sea_mm)
+
+sea <- sea_spliced |>
+  mutate(
+    year   = as.integer(year),
+    sea_mm = sea_mm - sea_base_1960
+  ) |>
+  filter(year >= 1960, year <= 2024)
+```
+
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    accent    = "#6B3FA0",  
+    bg        = "#F7F7F5",
+    text_main = "#1A1A1A",
+    text_mute = "#4A4A4A",       
+    grid      = "#EBEBEB",     
+    zero_line = "#C4C4C4"
+  )
+)
+
+### |- titles and caption ----
+title_text    <- "Three Signals, One Direction"
+
+subtitle_text <- "Independent indicators of planetary change move in parallel since 1960."
+
+caption_text  <- create_dcc_caption(
+  dcc_year    = 2026,
+  dcc_day     = 20,
+  source_text = "NOAA GML (CO₂) · NASA GISS (Temperature) · CSIRO Church & White + NOAA LSA (Sea Level)"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- shared panel theme ----
+base_theme <- create_base_theme(colors)
+
+panel_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text = element_text(
+      family = fonts$text, size = 10, color = colors$palette$text_mute 
+    ),
+    axis.ticks = element_blank(),
+    axis.line.x = element_line(color = "#CECECE", linewidth = 0.3),
+    panel.grid.major.y = element_line(color = colors$palette$grid, linewidth = 0.18),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = colors$palette$bg, color = NA),
+    plot.background = element_rect(fill = colors$palette$bg, color = NA),
+    plot.margin = margin(4, 16, 4, 16)
+  )
+)
+
+theme_set(panel_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Panel 1: CO₂ ----
+p_co2 <- co2 |>
+  ggplot(aes(x = year, y = co2_ppm)) +
+  geom_line(color = colors$palette$accent, linewidth = 0.62, alpha = 0.9) +
+  geom_hline(
+    yintercept = 400, linetype = "22",
+    color = colors$palette$text_mute, linewidth = 0.28
+  ) +
+  annotate(
+    "text",
+    x = 1963, y = 404,
+    label = "400 ppm threshold — first crossed 2013",
+    family = fonts$text, size = 2.55,
+    color = colors$palette$text_mute, hjust = 0
+  ) +
+  scale_x_continuous(
+    limits = c(1960, 2024), breaks = seq(1960, 2020, 20),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  scale_y_continuous(
+    limits = c(310, NA),
+    labels = label_number(suffix = " ppm"),
+    expand = expansion(mult = c(0.02, 0.08))
+  ) +
+  labs(title = "CO₂ concentration (ppm)") +
+  theme(
+    plot.title = element_text(
+      family = fonts$text, size = 11, face = "bold",
+      color = colors$palette$text_main, margin = margin(b = 6)
+    )
+  )
+
+### |- Panel 2: Temperature anomaly ----
+p_temp <- temp |>
+  ggplot(aes(x = year, y = temp_anomaly)) +
+  geom_ribbon(
+    aes(ymin = pmin(temp_anomaly, 0), ymax = temp_anomaly),
+    fill = colors$palette$accent, alpha = 0.12
+  ) +
+  geom_line(color = colors$palette$accent, linewidth = 0.62, alpha = 0.9) +
+  geom_hline(yintercept = 0, color = colors$palette$zero_line, linewidth = 0.3) +
+  geom_hline(
+    yintercept = 1.0, linetype = "22",
+    color = colors$palette$text_mute, linewidth = 0.28
+  ) +
+  annotate(
+    "text",
+    x = 1963, y = 1.045,
+    label = "+1 °C anomaly — first reached 2016",
+    family = fonts$text, size = 2.55,
+    color = colors$palette$text_mute, hjust = 0
+  ) +
+  scale_x_continuous(
+    limits = c(1960, 2024), breaks = seq(1960, 2020, 20),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  scale_y_continuous(
+    labels = label_number(suffix = " °C"),
+    expand = expansion(mult = c(0.05, 0.14))
+  ) +
+  labs(title = "Global temperature anomaly (°C, relative to 1951–1980)") +
+  theme(
+    plot.title = element_text(
+      family = fonts$text, size = 11, face = "bold",
+      color = colors$palette$text_main, margin = margin(b = 6)
+    )
+  )
+
+### |- Panel 3: Sea level ----
+sea_end_val <- sea |> filter(year == max(year)) |> pull(sea_mm) |> round(0)
+
+p_sea <- sea |>
+  ggplot(aes(x = year, y = sea_mm)) +
+  geom_ribbon(
+    aes(ymin = 0, ymax = sea_mm),
+    fill = colors$palette$accent, alpha = 0.10
+  ) +
+  geom_line(color = colors$palette$accent, linewidth = 0.62, alpha = 0.9) +
+  geom_hline(yintercept = 0, color = colors$palette$zero_line, linewidth = 0.3) +
+  annotate(
+    "text",
+    x = 1963, y = sea_end_val * 0.96,
+    label = glue("+{sea_end_val} mm ({round(sea_end_val / 10, 0)} cm) rise since 1960"),
+    family = fonts$text, size = 2.55,
+    color = colors$palette$text_mute, hjust = 0
+  ) +
+  scale_x_continuous(
+    limits = c(1960, 2024), breaks = seq(1960, 2020, 20),
+    expand = expansion(mult = c(0.01, 0.02))
+  ) +
+  scale_y_continuous(
+    labels = label_number(suffix = " mm"),
+    expand = expansion(mult = c(0.05, 0.10))
+  ) +
+  labs(title = "Global mean sea level (mm, baseline: 1960)") +
+  theme(
+    plot.title = element_text(
+      family = fonts$text, size = 11, face = "bold",
+      color = colors$palette$text_main, margin = margin(b = 6)
+    )
+  )
+
+### |- Combined plots ----
+p_combined <- p_co2 / p_temp / p_sea +
+  plot_layout(heights = c(1, 1, 1), axes = "collect_x") +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        family = fonts$title, face = "bold", size = 24,
+        color = colors$palette$text_main, margin = margin(b = 6)
+      ),
+      plot.subtitle = element_text(
+        family = fonts$text, size = 11,
+        color = colors$palette$text_mute,
+        lineheight = 1.4, margin = margin(b = 20)
+      ),
+      plot.caption = element_markdown(
+        family = fonts$text, size = 7,
+        color = colors$palette$text_mute, ,
+        lineheight = 1.3,
+        hjust = 1, margin = margin(t = 14)
+      ),
+      plot.background = element_rect(fill = colors$palette$bg, color = NA),
+      plot.margin = margin(24, 28, 14, 28)
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  p_combined, 
+  type = "30daychartchallenge", 
+  year = 2026, 
+  day = 20, 
+  width = 8, 
+  height = 10
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps} 
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2026_20.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/30dcc_2026_20.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1. **Data Sources:**
+   - NOAA Global Monitoring Laboratory.
+     *Mauna Loa CO₂ monthly mean* [Dataset].
+     https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv
+
+   - NASA Goddard Institute for Space Studies.
+     *GISS Surface Temperature Analysis (GISTEMP v4)* — global annual means [Dataset].
+     https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv
+
+   - Church, J.A. & White, N.J. (CSIRO) spliced with NOAA Laboratory for Satellite Altimetry.
+     *Global mean sea level* — tide gauge (1880–2013) + satellite altimetry (1993–present);
+     both rebased to 1960 = 0 mm.
+     - CSIRO mirror: https://raw.githubusercontent.com/datasets/sea-level-rise/main/data/epa-sea-level.csv
+     - NOAA LSA: https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/slr/slr_sla_gbl_keep_ref_90.csv
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
