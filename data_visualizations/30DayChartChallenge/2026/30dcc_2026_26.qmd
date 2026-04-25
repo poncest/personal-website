@@ -1,0 +1,578 @@
+---
+title: "We know where we've been. Where we go is a choice."
+subtitle: "Atmospheric CO₂ at Mauna Loa rose from 316.9 ppm (1960) to 424.6 ppm (2024) — an increase of 108 ppm in 65 years. Beyond 2024, three IPCC AR6 scenarios show where concentrations could go. The gap between them is not prediction error, it is the consequence of different emissions choices."
+description: "A fan chart tracing atmospheric CO₂ at Mauna Loa from 1960 to 2024, then projecting three IPCC AR6 scenarios forward to 2075. The observed trend is rendered as a single authoritative line; beyond the 2024 boundary, three diverging ribbons show the likely range under aggressive decarbonization (SSP1-2.6), current policies (SSP2-4.5), and no additional action (SSP5-8.5). Built in R with ggplot2."
+date: "2026-04-26" 
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/30DayChartChallenge/2026/30dcc_2026_26.html"
+categories: ["30DayChartChallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "30DayChartChallenge",
+  "Uncertainties",
+  "Trend",
+  "Fan Chart",
+  "Climate",
+  "CO2",
+  "IPCC",
+  "Scenario Analysis",
+  "geom_ribbon",
+  "NOAA",
+  "Mauna Loa",
+  "ggplot2",
+  "R Programming"
+]
+image: "thumbnails/30dcc_2026_26.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                                  
+  cache: true                                                   
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Line chart showing atmospheric CO₂ concentration at Mauna Loa from 1960 to 2024, with three IPCC AR6 scenario projection bands extending to 2075. The observed line rises steeply from 316.9 ppm in 1960 to 424.6 ppm in 2024. Beyond the "Last observed (2024)" divider, three diverging fan bands represent SSP5-8.5 (no additional action, reaching ~736 ppm), SSP2-4.5 (policies as implemented, ~521 ppm), and SSP1-2.6 (aggressive decarbonization, ~415 ppm) by 2075. Title reads: "We know where we've been. Where we go is a choice."](30dcc_2026_26.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+pacman::p_load(
+  tidyverse, ggtext, showtext, 
+  janitor, scales, glue, here
+  )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+### |- observed CO₂: read from local cache ----
+co2_raw <- read_csv(
+  here::here("data/30DayChartChallenge/2026/co2_mauna_loa_raw.csv"),
+  show_col_types = FALSE
+)
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(co2_raw)
+
+co2_raw |>
+  filter(year >= 2022) |>
+  tail(12)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- annual mean CO₂, 1960–2024 ----
+co2_obs <- co2_raw |>
+  slice(-1) |>                    # drop row 1: duplicated header written into CSV body
+  mutate(
+    year    = as.integer(year),
+    co2_avg = as.numeric(co2_avg)
+  ) |>
+  filter(co2_avg > 0) |>          # drop fill values (-99.99)
+  group_by(year) |>
+  summarise(co2_ppm = mean(co2_avg, na.rm = TRUE), .groups = "drop") |>
+  filter(year >= 1960, year <= 2024)
+
+### |- anchor: actual 2024 observed mean (used to seam projections) ----
+co2_2024_actual <- co2_obs |> filter(year == 2024) |> pull(co2_ppm)
+co2_1960_actual <- co2_obs |> filter(year == 1960) |> pull(co2_ppm)
+
+### |- IPCC AR6 scenario projections: hardcoded tribble ----
+# Approximate medians and 66% likely ranges (ppm) from IPCC AR6 WG1 SPM Fig. 8
+# Anchor year 2024 set to 424 ppm (approximate); offset-corrected below
+# to match the actual Mauna Loa 2024 annual mean.
+# Projections run to 2075 (not 2100) to keep SSP5-8.5 upper bound legible.
+
+proj_raw <- tribble(
+  ~year,  ~scenario,    ~median,  ~lo,   ~hi,
+  # SSP1-2.6: peaks ~2040, then slowly declines
+  2024,   "SSP1-2.6",   424,     424,   424,
+  2030,   "SSP1-2.6",   437,     430,   444,
+  2040,   "SSP1-2.6",   443,     430,   456,
+  2050,   "SSP1-2.6",   438,     418,   456,
+  2060,   "SSP1-2.6",   428,     403,   452,
+  2075,   "SSP1-2.6",   415,     385,   446,
+  # SSP2-4.5: continues rising, moderates post-2060
+  2024,   "SSP2-4.5",   424,     424,   424,
+  2030,   "SSP2-4.5",   444,     436,   452,
+  2040,   "SSP2-4.5",   467,     454,   480,
+  2050,   "SSP2-4.5",   487,     469,   506,
+  2060,   "SSP2-4.5",   504,     481,   528,
+  2075,   "SSP2-4.5",   521,     492,   551,
+  # SSP5-8.5: rapid continued rise
+  2024,   "SSP5-8.5",   424,     424,   424,
+  2030,   "SSP5-8.5",   453,     443,   463,
+  2040,   "SSP5-8.5",   497,     480,   515,
+  2050,   "SSP5-8.5",   553,     527,   580,
+  2060,   "SSP5-8.5",   624,     588,   662,
+  2075,   "SSP5-8.5",   736,     688,   786
+) |>
+  mutate(
+    scenario = factor(scenario, levels = c("SSP1-2.6", "SSP2-4.5", "SSP5-8.5"))
+  )
+
+### |- anchor correction ----
+# Shift all projection values so the 2024 seam matches observed Mauna Loa mean
+proj_offset <- co2_2024_actual - 424
+
+proj <- proj_raw |>
+  mutate(
+    median = median + proj_offset,
+    lo     = lo     + proj_offset,
+    hi     = hi     + proj_offset
+  )
+
+### |- label positions at 2075 ----
+proj_labels <- proj |>
+  filter(year == 2075) |>
+  select(scenario, median)
+
+### |- key annotation values ----
+co2_1960_label <- round(co2_1960_actual, 1)
+co2_2024_label <- round(co2_2024_actual, 1)
+ppm_rise       <- round(co2_2024_actual - co2_1960_actual)
+
+### |- y positions for seam segment and seam label ----
+seam_y_lo    <- 308
+seam_y_hi    <- 790
+seam_label_y <- 315
+
+### |- label x position (right of 2075, inside clip = "off") ----
+label_x <- 2077
+
+```
+
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+      "bg"         = "#F5F3EE",
+      "observed"   = "#8B3030",
+      "ssp126"     = "#4A7C59",
+      "ssp245"     = "#C28A2C",
+      "ssp585"     = "#7A3020",
+      "seam"       = "#6B6B6B",
+      "annotation" = "#3D3D3D",
+      "muted"      = "#8A8A8A",
+      "grid"       = "#E4E1DB"
+    )
+  )
+  
+col_bg         <- colors$palette$bg
+col_obs        <- colors$palette$observed
+col_ssp126     <- colors$palette$ssp126
+col_ssp245     <- colors$palette$ssp245
+col_ssp585     <- colors$palette$ssp585
+col_seam       <- colors$palette$seam
+col_annotation <- colors$palette$annotation
+col_muted      <- colors$palette$muted
+col_grid       <- colors$palette$grid
+
+### |- titles and caption ----
+title_text <- "We know where we've been. Where we go is a choice."
+
+subtitle_text <- paste0(
+  "Atmospheric CO\u2082 at Mauna Loa rose from <b>", co2_1960_label, " ppm</b> (1960) ",
+  "to <b>", co2_2024_label, " ppm</b> (2024) — an increase of <b>",
+  ppm_rise, " ppm</b> in 65 years.<br>",
+  "Beyond 2024, three IPCC AR6 scenarios show where concentrations could go. ",
+  "The gap between them is not prediction error,<br>it is the consequence of different emissions choices."
+)
+
+caption_text <- create_dcc_caption(
+  dcc_year    = 2026,
+  dcc_day     = 26,
+  source_text = "NOAA GML Mauna Loa (observed) \u00b7 IPCC AR6 WG1 SPM Fig. 8 (projections, approximate)"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+base_theme   <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.background = element_rect(fill = col_bg, color = NA),
+    panel.background = element_rect(fill = col_bg, color = NA),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = col_grid, linewidth = 0.3),
+    panel.grid.minor.y = element_blank(),
+    axis.line.x = element_line(color = "#C8C4BC", linewidth = 0.4),
+    axis.ticks.x = element_line(color = "#C8C4BC", linewidth = 0.3),
+    axis.ticks.y = element_blank(),
+    axis.text = element_text(family = fonts$text, size = 10, color = col_muted),
+    axis.title.y = element_text(
+      family = fonts$text, size = 10, color = col_muted,
+      margin = margin(r = 8)
+    ),
+    axis.title.x = element_blank(),
+    plot.title = element_markdown(
+      family     = fonts$title,
+      size       = 24,
+      face       = "bold",
+      color      = col_annotation,
+      lineheight = 1.1,
+      margin     = margin(b = 8)
+    ),
+    plot.subtitle = element_markdown(
+      family     = fonts$text,
+      size       = 11,
+      color      = col_annotation,
+      lineheight = 1.5,
+      margin     = margin(b = 20)
+    ),
+    plot.caption = element_markdown(
+      family = fonts$text,
+      size   = 8,
+      color  = col_muted,
+      hjust  = 1,
+      margin = margin(t = 12)
+    ),
+    plot.margin = margin(t = 20, r = 75, b = 15, l = 20)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p <- ggplot() +
+
+  # Geoms
+  geom_ribbon(
+    data = proj |> filter(scenario == "SSP5-8.5"),
+    aes(x = year, ymin = lo, ymax = hi),
+    fill = col_ssp585,
+    alpha = 0.14
+  ) +
+  geom_ribbon(
+    data = proj |> filter(scenario == "SSP5-8.5", year >= 2050),
+    aes(x = year, ymin = lo, ymax = hi),
+    fill = col_ssp585,
+    alpha = 0.10
+  ) +
+  geom_line(
+    data = proj |> filter(scenario == "SSP5-8.5"),
+    aes(x = year, y = median),
+    color = col_ssp585,
+    linewidth = 0.65,
+    linetype = "dashed"
+  ) +
+  geom_ribbon(
+    data = proj |> filter(scenario == "SSP2-4.5"),
+    aes(x = year, ymin = lo, ymax = hi),
+    fill = col_ssp245,
+    alpha = 0.18
+  ) +
+  geom_ribbon(
+    data = proj |> filter(scenario == "SSP2-4.5", year >= 2050),
+    aes(x = year, ymin = lo, ymax = hi),
+    fill = col_ssp245,
+    alpha = 0.12
+  ) +
+  geom_line(
+    data = proj |> filter(scenario == "SSP2-4.5"),
+    aes(x = year, y = median),
+    color = col_ssp245,
+    linewidth = 0.65,
+    linetype = "dashed"
+  ) +
+  geom_ribbon(
+    data = proj |> filter(scenario == "SSP1-2.6"),
+    aes(x = year, ymin = lo, ymax = hi),
+    fill = col_ssp126,
+    alpha = 0.20
+  ) +
+  geom_ribbon(
+    data = proj |> filter(scenario == "SSP1-2.6", year >= 2050),
+    aes(x = year, ymin = lo, ymax = hi),
+    fill = col_ssp126,
+    alpha = 0.12
+  ) +
+  geom_line(
+    data = proj |> filter(scenario == "SSP1-2.6"),
+    aes(x = year, y = median),
+    color = col_ssp126,
+    linewidth = 0.65,
+    linetype = "dashed"
+  ) +
+
+  # Annotate
+  annotate(
+    "segment",
+    x = 2024, xend = 2024,
+    y = seam_y_lo, yend = seam_y_hi,
+    color = "#4A4A4A",
+    linewidth = 0.55,
+    linetype = "dashed"
+  ) +
+  annotate(
+    "text",
+    x = 2024,
+    y = seam_label_y,
+    label = "Last observed (2024)",
+    hjust = 0.5,
+    vjust = 1,
+    size = 2.9,
+    color = "#4A4A4A",
+    family = fonts$text,
+    fontface = "bold"
+  ) +
+  annotate(
+    "text",
+    x = 2024,
+    y = seam_label_y - 12,
+    label  = "Observed \u2192 Scenarios",
+    hjust = 0.5,
+    vjust = 1,
+    size = 2.6,
+    color = col_muted,
+    family = "sans"
+  ) +
+  geom_line(
+    data = co2_obs,
+    aes(x = year, y = co2_ppm),
+    color = col_obs,
+    linewidth = 1.1,
+    lineend = "round"
+  ) +
+  annotate(
+    "text",
+    x = 1963,
+    y = co2_1960_actual + 10,
+    label = paste0(co2_1960_label, " ppm\n(1960)"),
+    hjust = 0,
+    vjust = 0,
+    size = 3.1,
+    color = col_annotation,
+    family = fonts$text,
+    lineheight = 1.3
+  ) +
+  annotate(
+    "text",
+    x = 2019,
+    y = co2_2024_actual + 12,
+    label = paste0(co2_2024_label, " ppm\n(2024)"),
+    hjust = 1,
+    vjust = 0,
+    size = 3.1,
+    color = col_annotation,
+    family = fonts$text,
+    lineheight = 1.3
+  ) +
+  annotate(
+    "text",
+    x = label_x,
+    y = proj_labels |> filter(scenario == "SSP5-8.5") |> pull(median),
+    label = "SSP5-8.5\nNo additional\naction",
+    hjust = 0, vjust = 0.5,
+    size = 2.85,
+    color = col_ssp585,
+    family = fonts$text,
+    lineheight = 1.3
+  ) +
+  annotate(
+    "text",
+    x = label_x,
+    y = proj_labels |> filter(scenario == "SSP2-4.5") |> pull(median),
+    label = "SSP2-4.5\nPolicies as\nimplemented",
+    hjust = 0, vjust = 0.5,
+    size = 2.85,
+    color = col_ssp245,
+    family = fonts$text,
+    lineheight = 1.3
+  ) +
+  annotate(
+    "text",
+    x = label_x,
+    y = proj_labels |> filter(scenario == "SSP1-2.6") |> pull(median),
+    label = "SSP1-2.6\nAggressive\ndecarbonization",
+    hjust = 0, vjust = 0.5,
+    size = 2.85,
+    color = col_ssp126,
+    family = fonts$text,
+    lineheight = 1.3
+  ) +
+
+  # Scales
+  scale_x_continuous(
+    breaks = c(1960, 1980, 2000, 2024, 2050, 2075),
+    labels = c("1960", "1980", "2000", "2024", "2050", "2075"),
+    expand = expansion(mult = c(0.02, 0.0))
+  ) +
+  scale_y_continuous(
+    labels = label_number(suffix = " ppm"),
+    breaks = seq(300, 800, by = 100),
+    limits = c(300, 800),
+    expand = expansion(mult = c(0.02, 0.06))
+  ) +
+  coord_cartesian(clip = "off") +
+
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    y = "Atmospheric CO\u2082 (ppm)"
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  p,
+  type = "30daychartchallenge",
+  year = 2026,
+  day = 26,
+  width = 10,
+  height = 7
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps} 
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`30dcc_2026_26.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/30dcc_2026_26.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1. **Data Sources:**
+   - NOAA Global Monitoring Laboratory — Mauna Loa CO₂ monthly mean concentrations.
+     Scripps Institution of Oceanography / NOAA GML.
+     Retrieved from: https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv
+   - IPCC AR6 Working Group I (2021). *Climate Change 2021: The Physical Science Basis.*
+     Summary for Policymakers, Figure SPM.8 — Projected atmospheric CO₂ concentrations
+     under SSP1-2.6, SSP2-4.5, and SSP5-8.5 scenarios (approximate digitisation).
+     Retrieved from: https://www.ipcc.ch/report/ar6/wg1/
+
+2. **Chart Inspiration:**
+   - Intergovernmental Panel on Climate Change (2021). SPM Figure 8: Projected changes
+     in annual greenhouse gas concentrations. In *Climate Change 2021: The Physical
+     Science Basis.* Cambridge University Press.
+     https://doi.org/10.1017/9781009157896
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::

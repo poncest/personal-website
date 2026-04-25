@@ -1,0 +1,364 @@
+---
+title: "From Reflection to Insight"
+subtitle: "Designing a narrative interface for AI-derived impact data across 229 youth music mentoring sessions"
+description: "A pro bono analytics case study using R Shiny and Self-Determination Theory to surface patterns in qualitative session data—and what honest reporting of those patterns reveals about youth music mentoring outcomes."
+date: "2026-04-25"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:    
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-04-25.html"
+categories: ["R Programming", "Shiny", "Nonprofit Analytics", "2026"]
+tags: ["r-shiny", "shiny-semantic", "self-determination-theory", "qualitative-data", "nonprofit", "pro-bono", "ggplot2", "ggiraph"]
+image: "thumbnails/sa_2026-04-25.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(dev = "png", fig.width = 9, fig.height = 10, dpi = 320)
+```
+
+🚀 **Live app:**\
+[Noise Solution Impact
+Dashboard](https://0l6jpd-steven-ponce.shinyapps.io/noise-solution-impact/)
+
+💻 **Source code:**\
+[GitHub repository](https://github.com/poncest/noise_solutions)
+
+------------------------------------------------------------------------
+
+> *The challenge wasn't building a dashboard. It was deciding what to
+> report honestly when the data doesn't tell a clean story — and making
+> that honesty useful.*
+
+------------------------------------------------------------------------
+
+## [1. Context, problem, and goal]{.smallcaps}
+
+**Context**
+
+[Noise Solution](https://www.noisesolution.org/) is a UK-based charity
+that uses digital music mentoring to support young people facing
+significant barriers — including mental health challenges, exclusion
+from education, and social isolation. Mentors work one-to-one with
+participants, using music creation as the medium for building
+psychological wellbeing. After each session, mentors write free-text
+reflections: observations, participant responses, and qualitative notes.
+
+**Problem**
+
+Noise Solution collects qualitative reflection data from young people
+across every session. This project translates that data into
+decision-ready insight — connecting session-level observations to
+programme-level patterns in a form accessible to commissioners and
+funders. AI-derived scores provided quantitative structure, but without
+clear integration with participant voice, they lacked the contextual
+grounding needed for credible reporting.
+
+**Goal**
+
+Design an interface that integrates AI-derived quantitative scores with
+qualitative participant evidence, enabling stakeholders to identify
+strengths, understand gaps, and interpret findings with appropriate
+caution — without requiring familiarity with the underlying methodology.
+
+This project was completed as a **pro bono contribution** through the
+Data ChangeMakers volunteer programme, treated as a consulting
+engagement rather than a portfolio exercise.
+
+------------------------------------------------------------------------
+
+## [2. Approach: a structured scoring pipeline]{.smallcaps}
+
+**Self-Determination Theory (SDT)** provided the analytical scaffold.
+SDT is a well-validated framework in which psychological wellbeing
+depends on the satisfaction of three Basic Psychological Needs (BPN):
+
+-   **Competence** — feeling capable and effective
+-   **Autonomy** — experiencing choice and creative agency
+-   **Relatedness** — feeling connected to others
+
+For each of 229 sessions across 35 participants, Claude (Anthropic)
+reviewed the mentor's free-text notes and assigned BPN scores on a 1–9
+scale, along with representative quotes and sentiment classification
+(positive / challenge).
+
+This pipeline has important limitations disclosed throughout the
+dashboard:
+
+-   Scores reflect AI interpretation of qualitative notes, not
+    self-report from participants
+-   The scoring stage introduces subjectivity that cannot be fully
+    eliminated
+-   Results should be read as structured summaries, not clinical
+    measurements
+
+The goal was not to eliminate uncertainty, but to make patterns
+accessible for programme reflection while being transparent about what
+the data can and cannot support.
+
+------------------------------------------------------------------------
+
+## [3. What the analysis finds]{.smallcaps}
+
+Across 229 sessions, three patterns emerged:
+
+**Competence is the programme's strongest signal.**\
+Average Competence score: 6.2 / 9. Participants consistently report
+feeling capable and effective — this is the clearest outcome the data
+supports.
+
+**A consistent gap in Relatedness.**\
+Autonomy averaged 5.6 / 9; Relatedness averaged 5.4 / 9. The gap between
+capability and connection scores is the most structurally interesting
+finding — the programme builds skill and confidence more reliably than
+peer connection, which is consistent with a one-to-one mentoring model
+and may represent a design opportunity.
+
+**Session satisfaction is high, but alignment with BPN scores is
+partial.**\
+Average session rating: 8.7 / 10. Higher ratings do not consistently
+predict higher BPN scores, suggesting participant satisfaction and
+psychological need satisfaction are related but distinct.
+
+**Trajectories over time are flat.**\
+Across sessions 1–9 (where N ≥ 10), average BPN scores do not show a
+consistent upward trend. This is an honest finding — the data does not
+support claims of improvement over time at the aggregate level.
+
+------------------------------------------------------------------------
+
+## [4. Dashboard structure: four questions]{.smallcaps}
+
+The analysis is structured around four questions rather than four
+feature tabs — each one driving a deliberate design and content
+decision.
+
+### What is happening?
+
+![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/impact.png)
+
+Establishes the overall pattern using BPN scores, session ratings, and a
+hero quote drawn directly from session notes. The goal is immediate
+clarity: are sessions working, and where is the gap? A rating/BPN
+alignment chart sits subordinate to the KPI cards — confirmatory, not
+the lead story.
+
+### Where is the gap?
+
+![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/how_support_varies.png)
+
+Compares support across the three psychological needs, highlighting the
+consistent Relatedness gap. A horizontal bar chart with a midpoint
+reference line (5 — midpoint) enables direct comparison without
+requiring familiarity with the 1–9 scale.
+
+### What do participants actually say?
+
+![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/in_their_words.png)
+
+Surfaces qualitative evidence to validate and contextualise the
+quantitative findings. Quotes are organised by BPN domain and sentiment;
+the sentiment label is removed from the cards so the participant's voice
+speaks without being pre-classified for the reader.
+
+### Does it change over time?
+
+![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/over_time.png)
+
+Examines BPN trajectories across sessions to assess whether support
+improves or remains variable. Individual lines at alpha 0.11 avoid
+overplotting; the average overlay is limited to sessions 1–9 where N ≥
+10. The finding is what the data shows — not what a programme narrative
+might prefer.
+
+------------------------------------------------------------------------
+
+## [5. Key design decisions]{.smallcaps}
+
+**Prioritised editorial structure over exploratory interaction**\
+A fixed narrative structure replaces open filters. This reduces
+cognitive load for non-technical users — commissioners and programme
+staff — and ensures findings are interpreted in context rather than
+explored in isolation.
+
+**Integrated quantitative and qualitative evidence throughout**\
+Every section pairs BPN scores with participant quotes. This grounds the
+metrics in lived experience and builds credibility with audiences who
+are rightly skeptical of AI-derived numbers alone.
+
+**Built a validation layer: ratings vs. BPN**\
+The rating/BPN alignment chart was included to surface the relationship
+— and its limits — between participant satisfaction and psychological
+need satisfaction. This reveals that a high average rating cannot stand
+as a proxy for wellbeing, supporting appropriate caution throughout.
+
+**Constrained interaction to what directly supports interpretation**\
+Controls are limited to the Positive / Challenges toggle in *In Their
+Words* and the session threshold in *Over Time*. No segment filters, no
+demographic drilldowns. The simplicity is intentional — not a
+constraint.
+
+**Reported flat trajectories as flat**\
+The *Over Time* analysis does not smooth or aggregate in a way that
+implies improvement. Honest findings are more useful for programme
+reflection than reassuring ones.
+
+------------------------------------------------------------------------
+
+## [6. Out of scope — by design]{.smallcaps}
+
+The following were intentionally excluded:
+
+-   Individual participant drilldowns
+-   Demographic segmentation or filtering
+-   Advanced statistical modelling or significance testing
+-   Causal claims about programme impact
+
+These elements were intentionally excluded to preserve clarity and
+maintain focus on decision-making rather than exploration. An interface
+built for commissioners needs to communicate — not demonstrate
+analytical range.
+
+------------------------------------------------------------------------
+
+## [7. Technical lessons from the build]{.smallcaps}
+
+### `updateActionButton(class = ...)` is unsupported in shiny.semantic
+
+The Positive / Challenges toggle was initially built using
+`updateActionButton()` with a `class` argument. This crashes silently in
+shiny.semantic. The fix: use `session$sendCustomMessage()` with a
+JavaScript handler to update button classes directly.
+
+``` r
+# Broken in shiny.semantic
+updateActionButton(session, "toggle_btn", class = "ui green button")
+
+# Working alternative
+session$sendCustomMessage("updateButtonClass", list(
+  id = session$ns("toggle_btn"),
+  class = "ui green button"
+))
+```
+
+### `geom_line_interactive` tooltips fire per line, not per point
+
+`geom_line_interactive()` from ggiraph fires tooltip events for the
+entire line on hover. The fix: overlay an invisible
+`geom_point_interactive()` layer to capture point-level interactions.
+
+``` r
+geom_point_interactive(
+  aes(tooltip = tooltip_text, data_id = participant_id),
+  size = 3, alpha = 0
+)
+```
+
+### CSS tabs and Shiny lazy evaluation
+
+shiny.semantic's CSS-based tab switching does not notify Shiny when tabs
+become visible.
+`outputOptions(output, "output_name", suspendWhenHidden = FALSE)` on all
+outputs is now a standard first step in any shiny.semantic project.
+
+------------------------------------------------------------------------
+
+## [8. Outcome and reflection]{.smallcaps}
+
+**Outcome**
+
+The final design provides a clear, integrated view of programme
+performance. The integration of AI-derived metrics with participant
+voice delivers both analytical structure and contextual grounding —
+enabling stakeholders to identify strengths (Competence), understand
+gaps (Relatedness), and interpret findings with appropriate caution,
+without requiring familiarity with SDT or the scoring pipeline. The
+result is a focused, narrative-driven interface that enables fast,
+confident interpretation of complex, AI-derived data.
+
+**Reflection**
+
+The central trade-off was between analytical honesty and accessibility.
+Flat trajectories and partial rating/BPN alignment are not the findings
+a programme narrative would choose — but they are more useful than
+reassuring simplifications. The final approach demonstrates that
+complex, AI-derived insights can be communicated effectively through a
+constrained, narrative-driven interface — provided the analyst is
+willing to let the data speak rather than manage its reception.
+
+------------------------------------------------------------------------
+
+## [Appendix: Methodology & Build Notes]{.smallcaps}
+
+### Data
+
+-   229 sessions, 35 participants
+-   Session range: 1–24, median 5, mean 6.5
+-   BPN averages: Competence 6.16, Autonomy 5.64, Relatedness 5.37
+-   Session rating: 8.7 / 10 average (153 / 229 sessions with ratings)
+-   Relatedness challenge quotes sparse (37 / 229 sessions)
+
+### Technical Stack
+
+-   **Language:** R (4.3+)
+-   **Framework:** Shiny (modular architecture)
+-   **UI:** shiny.semantic (Appsilon)
+-   **Visualization:** ggplot2, ggiraph
+-   **Tables:** reactable
+-   **Deployment:** shinyapps.io
+
+------------------------------------------------------------------------
+
+## Purpose, Scope, and Disclaimer
+
+This project was completed as a **pro bono volunteer contribution**
+through the Data ChangeMakers volunteer programme. It is not affiliated
+with or endorsed by Noise Solution in an official capacity.
+
+All session data was provided by Noise Solution for the purpose of this
+analysis. No personally identifiable information is included in this
+repository or the live application.
+
+This work does not constitute clinical, diagnostic, or therapeutic
+guidance.
+
+------------------------------------------------------------------------
+
+::: callout-note
+The most useful thing an analyst can do with small, qualitative datasets
+is not to find a way to claim significance — it is to surface patterns
+honestly and make them accessible to the people closest to the work.
+
+In this case, that means reporting that Competence scores are strong,
+that Relatedness lags, and that trajectories over time are flat. Those
+findings may not tell the story a programme narrative would choose — but
+they give Noise Solution something more useful: a clear, structured
+starting point for reflection.
+:::
