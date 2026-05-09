@@ -1,0 +1,512 @@
+---
+title: "After the war, cities did the work of reconciliation"
+subtitle: "Europe dominates the global sister-city network — especially across Central and Eastern Europe"
+description: "Using Wikidata's sister-city network, this visualization reveals that Europe — particularly Germany and its Central and Eastern European neighbors — dominates global city twinning. Germany–Poland forms the largest bilateral corridor in the dataset with 344 links, part of a broader postwar reconciliation infrastructure built city by city across borders redrawn in living memory."
+date: "2026-05-09"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_19.html" 
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "Sister Cities",
+  "Networks",
+  "Bilateral Relationships",
+  "Europe",
+  "Geopolitics",
+  "Historical",
+  "Postwar",
+  "Germany",
+  "Poland",
+  "Bar Chart",
+  "Ranked",
+  "patchwork",
+  "ggplot2"
+]
+image: "thumbnails/tt_2026_19.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                    
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Two horizontal bar charts titled "After the war, cities did the work of reconciliation." The left panel ranks the top 20 countries by international sister-city links, with reconciliation-bloc countries highlighted in burgundy. Germany ranks second with 1,646 links, nearly matching the United States at 1,757, despite being far smaller. Poland ranks fourth with 1,042. The right panel shows the strongest bilateral country-pair corridors, grouped by a dashed line into reconciliation corridors (burgundy) and global corridors (gray). Germany–Poland leads with 344 links — the largest bilateral corridor in the dataset — followed by Japan–United States at 213. The Central and Eastern European reconciliation cluster includes Germany–Hungary, Hungary–Romania, Czechia–Germany, Hungary–Poland, Czechia–Poland, Lithuania–Poland, and France–Germany, all in burgundy.](tt_2026_19.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, ggrepel,      
+    scales, glue, skimr, patchwork
+    )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 12,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 19)
+
+cities <- tt$cities |> clean_names()
+links <- tt$links |> clean_names()
+
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(cities)
+glimpse(links)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- enrich links with country/continent metadata ----
+links_e <- links |>
+  left_join(
+    cities |> select(id, country_src = country, cont_src = continent),
+    by = c("source" = "id")
+  ) |>
+  left_join(
+    cities |> select(id, country_tgt = country, cont_tgt = continent),
+    by = c("target" = "id")
+  )
+
+### |- international links only (filter domestic, 9.8% of total) ----
+intl <- links_e |>
+  filter(
+    country_src != country_tgt,
+    !is.na(country_src),
+    !is.na(country_tgt)
+  )
+
+### |- PANEL A: top countries by international links ----
+# Count cities per country for normalization denominator
+cities_per_country <- cities |>
+  count(country, name = "n_cities")
+
+panel_a_data <- bind_rows(
+  intl |> select(country = country_src, continent = cont_src),
+  intl |> select(country = country_tgt, continent = cont_tgt)
+) |>
+  count(country, continent, name = "intl_links") |>
+  left_join(cities_per_country, by = "country") |>
+  mutate(
+    links_per_city = intl_links / n_cities,
+    # Highlight = postwar reconciliation bloc countries only
+    # Russia excluded — current geopolitical context complicates the framing
+    reconciliation_country = country %in% c(
+      "Czechia", "France", "Germany", "Hungary", "Italy",
+      "Lithuania", "Moldova", "Poland", "Portugal", "Romania",
+      "Spain", "Ukraine", "United Kingdom"
+    )
+  ) |>
+  arrange(desc(intl_links)) |>
+  slice_head(n = 20) |>
+  mutate(country = fct_reorder(country, intl_links))
+
+### |- PANEL B: top bilateral corridors (replaces heatmap) ----
+# Canonical pair: alphabetically sorted so each corridor appears once
+country_continent <- cities |>
+  distinct(country, continent)
+
+panel_b_data <- intl |>
+  mutate(
+    country_a = if_else(country_src < country_tgt, country_src, country_tgt),
+    country_b = if_else(country_src < country_tgt, country_tgt, country_src)
+  ) |>
+  count(country_a, country_b, name = "n_links") |>
+  arrange(desc(n_links)) |>
+  slice_head(n = 20) |>
+  left_join(country_continent |> rename(country_a = country, cont_a = continent),
+    by = "country_a"
+  ) |>
+  left_join(country_continent |> rename(country_b = country, cont_b = continent),
+    by = "country_b"
+  ) |>
+  mutate(
+    pair_label = glue("{country_a} \u2013 {country_b}"),
+    pair_label = fct_reorder(pair_label, n_links),
+    # Highlight = both countries in the postwar Central/Eastern European
+    reconciliation_pair = country_a %in% c(
+      "Czechia", "France", "Germany", "Hungary",
+      "Lithuania", "Moldova", "Poland", "Romania", "Ukraine"
+    ) & country_b %in% c(
+      "Czechia", "France", "Germany", "Hungary",
+      "Lithuania", "Moldova", "Poland", "Romania", "Ukraine"
+    ),
+    is_hero = country_a == "Germany" & country_b == "Poland"
+  )
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+    palette = list(
+        bar_europe  = "#722F37",   
+        bar_other   = "gray70",    
+        bar_germany = "#722F37",   
+        bar_europe_b = "#722F37",  
+        bar_mixed    = "gray70",   
+        annotation   = "#3d3d3d",  
+        bg          = "#FAFAF8"    
+    )
+)
+
+### |- titles and caption ----
+title_text    <- str_glue("After the war, cities did the work of reconciliation")
+
+subtitle_text <- str_glue(
+    "Europe dominates the global sister-city network — especially across Central and Eastern Europe."
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2026,
+    tt_week = 19,
+    source_text  = "Wikidata via Wikipedia"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- base theme ----
+base_theme  <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+    base_theme,
+    theme(
+        # Panel
+        panel.background = element_rect(fill = colors$palette$bg, color = NA),
+        plot.background = element_rect(fill = colors$palette$bg, color = NA),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        
+        # Axes
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        axis.text.x = element_text(
+            family = fonts$text, size = 7.5, color = "gray40"
+        ),
+        axis.text.y = element_text(
+            family = fonts$text, size = 8, color = "gray25", hjust = 1
+        ),
+        
+        # Title / subtitle / caption
+        plot.title = element_text(
+            family = fonts$title,
+            size = 18,
+            face = "bold",
+            color = "gray10",
+            margin = margin(b = 6)
+        ),
+        plot.subtitle = element_markdown(
+            family = 'sans',
+            size = 10,
+            color = "gray35",
+            lineheight = 1.4,
+            margin = margin(b = 16)
+        ),
+        plot.caption = element_markdown(
+            family = fonts$text,
+            size = 7,
+            color = "gray55",
+            hjust = 0,
+            margin = margin(t = 12)
+        ),
+        plot.margin = margin(16, 20, 12, 16)
+    )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- PANEL A: horizontal bar chart ----
+p_a <- panel_a_data |>
+    ggplot(aes(
+        x    = intl_links,
+        y    = country,
+        fill = reconciliation_country
+    )) +
+    # Geoms
+    geom_col(width = 0.72, show.legend = FALSE) +
+    geom_text(
+        aes(label = comma(intl_links, accuracy = 1)),
+        hjust = -0.15,
+        family = fonts$text,
+        size = 2.8,
+        color = "gray35"
+    ) +
+    # Scalea
+    scale_fill_manual(values = c(
+        "TRUE" = colors$palette$bar_europe,
+        "FALSE" = colors$palette$bar_other
+    )) +
+    scale_x_continuous(
+        expand = expansion(mult = c(0, 0.18)),
+        labels = comma_format(accuracy = 1)
+    ) +
+    # Labs
+    labs(
+        title    = "International sister-city links by country",
+        subtitle = "Top 20 countries · **European** countries highlighted · *Hungary, Lithuania & Czechia rank highest per city*"
+    ) +
+    # Theme
+    theme(
+        plot.title = element_text(
+            family = fonts$title, size = 13, face = "bold", color = "gray15",
+            margin = margin(b = 3)
+        ),
+        plot.subtitle = element_markdown(
+            family = 'sans', size = 8.5, color = "gray45",
+            margin = margin(b = 10)
+        ),
+        plot.margin = margin(8, 12, 8, 8)
+    )
+
+### |- PANEL B: top bilateral corridors ----
+p_b <- panel_b_data |>
+    ggplot(aes(
+        x    = n_links,
+        y    = pair_label,
+        fill = reconciliation_pair
+    )) +
+    # Geoms
+    geom_col(width = 0.72, show.legend = FALSE) +
+    geom_hline(
+        yintercept = 14.5,
+        color      = "gray80",
+        linewidth  = 0.4,
+        linetype   = "dashed"
+    ) +
+    geom_text(
+        aes(label = comma(n_links, accuracy = 1)),
+        hjust = -0.15,
+        family = fonts$text,
+        size = 2.8,
+        color = "gray35"
+    ) +
+    # Annotate
+    annotate(
+        "text",
+        x = 380, y = 15.1,
+        label = "Reconciliation corridors",
+        family = fonts$text, size = 2.4,
+        color = colors$palette$bar_europe_b,
+        hjust = 1, fontface = "italic"
+    ) +
+    annotate(
+        "text",
+        x = 380, y = 14.0,
+        label = "Global corridors",
+        family = fonts$text, size = 2.4,
+        color = "gray55",
+        hjust = 1, fontface = "italic"
+    ) +
+    # Scales
+    scale_fill_manual(
+        values = c(
+            "TRUE" = colors$palette$bar_europe_b,
+            "FALSE" = colors$palette$bar_mixed
+        )
+    ) +
+    scale_x_continuous(
+        expand = expansion(mult = c(0, 0.05)),
+        labels = comma_format(accuracy = 1)
+    ) +
+    # Labw
+    labs(
+        title    = "Strongest bilateral sister-city corridors",
+        subtitle = "Top 20 country pairs · **Reconciliation corridors** highlighted · Germany appears in 8 of the top 13"
+    ) +
+    # Theme
+    theme(
+        plot.title = element_text(
+            family = fonts$title, size = 13, face = "bold", color = "gray15",
+            margin = margin(b = 3)
+        ),
+        plot.subtitle = element_markdown(
+            family = 'sans', size = 8.5, color = "gray45",
+            margin = margin(b = 10)
+        ),
+        panel.grid.major.x = element_line(color = "gray92", linewidth = 0.3),
+        plot.margin = margin(8, 16, 8, 8)
+    )
+
+### |- combine plots ----
+combined_plot <- p_a + plot_spacer() + p_b +
+    plot_layout(widths = c(1, 0.01, 1)) +
+    plot_annotation(
+        title = title_text,
+        subtitle = subtitle_text,
+        caption = caption_text,
+        theme = theme(
+            plot.title = element_text(
+                family = fonts$title,
+                size = 24,
+                face = "bold",
+                color = "gray10",
+                margin = margin(b = 6)
+            ),
+            plot.subtitle = element_markdown(
+                family = 'sans',
+                size = 12,
+                color = "gray35",
+                lineheight = 1.4,
+                margin = margin(b = 4)
+            ),
+            plot.caption = element_markdown(
+                family = fonts$caption,
+                size = 7,
+                color = "gray40",
+                hjust = 0,
+                margin = margin(t = 10)
+            ),
+            plot.background = element_rect(fill = colors$palette$bg, color = NA),
+            plot.margin = margin(16, 20, 12, 16),
+        )
+    )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = combined_plot, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 19, 
+  width  = 12,
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_19.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_19.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 19: [Twinned Cities](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-05-12/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
