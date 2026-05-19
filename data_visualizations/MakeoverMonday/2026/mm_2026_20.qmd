@@ -1,0 +1,569 @@
+---
+title: "Diesel's Crisis Premium"
+subtitle: "Diesel prices stayed only slightly above petrol for most of the 2010s. During the Ukraine and Iran conflicts, the premium widened sharply."
+description: "This two-panel makeover reveals how the diesel premium over petrol — modest and stable for most of the 2010s — surged episodically during the Ukraine (2022) and Iran (2026) conflicts, with the 2026 spike reaching +31.9p, exceeding the prior crisis peak of +24.5p. Prices are indexed to January 2013 to enable direct shock comparison, with the bottom panel isolating the spread as a single derived variable. Built with R, ggplot2, and patchwork."
+date: "2026-05-19"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_20.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "line-chart",
+  "patchwork",
+  "time-series",
+  "energy",
+  "fuel-prices",
+  "uk",
+  "geopolitical",
+  "indexing",
+  "spread-analysis",
+  "annotation",
+  "ggtext",
+  "2026"
+]
+image: "thumbnails/mm_2026_20.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true                                      
+  cache: true                                       
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 20
+project_file <- "mm_2026_20.qmd"
+project_image <- "mm_2026_20.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026w20-uk-fuel-prices"
+data_secondary <- "https://data.world/makeovermonday/2026w20-uk-fuel-prices"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_20/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.rac.co.uk/drive/advice/fuel-watch/"
+org_secondary <- "https://www.rac.co.uk/drive/advice/fuel-watch/"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("UK Fuel Prices", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_20/original_chart.png)
+
+### Makeover
+
+![A two-panel line chart titled "Diesel's Crisis Premium." The top panel shows indexed UK fuel prices (Jan 2013 = 100) for diesel and petrol from 2013 to 2026, with both fuels moving largely in tandem before diverging sharply during crisis periods. The bottom panel isolates the diesel premium over petrol in pence per liter, revealing that during stable years, the gap stayed near the pre-2022 average of roughly +3.7p. The Ukraine conflict in 2022 pushed the premium to a peak of +24.5p; the 2026 Iran conflict drove it higher still, reaching +31.9p — the widest recorded spread in the dataset. Soft gray shading marks both crisis windows across panels. Data: RAC Fuel Watch via MakeoverMonday 2026 W20.](mm_2026_20.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, 
+  glue, janitor, patchwork
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- readxl::read_excel(
+  here::here("data/MakeoverMonday/2026/UK Fuel Prices (2013-2026).xlsx")) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+## Core series: pump prices inc VAT, proper Date column
+df <- df_raw |>
+  mutate(date = as.Date(date)) |>
+  select(date, diesel = diesel_pump_inc_vat, petrol = unleaded_pump_inc_vat) |>
+  arrange(date)
+
+## Baseline: first observation (Jan 2013 = 100)
+baseline_diesel <- df$diesel[1]
+baseline_petrol <- df$petrol[1]
+
+df_indexed <- df |>
+  mutate(
+    diesel_idx = diesel / baseline_diesel * 100,
+    petrol_idx = petrol / baseline_petrol * 100
+  )
+
+## Panel B — diesel premium over petrol (pence)
+df_spread <- df |>
+  mutate(spread = diesel - petrol)
+
+## Pre-Ukraine baseline (data before Feb 2022)
+pre_ukraine_mean_spread <- df_spread |>
+  filter(date < as.Date("2022-02-24")) |>
+  summarise(m = mean(spread)) |>
+  pull(m)
+
+## Verify spread claims
+spread_summary <- df_spread |>
+  mutate(era = case_when(
+    date < as.Date("2022-02-24") ~ "pre-Ukraine",
+    date < as.Date("2026-02-28") ~ "Ukraine era",
+    TRUE ~ "Iran era"
+  )) |>
+  group_by(era) |>
+  summarise(
+    mean_spread = mean(spread),
+    median_spread = median(spread),
+    min_spread = min(spread),
+    max_spread = max(spread),
+    .groups = "drop"
+  )
+
+## Peak values for annotations
+ukraine_peak <- df_spread |>
+  filter(date >= as.Date("2022-02-24"), date < as.Date("2023-06-01")) |>
+  slice_max(spread, n = 1, with_ties = FALSE)
+
+iran_peak <- df_spread |>
+  filter(date >= as.Date("2026-02-28")) |>
+  slice_max(spread, n = 1, with_ties = FALSE)
+
+## Latest spread value
+latest <- df_spread |> slice_max(date, n = 1, with_ties = FALSE)
+latest_date <- latest$date
+latest_spread <- latest$spread
+
+## Key event dates
+ukraine_date <- as.Date("2022-02-24")
+iran_date <- as.Date("2026-02-28")
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    col_diesel  = "#9C5A2C",   
+    col_petrol  = "#8B98A3",  
+    col_spread  = "#426C7A",  
+    col_ref     = "#B8B4AE",   
+    col_text    = "#2C2C2C",
+    col_sub     = "#777777",
+    col_bg      = "#FAFAF7",
+    col_grid    = "#E8E8E2",
+    col_band    = "#426C7A",  
+    col_shock   = "#D9D4CD"   
+  )
+)
+
+col_diesel <- colors$palette$col_diesel
+col_petrol <- colors$palette$col_petrol
+col_spread <- colors$palette$col_spread
+col_ref <- colors$palette$col_ref
+col_text <- colors$palette$col_text
+col_sub <- colors$palette$col_sub
+col_bg <- colors$palette$col_bg
+col_grid <- colors$palette$col_grid
+col_band <- colors$palette$col_band
+col_shock <- colors$palette$col_shock
+  
+
+### |-  titles and caption ----
+title_text <- str_glue("Diesel's Crisis Premium")
+
+subtitle_text <- str_glue(
+  "Diesel prices stayed only slightly above petrol for most of the 2010s. ",
+  "During the Ukraine and Iran conflicts,\nthe premium widened sharply."
+)
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 20,
+  source_text = "RAC Fuel Watch | data.world/makeovermonday/2026w20-uk-fuel-prices"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.background = element_rect(fill = col_bg, color = NA),
+    panel.background = element_rect(fill = col_bg, color = NA),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.y = element_line(color = col_grid, linewidth = 0.3),
+    axis.text  = element_text(color = col_sub, size = 8.5),
+    axis.title = element_blank(),    
+    axis.title.x = element_blank(),      
+    axis.title.y = element_blank(),   
+    axis.ticks = element_blank(),
+    plot.margin = margin(8, 16, 8, 16)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  Panel A Indexed prices (context / scaffolding) ----
+p_a <- ggplot(df_indexed, aes(x = date)) +
+
+  # Rect
+  annotate("rect",
+    xmin = ukraine_date, xmax = as.Date("2023-09-01"),
+    ymin = -Inf, ymax = Inf,
+    fill = col_shock, alpha = 0.10
+  ) +
+  annotate("rect",
+    xmin = iran_date, xmax = as.Date("2026-04-28"),
+    ymin = -Inf, ymax = Inf,
+    fill = col_shock, alpha = 0.10
+  ) +
+
+  # Geom
+  geom_line(aes(y = petrol_idx),
+    color = col_petrol,
+    linewidth = 0.5, alpha = 0.5
+  ) +
+  geom_line(aes(y = diesel_idx),
+    color = col_diesel,
+    linewidth = 0.9
+  ) +
+  geom_hline(
+    yintercept = 100, color = col_ref,
+    linewidth = 0.6, linetype = "dashed"
+  ) +
+
+  # Annotate
+  annotate("text",
+    x = as.Date("2026-06-01"), y = 107,
+    label = "Diesel", color = col_diesel,
+    size = 3.0, fontface = "bold", hjust = 0
+  ) +
+  annotate("text",
+    x = as.Date("2026-06-01"), y = 99,
+    label = "Petrol", color = col_petrol,
+    size = 3.0, fontface = "bold", hjust = 0
+  ) +
+
+  # Scales
+  scale_x_date(
+    date_breaks = "2 years", date_labels = "%Y",
+    expand = expansion(mult = c(0.01, 0.10))
+  ) +
+  scale_y_continuous(
+    breaks = seq(80, 160, by = 20),
+    labels = function(x) rep("", length(x))
+  ) +
+  coord_cartesian(ylim = c(72, 155), clip = "off") +
+  labs(subtitle = "**Indexed prices** \u2014 Jan 2013 = 100") +
+
+  # Theme
+  theme(
+    panel.grid.major.y = element_blank(),
+  plot.subtitle = element_markdown(
+      size = 11, color = col_sub, margin = margin(b = 4), family = fonts$text
+    )
+  )
+
+### |-  Panel B: Diesel premium over petrol (payoff panel) ----
+latest_label   <- paste0("+", round(latest_spread, 1), "p")
+ukraine_label  <- paste0("2022 peak: +", round(ukraine_peak$spread, 1), "p")
+
+p_b <- ggplot(df_spread, aes(x = date, y = spread)) +
+
+  # Rect
+  annotate("rect",
+    xmin = ukraine_date, xmax = as.Date("2023-09-01"),
+    ymin = -Inf, ymax = Inf,
+    fill = col_shock, alpha = 0.10
+  ) +
+  annotate("rect",
+    xmin = iran_date, xmax = as.Date("2026-04-28"),
+    ymin = -Inf, ymax = Inf,
+    fill = col_shock, alpha = 0.10
+  ) +
+  annotate("rect",
+    xmin = min(df_spread$date), xmax = max(df_spread$date),
+    ymin = 0, ymax = pre_ukraine_mean_spread,
+    fill = col_band, alpha = 0.06
+  ) +
+
+  # Geoms
+  geom_hline(
+    yintercept = pre_ukraine_mean_spread,
+    color = col_ref, linewidth = 0.5, linetype = "dashed"
+  ) +
+  geom_area(fill = col_spread, alpha = 0.07) +
+  geom_line(color = col_spread, linewidth = 1.4) +
+
+  # Annotate
+  annotate("text",
+    x = ukraine_peak$date - 60,
+    y = ukraine_peak$spread + 1.8,
+    label = ukraine_label,
+    size = 3.0, color = col_sub, hjust = 1, fontface = "italic"
+  ) +
+  geom_point(
+    data = ukraine_peak, aes(x = date, y = spread),
+    color = col_sub, size = 2.0, shape = 21,
+    fill = col_bg, stroke = 1.2
+  ) +
+
+  # Annotate
+  annotate("text",
+    x = latest_date - 50,
+    y = latest_spread + 2.2,
+    label = latest_label,
+    size = 4.4, color = col_diesel, hjust = 1, fontface = "bold"
+  ) +
+  geom_point(
+    data = latest, aes(x = date, y = spread),
+    color = col_spread, size = 3.0
+  ) +
+  annotate("text",
+    x = ukraine_peak$date + 20,
+    y = ukraine_peak$spread + 5.0,
+    label = "Ukraine\nconflict",
+    size = 2.6, color = col_sub, hjust = 0.5, lineheight = 0.97
+  ) +
+  # Scales
+  scale_x_date(
+    date_breaks = "2 years", date_labels = "%Y",
+    expand = expansion(mult = c(0.01, 0.05))
+  ) +
+  scale_y_continuous(
+    labels = function(x) paste0(ifelse(x >= 0, "+", ""), x, "p"),
+    breaks = seq(-5, 40, by = 5)
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(subtitle = "**Diesel premium over petrol**") +
+
+  # Theme
+  theme(
+    plot.subtitle = element_markdown(
+      size = 11, color = col_sub, margin = margin(b = 4), family = fonts$text
+    )
+  )
+
+### |-  Combine plots ----
+p_combined <- (p_a / p_b) +
+    plot_layout(heights = c(0.85, 1.15)) +
+    plot_annotation(
+      title = title_text,
+      subtitle = subtitle_text,
+      caption  = caption_text,
+      theme = theme(
+        plot.background = element_rect(fill = col_bg, color = NA),
+        plot.title = element_text(
+          face = "bold", size = 30, color = col_text,
+          margin = margin(t = 12, b = 4), family = fonts$title
+        ),
+        plot.subtitle = element_text(
+          size = 12, color = col_sub, lineheight = 1.2,
+          margin = margin(b = 14), family = fonts$text
+        ),
+        plot.caption    = element_markdown(
+          size = 8, color = col_sub, hjust = 0,
+          margin = margin(t = 10), family = fonts$caption
+        ),
+        plot.margin = margin(16, 24, 12, 24)
+      )
+    )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = p_combined, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 10, 
+  height = 7
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+
+##### Expand for References
+**Primary Data (Makeover Monday):**
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("UK Fuel Prices", data_main)`
+2. Original Chart: `r create_link("RAC Fuel Watch — Petrol and Diesel Prices", "https://www.rac.co.uk/drive/advice/fuel-watch/")`
+   - Source: RAC Fuel Watch; average UK pump prices for unleaded petrol and diesel, 2013–2026
+   - Coverage: 318 bi-weekly observations from January 2013 to April 2026
+
+**Source Data:**
+3. `r create_link("RAC Fuel Watch", "https://www.rac.co.uk/drive/advice/fuel-watch/")`
+   - Coverage: Average UK pump prices in pence per litre; unleaded and diesel reported separately
+   - Unit: Pence per litre (p/L); VAT-inclusive and VAT-exclusive prices provided; wholesale delivery prices also included
+4. `r create_link("MakeoverMonday 2026 W20 — data.world", "https://data.world/makeovermonday/2026w20-uk-fuel-prices")`
+   - Excel file: UK Fuel Prices (2013–2026).xlsx; 318 rows × 7 columns
+
+**Note:** Analysis uses VAT-inclusive pump prices (`unleaded_pump_inc_vat`, `diesel_pump_inc_vat`) as the primary series, reflecting lived consumer experience at the forecourt. Prices indexed to the first observation (January 2, 2013 = 100) to enable direct shock comparison across fuels and crisis periods. The diesel premium (Panel B) is derived as `diesel_pump_inc_vat − unleaded_pump_inc_vat` in pence per litre. The pre-2022 mean premium (~+3.7p) is computed from all observations before February 24, 2022, and serves as the stable-regime reference line. Peak spread values for Ukraine (2022) and Iran (2026) crisis windows are computed dynamically from the data.
+:::
+
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
