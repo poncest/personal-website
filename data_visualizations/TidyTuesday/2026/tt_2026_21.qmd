@@ -1,0 +1,523 @@
+---
+title: "Getting Electricity Is Just the First Step"
+subtitle: "Electricity access has expanded rapidly worldwide — but two gaps persist. In many countries, rural households still lack electricity that cities take for granted. And even where electricity has arrived, millions still cook with wood, charcoal, or dung instead of clean fuels — a major source of indoor air pollution and disease."
+description: "This two-panel dumbbell chart reveals two persistent gaps in global energy access: rural households still lag far behind cities in electricity access, and even highly electrified countries often have not completed the clean cooking transition. Panel A shows the 12 countries with the lowest rural electricity access (among those with meaningful urban access), while Panel B compares electricity vs. clean cooking access for countries with ≥85% electrification. Built with R/ggplot2, patchwork, and ggtext."
+date: "2026-05-23"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_W21.html"
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "TidyTuesday",
+  "Dumbbell Chart",
+  "Energy Access",
+  "Clean Cooking",
+  "Rural Electrification",
+  "Sustainable Energy",
+  "SE4ALL",
+  "Inequality",
+  "Patchwork",
+  "Annotation",
+  "Multi-Panel",
+  "2026"
+]
+image: "thumbnails/tt_2026_W21.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Two-panel dumbbell chart titled "Getting Electricity Is Just the First Step." Panel A, "Rural Households Are Still Waiting for the Grid," shows 12 countries where urban electricity access far exceeds rural access — gaps range from roughly 60 to 80 percentage points, with Guinea, Ethiopia, and Angola showing the largest divides. Panel B, "Having Electricity Doesn't Mean Cooking Cleanly," shows 12 countries with at least 85% electricity access, where clean cooking fuel access lags far behind — Sri Lanka, Mongolia, and Pakistan lead with gaps of nearly 60 percentage points. Both panels use burgundy segments to visualize the gap between a lighter dot (the lagging metric) and a darker dot (the achieved metric). The subtitle notes that millions still cook with wood, charcoal, or dung — a major source of indoor air pollution and disease.](tt_2026_21.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, ggrepel,      
+    scales, glue, skimr, patchwork, ggrepel
+    )
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 14,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 21)
+
+energy_raw <- tt$energy_cleaned |> clean_names()
+
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(energy_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+energy_latest <- energy_raw |>
+  filter(
+    !is.na(access_electricity_urban_pop_pct),
+    !is.na(access_electricity_rural_pop_pct),
+    !is.na(access_electricity_total_pop_pct),
+    !is.na(access_non_solid_fuel_total_pop_pct)
+  ) |>
+  slice_max(yr, by = country_name, with_ties = FALSE) |>
+  select(
+    country_name, country_code, yr,
+    urban_elec = access_electricity_urban_pop_pct,
+    rural_elec = access_electricity_rural_pop_pct,
+    total_elec = access_electricity_total_pop_pct,
+    non_solid = access_non_solid_fuel_total_pop_pct
+  ) |>
+  mutate(
+    gap_rural   = urban_elec - rural_elec,
+    gap_cooking = total_elec - non_solid
+  )
+
+regional_aggregates <- c(
+  "Oceania", "Southern Asia", "Eastern Asia", "South East Asia",
+  "Eastern Asia (not including Japan)", "Eastern Asia (including Japan)",
+  "South Eastern Asia", "Western Asia", "Central Asia",
+  "Caucasus and Central Asia",
+  "Sub-Saharan Africa", "Northern Africa", "Latin America and the Caribbean",
+  "Caribbean", "Central America", "South America",
+  "Oceania (not including Australia and New Zealand)",
+  "World", "Developed regions", "Developing regions",
+  "Landlocked developing countries", "Small island developing States",
+  "Least developed countries", "Low income", "Lower middle income",
+  "Upper middle income", "High income",
+  "Macedonia, FYR"
+)
+
+## Panel A: lowest rural access among countries where cities have meaningful access
+panel_a_data <- energy_latest |>
+  filter(
+    !country_name %in% regional_aggregates,
+    urban_elec >= 60
+  ) |>
+  slice_min(rural_elec, n = 12, with_ties = FALSE) |>
+  arrange(desc(rural_elec)) |>
+  mutate(
+    country_name = fct_inorder(country_name)
+  )
+
+## Panel B: largest clean-cooking gaps among highly electrified countries
+panel_b_data <- energy_latest |>
+  filter(
+    !country_name %in% regional_aggregates,
+    total_elec >= 85
+  ) |>
+  slice_max(gap_cooking, n = 12, with_ties = FALSE) |>
+  arrange(gap_cooking) |>
+  mutate(
+    country_name = fct_inorder(country_name)
+  )
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    accent    = "#722F37",
+    light_dot = "#A8B4BC",
+    dark_dot  = "#4A5568",
+    bg        = "#FAFAF8",
+    text      = "#2D2D2D",
+    sub       = "#6B7280"
+  )
+)
+
+### |- titles and caption ----
+title_text <- "Getting Electricity Is Just the First Step"
+
+subtitle_text <- str_glue(
+    "Electricity access has expanded rapidly worldwide — but two gaps persist. ",
+    "In many countries, rural households still lack electricity that cities take for granted.<br> ",
+    "And even where electricity has arrived, **millions still cook with wood, charcoal, or dung** ",
+    "instead of clean fuels — a major source of indoor air pollution and disease.<br>",
+    "<span style='font-size:9pt;'>",
+    "**Panel A:** Rural vs. urban electricity access &nbsp;|&nbsp; ",
+    "**Panel B:** Electricity access vs. clean cooking access",
+    "</span>"
+)
+
+caption_text <- create_social_caption(
+    tt_year = 2026,
+    tt_week = 21,
+    source_text = "UN SE4ALL Database"
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    panel.background = element_rect(fill = clrs$palette$bg, color = NA),
+    plot.background = element_rect(fill = clrs$palette$bg, color = NA),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "gray90", linewidth = 0.25),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_markdown(
+      size   = 8,
+      color  = clrs$palette$text,
+      family = fonts$text
+    ),
+    axis.text.x = element_markdown(
+      size = 7,
+      color = clrs$palette$sub,
+      family = fonts$text
+    ),
+    axis.title.x = element_markdown(
+      size = 8,
+      color = clrs$palette$sub,
+      family = fonts$text,
+      margin = margin(t = 4)
+    ),
+    axis.title.y = element_blank(),
+    plot.title = element_markdown(
+      size = 12,
+      face = "bold",
+      family = fonts$title,
+      color = clrs$palette$text,
+      margin = margin(b = 8)
+    ),
+    plot.subtitle = element_markdown(
+      size = 8.5,
+      family = fonts$text,
+      color = clrs$palette$sub,
+      lineheight = 1.4,
+      margin = margin(b = 10)
+    ),
+    plot.caption = element_markdown(
+      size = 6.5,
+      family = fonts$text,
+      color = clrs$palette$sub,
+      hjust = 0,
+      margin = margin(t = 4)
+    ),
+    plot.caption.position = "plot",
+    plot.margin = margin(12, 16, 8, 12)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Panel A ----
+p_a <- ggplot(panel_a_data) +
+  # Geoms
+  geom_segment(
+    aes(
+      x = rural_elec,
+      xend = urban_elec,
+      y = country_name,
+      yend = country_name
+    ),
+    color = clrs$palette$accent,
+    linewidth = 0.65,
+    alpha = 0.65
+  ) +
+  geom_point(
+    aes(x = rural_elec, y = country_name),
+    color = clrs$palette$light_dot,
+    size = 2.1
+  ) +
+  geom_point(
+    aes(x = urban_elec, y = country_name),
+    color = clrs$palette$dark_dot,
+    size  = 2.8
+  ) +
+  # Annotate
+  annotate("text",
+    x = 2, y = 12.3,
+    label = "Rural",
+    hjust = 0, vjust = 0,
+    size = 2.6, color = clrs$palette$light_dot,
+    family = fonts$text, fontface = "bold"
+  ) +
+  annotate("text",
+    x = 66, y = 12.3,
+    label = "Urban",
+    hjust = 1, vjust = 0,
+    size = 2.6, color = clrs$palette$dark_dot,
+    family = fonts$text, fontface = "bold"
+  ) +
+  annotate("text",
+    x = 45,
+    y = 10.8,
+    label = "Cities electrified;\nvillages still wait",
+    hjust = 0.5, vjust = 1,
+    size = 2.4,
+    color = clrs$palette$sub,
+    family = fonts$text,
+    fontface = "italic",
+    lineheight = 1.2
+  ) +
+  # Scales
+  scale_x_continuous(
+    labels = label_percent(scale = 1, accuracy = 1),
+    breaks = c(0, 25, 50, 75, 100),
+    limits = c(0, 100),
+    expand = expansion(mult = c(0.02, 0.04))
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = "**Rural Households Are Still Waiting for the Grid**",
+    x = "Population with electricity access (%)",
+    subtitle = "Lowest rural electricity access shown first"
+  )
+
+### |- Panel B ----
+p_b <- ggplot(panel_b_data) +
+  # Geoms
+  geom_segment(
+    aes(
+      x = non_solid,
+      xend = total_elec,
+      y = country_name,
+      yend = country_name
+    ),
+    color = clrs$palette$accent,
+    linewidth = 0.65,
+    alpha = 0.65
+  ) +
+  geom_point(
+    aes(x = non_solid, y = country_name),
+    color = clrs$palette$light_dot,
+    size = 2.1
+  ) +
+  geom_point(
+    aes(x = total_elec, y = country_name),
+    color = clrs$palette$dark_dot,
+    size  = 2.8
+  ) +
+  # Annotate
+  annotate("text",
+    x = 25, y = 12.3,
+    label = "Cooks with\nclean fuel",
+    hjust = 0, vjust = 0,
+    size = 2.6, color = clrs$palette$light_dot,
+    family = fonts$text, fontface = "bold"
+  ) +
+  annotate("text",
+    x = 90, y = 12.3,
+    label = "Has\nelectricity",
+    hjust = 1, vjust = 0,
+    size = 2.6, color = clrs$palette$dark_dot,
+    family = fonts$text, fontface = "bold"
+  ) +
+  annotate("text",
+    x = 60,
+    y = 10.8,
+    label = "Grid arrived;\nstove still burns wood",
+    hjust = 0.5, vjust = 1,
+    size = 2.4,
+    color = clrs$palette$sub,
+    family = fonts$text,
+    fontface = "italic",
+    lineheight = 1.2
+  ) +
+  # Scales
+  scale_x_continuous(
+    labels = label_percent(scale = 1, accuracy = 1),
+    breaks = c(0, 25, 50, 75, 100),
+    limits = c(0, 100),
+    expand = expansion(mult = c(0.02, 0.04))
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = "**Having Electricity Doesn't Mean Cooking Cleanly**",
+    x = "Population with access (%)",
+    subtitle = "Countries shown have ≥85% electricity access"
+  )
+
+### |- Patchwork assembly ----
+p_combined <- p_a + p_b +
+  plot_layout(widths = c(0.95, 1.15)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_markdown(
+        size = 26,
+        face = "bold",
+        family = fonts$title,
+        color = clrs$palette$text,
+        margin = margin(b = 6),
+        lineheight = 1.2
+      ),
+      plot.subtitle = element_markdown(
+        size = 10,
+        family = fonts$text,
+        color = clrs$palette$sub,
+        lineheight = 1.5,
+        margin = margin(b = 9)
+      ),
+      plot.caption = element_markdown(
+        size = 6.5,
+        family = fonts$text,
+        color = clrs$palette$sub,
+        hjust = 0,
+        margin = margin(t = 10)
+      ),
+      plot.background = element_rect(fill = clrs$palette$bg, color = NA),
+      plot.margin = margin(16, 16, 12, 16)
+    )
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = p_combined, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 21, 
+  width  = 14,
+  height = 9
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_21.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_21.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 20: [Sustainable Energy for All](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-05-26/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
