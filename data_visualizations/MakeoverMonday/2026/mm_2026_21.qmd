@@ -1,0 +1,517 @@
+---
+title: "A Dollar Buys Far More AI Computation Than a Decade Ago"
+subtitle: "GPU performance per dollar improved gradually for a decade. Then the AI era sharply accelerated the trajectory."
+description: "This chart shows how GPU computational performance per dollar (FLOP/s per dollar, constant 2024 US$) rose roughly 100-fold from 2008 to 2023, with the steepest acceleration coinciding with major AI milestones. A rolling frontier line identifies the best available price-performance GPU at each point in time, plotted on a log scale against a muted cloud of all 51 GPUs. Built in R using ggplot2, ggtext, and showtext."
+date: "2026-05-25"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_W21.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "scatter-plot",
+  "log-scale",
+  "frontier-envelope",
+  "gpu",
+  "artificial-intelligence",
+  "technology",
+  "economics",
+  "time-series",
+  "annotation",
+  "ggtext",
+  "2026"
+]
+image: "thumbnails/mm_2026_21.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 21
+project_file <- "mm_2026_21.qmd"
+project_image <- "mm_2026_21.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/gpu-computational-performance-per-dollar"
+data_secondary <- "https://data.world/makeovermonday/gpu-computational-performance-per-dollar"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_20/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://ourworldindata.org/grapher/gpu-price-performance"
+org_secondary <- "https://ourworldindata.org/grapher/gpu-price-performance"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("GPU computational performance per dollar", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_21/original_chart.png)
+
+### Makeover
+
+![A log-scale scatter plot titled "A Dollar Buys Far More AI Computation Than a Decade Ago" showing GPU computational performance per dollar (FLOP/s per dollar, constant 2024 US$) from 2008 to 2023. A navy frontier line connects the best available price-performance GPU at each point in time, rising from roughly 500 million FLOP/s per dollar for the NVIDIA GeForce GTX 280 in 2008 to over 50 billion for the AMD Radeon RX 7900 XTX in 2022 — a roughly 100-fold increase. The steepest acceleration occurs after 2017. Four parchment-colored vertical bands mark AI milestones: AlexNet (2012), Transformer (2017), GPT-2 (2019), and ChatGPT (2022). A muted gray cloud of all 51 GPUs provides context. Each horizontal band represents 10× more compute per dollar. Data from Epoch AI (2026) and U.S. Bureau of Labor Statistics (2026).](mm_2026_21.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, 
+  glue, janitor
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- read_csv(
+  here::here("data/MakeoverMonday/2026/GPU performance per dollar.csv")) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |-  parse and rename ----
+df <- df_raw |>
+  rename(
+    gpu_name = entity,
+    release_date = day,
+    flops_per_dollar = gpu_performance_per_dollar
+  ) |>
+  arrange(release_date)
+
+### |-  frontier: rolling maximum FLOP/s/$ over time ----
+# Frontier = best available price-performance at each release date
+# with_ties = FALSE prevents non-deterministic multi-row returns
+
+df_frontier <- df |>
+  arrange(release_date) |>
+  mutate(
+    frontier_max = cummax(flops_per_dollar),
+    on_frontier = flops_per_dollar == frontier_max
+  ) |>
+  filter(on_frontier)
+
+### |-  pre-extract label coordinates from df ----
+gtx280_x  <- df |> filter(gpu_name == "NVIDIA GeForce GTX 280")  |> pull(release_date)
+gtx280_y <- df |> filter(gpu_name == "NVIDIA GeForce GTX 280")  |> pull(flops_per_dollar)
+rtx3090_x <- df |> filter(gpu_name == "NVIDIA GeForce RTX 3090") |> pull(release_date)
+rtx3090_y <- df |> filter(gpu_name == "NVIDIA GeForce RTX 3090") |> pull(flops_per_dollar)
+amd_x <- df |> filter(gpu_name == "AMD Radeon RX 7900 XTX")  |> pull(release_date)
+amd_y <- df |> filter(gpu_name == "AMD Radeon RX 7900 XTX")  |> pull(flops_per_dollar)
+
+### |-  AMD peak point (drawn separately with accent color) ----
+df_amd_peak <- df |> filter(gpu_name == "AMD Radeon RX 7900 XTX")
+
+### |-  AI milestone bands ----
+
+# Four milestones
+# for a societal acceleration story where ChatGPT is the public inflection)
+# Band width = 120 days
+milestones <- tibble(
+  label = c("ALEXNET", "TRANSFORMER", "GPT-2", "CHATGPT"),
+  date = as.Date(c("2012-09-30", "2017-06-12", "2019-02-14", "2022-11-30")),
+  date_end = as.Date(c("2012-09-30", "2017-06-12", "2019-02-14", "2022-11-30")) + 120
+)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    col_cloud = "#A8B4BC",
+    col_frontier = "#1B4F72",
+    col_peak = "#9C2B1B",
+    col_peak_label = "#7F2418",
+    col_milestone = "#D6C79A",
+    col_label = "#1B4F72"
+  )
+)
+
+# Unpack  — avoids $palette$ repetition in plot code
+col_cloud <- clrs$palette$col_cloud
+col_frontier <- clrs$palette$col_frontier
+col_peak <- clrs$palette$col_peak
+col_peak_label <- clrs$palette$col_peak_label
+col_milestone <- clrs$palette$col_milestone
+col_label <- clrs$palette$col_label
+
+### |-  titles and caption ----
+title_text <- str_glue("A Dollar Buys Far More AI Computation Than a Decade Ago")
+
+subtitle_text <- str_glue(
+  "GPU performance per dollar improved gradually for a decade.\n",
+  "Then the AI era sharply accelerated the trajectory."
+)
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 21,
+  source_text = "Epoch AI (2026); U.S. Bureau of Labor Statistics (2026) |
+  Note: FLOP/s at 32-bit precision. Constant 2024 US$."
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Title / subtitle
+    plot.title.position = "plot",
+    plot.title = element_text(size = 24, face = "bold", family = fonts$title_1, 
+                              color = clrs$title, margin = margin(b = 6)),
+    plot.subtitle = element_text(size = 12, family = fonts$subtitle, lineheight = 1.2, 
+                                 color = clrs$subtitle, margin = margin(b = 30)),
+
+    # Caption
+    plot.caption = element_markdown(
+      size = 7, hjust = 0, lineheight = 1.4, family = fonts$caption,
+      margin = margin(t = 12), color = clrs$caption
+    ),
+
+    # Axes
+    axis.title.x = element_text(size = 10, margin = margin(t = 8)),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 9),
+    axis.text.y = element_text(size = 9),
+    axis.ticks = element_blank(),
+
+    # Grid — y-lines only
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Top margin 
+    plot.margin = margin(t = 32, r = 30, b = 10, l = 20)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  y-axis label helper ----
+flops_labels <- function(x) {
+  case_when(
+    x >= 1e9 ~ paste0(round(x / 1e9), "B"),
+    x >= 1e6 ~ paste0(round(x / 1e6), "M"),
+    TRUE ~ scales::comma(x)
+  )
+}
+
+### |-  main plot ----
+p <- ggplot() +
+  # Geoms
+  geom_rect(
+    data = milestones,
+    aes(xmin = date, xmax = date_end),
+    ymin = -Inf,
+    ymax = Inf,
+    fill = col_milestone,
+    alpha = 0.55,
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = milestones,
+    aes(x = date + 60, y = Inf, label = label),
+    vjust = -0.5,
+    hjust = 0,
+    size = 2.4,
+    color = "gray45",
+    fontface = "plain",
+    inherit.aes = FALSE
+  ) +
+  geom_point(
+    data = df,
+    aes(x = release_date, y = flops_per_dollar),
+    color = col_cloud,
+    size = 2,
+    alpha = 0.55
+  ) +
+  geom_line(
+    data = df_frontier,
+    aes(x = release_date, y = flops_per_dollar),
+    color = col_frontier,
+    linewidth = 0.78,
+    lineend = "round"
+  ) +
+  geom_point(
+    data = df_frontier,
+    aes(x = release_date, y = flops_per_dollar),
+    color = col_frontier,
+    size = 2.8
+  ) +
+  geom_point(
+    data = df_amd_peak,
+    aes(x = release_date, y = flops_per_dollar),
+    color = col_peak,
+    size = 3.8
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x = gtx280_x - 150,
+    y = gtx280_y,
+    label = "GTX 280\n(2008 baseline)",
+    hjust = 1,
+    vjust = 0.5,
+    size = 2.8,
+    color = col_label,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = rtx3090_x - 180,
+    y = rtx3090_y * 1.95,
+    label = "RTX 3090",
+    hjust = 1,
+    vjust = 0,
+    size = 2.8,
+    color = col_label,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = amd_x - 150,
+    y = amd_y * 1.2,
+    label = "AMD RX 7900 XTX",
+    hjust = 1,
+    vjust = 0,
+    size = 2.8,
+    color = col_peak_label,
+    lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = as.Date("2008-06-01"),
+    y = 6e9,
+    label = "Each horizontal band\nrepresents 10× more\ncompute per dollar",
+    hjust = 0,
+    vjust = 0,
+    size = 2.6,
+    color = "gray40",
+    lineheight = 1.3,
+    fontface = "italic"
+  ) +
+  # Scales
+  scale_y_log10(
+    labels = flops_labels,
+    breaks = c(1e8, 1e9, 1e10, 1e11)
+  ) +
+  scale_x_date(
+    date_breaks = "3 years",
+    date_labels = "%Y",
+    expand = expansion(mult = c(0.18, 0.05))
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = "GPU Release Date",
+    y = NULL
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 10, 
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+**Primary Data (Makeover Monday):**
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("GPU Computational Performance per Dollar", data_main)`
+2. Original Chart: `r create_link("Our World in Data — GPU Price-Performance", "https://ourworldindata.org/grapher/gpu-price-performance")`
+   - Source: Epoch AI (2026); U.S. Bureau of Labor Statistics (2026)
+   - Coverage: 51 GPUs from June 2008 to December 2023 across three manufacturers (AMD, Huawei, NVIDIA)
+
+**Source Data:**
+3. `r create_link("Epoch AI — GPU Performance per Dollar", "https://ourworldindata.org/artificial-intelligence")`
+   - Coverage: GPU computational performance measured in floating-point operations per second (FLOP/s) per US dollar
+   - Unit: FLOP/s per dollar; 32-bit (full) precision; inflation-adjusted to constant 2024 US$ using US CPI
+4. `r create_link("MakeoverMonday 2026 W21 — data.world", "https://data.world/makeovermonday/gpu-computational-performance-per-dollar")`
+   - CSV file: GPU performance per dollar.csv; 51 rows × 4 columns (entity, day, gpu_performance_per_dollar, manufacturer)
+
+**AI Milestone Reference Dates:**
+5. AlexNet — Krizhevsky, A., Sutskever, I., & Hinton, G. E. (2012). ImageNet classification with deep convolutional neural networks. *NeurIPS*. September 30, 2012.
+6. Transformer — Vaswani, A., et al. (2017). Attention is all you need. *NeurIPS*. June 12, 2017.
+7. GPT-2 — Radford, A., et al. (2019). Language models are unsupervised multitask learners. OpenAI. February 14, 2019.
+8. ChatGPT — OpenAI. (2022). ChatGPT: Optimizing language models for dialogue. November 30, 2022. `r create_link("openai.com/blog/chatgpt", "https://openai.com/blog/chatgpt")`
+
+**Note:** The frontier line represents the rolling maximum FLOP/s per dollar at each GPU release date — the best available price-performance at any given point in time (`cummax(flops_per_dollar)`). GPUs below the frontier at their release date appear in the muted gray cloud. Milestone bands are 120-day windows centered on each publication date, included to show temporal proximity between AI capability breakthroughs and the GPU efficiency frontier — no causal relationship is asserted. Inflation adjustment uses the US Consumer Price Index (CPI) as reported by the U.S. Bureau of Labor Statistics.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
