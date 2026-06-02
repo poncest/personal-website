@@ -30,7 +30,7 @@ setup_fonts <- function() {
   font_add_google("DM Sans", regular.wt = 400, family = "text")
   
   # Mono / captions / data labels: JetBrains Mono — tabular numerals, crisp
-  font_add_google("Noto Sans", regular.wt = 400, family = "caption")
+  font_add_google("JetBrains Mono", regular.wt = 400, family = "caption")        #Noto Sans
   
   # Enable showtext
   showtext_auto(enable = TRUE)

@@ -1,0 +1,519 @@
+---
+title: "Arsenal didn't win by scoring the most goals — they won by conceding the fewest"
+subtitle: "Manchester City scored the league's most goals. Arsenal kept 19 clean sheets, went 17–2–0 in those matches, and earned 53 of their 85 points without conceding."
+description: "Arsenal won the 2025–26 Premier League not by scoring the most goals but by conceding the fewest, keeping a league-high 19 clean sheets and earning 62% of their points without conceding. A two-panel makeover pairs a goals-for/against quadrant with a points-by-goals-conceded cliff. Built in R with ggplot2 and patchwork."
+date: "2026-06-02"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_W22.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "patchwork",
+  "scatter-plot",
+  "bar-chart",
+  "premier-league",
+  "arsenal",
+  "soccer",
+  "sports-analytics",
+  "annotation",
+  "2026"
+]
+image: "thumbnails/mm_2026_22.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 22
+project_file <- "mm_2026_22.qmd"
+project_image <- "mm_2026_22.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026w22-arsenal-2526-champions"
+data_secondary <- "https://data.world/makeovermonday/2026w22-arsenal-2526-champions"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_22/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.arsenal.com/news/arsenal-analysed-how-we-won-premier-league"
+org_secondary <- "https://www.arsenal.com/news/arsenal-analysed-how-we-won-premier-league"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Arsenal 25/26 Champions", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_22/original_chart.png)
+
+### Makeover
+
+![Two-panel data visualization titled "Arsenal didn't win by scoring the most goals — they won by conceding the fewest." The left panel is a scatter plot of all 20 Premier League clubs in the 2025–26 season, plotting goals scored (vertical) against goals conceded (horizontal axis reversed, so fewer conceded sit to the right). Arsenal, highlighted in red, sits alone in the top-right corner: 71 goals scored and a league-low 27 conceded. Manchester City scored the most goals (77) but conceded more (35) and finished second. The right panel is a bar chart of Arsenal's points by goals conceded per match: 53 points came in clean-sheet games, 27 when conceding one, and just 5 when conceding two or more — 62% of their title-winning points arrived without conceding. Source: FBref, Premier League 2025–26.](mm_2026_22.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, janitor, patchwork
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 13,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- read_csv(
+  here::here("data/MakeoverMonday/2026/premier_league_player_match_stats.csv")) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- one row per team per game, goals from the authoritative score ----
+game_results <- df_raw |>
+  distinct(game_id, match_week, team, home_team, away_team, match_score) |>
+  mutate(
+    home_goals = as.integer(str_extract(match_score, "^\\d+")),
+    away_goals = as.integer(str_extract(match_score, "\\d+$")),
+    gf = if_else(team == home_team, home_goals, away_goals),
+    ga = if_else(team == home_team, away_goals, home_goals),
+    points = case_when(
+      gf > ga ~ 3L,
+      gf == ga ~ 1L,
+      TRUE ~ 0L
+    )
+  )
+
+### |- Panel A: team season totals + league context ----
+team_totals <- game_results |>
+  summarise(
+    gf = sum(gf),
+    ga = sum(ga),
+    .by = team
+  ) |>
+  mutate(
+    gd        = gf - ga,
+    highlight = if_else(team == "Arsenal", "Arsenal", "Other")
+  )
+
+# League average (sum of GF == sum of GA, so a single line value)
+avg_line <- mean(team_totals$gf)
+
+### |- Panel B: Arsenal points by goals-conceded bucket ----
+arsenal_buckets <- game_results |>
+  filter(team == "Arsenal") |>
+  mutate(
+    bucket = case_when(
+      ga == 0 ~ "0",
+      ga == 1 ~ "1",
+      TRUE ~ "2+"
+    )
+  ) |>
+  summarise(
+    games = n(),
+    points = sum(points),
+    wins = sum(points == 3L),
+    draws = sum(points == 1L),
+    losses = sum(points == 0L),
+    .by = bucket
+  ) |>
+  mutate(
+    bucket    = factor(bucket, levels = c("0", "1", "2+")),
+    pts_game  = points / games,
+    pct_total = points / sum(points)
+  ) |>
+  arrange(bucket)
+
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    arsenal = "#EF0107",
+    neutral = "#8C857B",
+    faint   = "#C9C3B8",
+    dark    = "#403B34"
+  )
+)
+
+# Unpack colors
+col_arsenal <- clrs$palette$arsenal
+col_neutral <- clrs$palette$neutral
+col_faint <- clrs$palette$faint
+col_dark <- clrs$palette$dark
+
+### |-  titles and caption ----
+title_text <- str_glue(
+  "Arsenal didn't win by scoring the most goals — they won by conceding the fewest"
+)
+
+subtitle_text <- str_glue(
+  "Manchester City scored the league's most goals. Arsenal kept 19 clean sheets, ",
+  "went 17–2–0 in those matches,<br>and earned 53 of their 85 points without conceding."
+)
+
+caption_text <- create_mm_caption(
+  mm_year     = 2026,
+  mm_week     = 22,
+  source_text = "FBref · Premier League 2025-26 player match stats<br>Goals for/against derived from final match scores"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title.position = "plot",
+    plot.caption.position = "plot",
+    axis.title = element_text(size = rel(0.85), color = col_neutral),
+    axis.text = element_text(size = rel(0.8))
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |-  annotation coordinates ----
+# Panel A — point coordinates
+ars_ga <- 27
+ars_gf <- 71
+city_ga <- 35
+city_gf <- 77
+
+# Panel A — label anchors
+ars_lab_x <- 40
+ars_lab_y <- 66
+city_lab_x <- 40
+city_lab_y <- 82
+avg_lab_x <- max(team_totals$ga)
+
+# Panel B — label anchors
+cliff_note_x <- 2.5
+cliff_note_y <- 50
+
+### |-  Panel A — Championship Quadrant ----
+p_quadrant <- ggplot(team_totals, aes(x = ga, y = gf)) +
+  # Geoms
+  geom_hline(yintercept = avg_line, color = col_faint, linewidth = 0.4) +
+  geom_vline(xintercept = avg_line, color = col_faint, linewidth = 0.4) +
+  geom_point(
+    data = filter(team_totals, highlight == "Other"),
+    color = col_neutral, size = 2.8, alpha = 0.9
+  ) +
+  geom_point(
+    data = filter(team_totals, highlight == "Arsenal"),
+    color = col_arsenal, size = 4.5
+  ) +
+  # Annotate
+  annotate(
+    "text",
+    x = avg_lab_x, y = avg_line + 1.8,
+    label = "League average", color = col_neutral,
+    family = fonts$text, size = 3, hjust = 0, vjust = 0
+  ) +
+  annotate(
+    "richtext",
+    x = ars_lab_x, y = ars_lab_y,
+    label = "**Arsenal** — Champions<br>71 scored · 27 conceded",
+    color = col_arsenal, family = fonts$text, size = 3.6,
+    hjust = 0, vjust = 1, fill = NA, label.color = NA
+  ) +
+  annotate(
+    "richtext",
+    x = city_lab_x, y = city_lab_y,
+    label = "**Manchester City**<br>77 scored · 35 conceded<br>Finished 2nd",
+    color = col_neutral, family = fonts$text, size = 3.4,
+    hjust = 0, vjust = 0, fill = NA, label.color = NA
+  ) +
+  # Scales
+  scale_x_reverse() +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    x = "Fewer goals conceded →",
+    y = "More goals scored →",
+    subtitle = "Premier League clubs, 2025–26 season"
+  ) +
+  # Theme
+  theme(
+    plot.subtitle = element_text(
+      family = fonts$text, size = rel(0.95), color = col_neutral,
+      margin = margin(b = 10)
+    )
+  )
+
+### |-  Panel B — Clean-Sheet Points Cliff ----
+p_cliff <- ggplot(arsenal_buckets, aes(x = bucket, y = points, fill = bucket)) +
+  geom_col(width = 0.66) +
+  # Geoms
+  geom_text(
+    aes(label = points),
+    vjust = -0.4, family = fonts$text, fontface = "bold",
+    size = 4.4, color = col_neutral
+  ) +
+  # Annotate
+  annotate(
+  "richtext",
+  x = cliff_note_x - 1.1,
+  y = cliff_note_y,
+  label = str_glue(
+  "**53 of 85 points**<br>",
+  "62% of Arsenal's<br>",
+  "title-winning points came<br>",
+  "in clean-sheet matches<br>",
+  "<span style='font-size:9pt;color:{col_neutral}'>17–2–0 when conceding zero</span>"
+),
+  family = 'sans',
+  color = col_dark,
+  size = 3.2,
+  hjust = 0,
+  vjust = 1,
+  lineheight = 1.2,
+  fill = NA,
+  label.color = NA
+) +
+  # Scales
+  scale_fill_manual(
+    values = c("0" = col_arsenal, "1" = col_neutral, "2+" = col_neutral)
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  # Labs
+  labs(
+    x = "Goals conceded in a match",
+    y = NULL,
+    subtitle = "The title was built on clean sheets"
+  ) +
+  guides(fill = "none") +
+  # Theme
+  theme(
+    panel.grid = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    plot.subtitle = element_text(
+      family = fonts$text, size = rel(0.95), color = col_dark,
+      face = "bold", margin = margin(b = 10)
+    )
+  )
+
+### |-  Combine plots ----
+p_combined <- p_quadrant + p_cliff +
+  plot_layout(widths = c(1.15, 0.85)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        family = fonts$title_1, face = "bold", size = rel(1.8),
+        margin = margin(b = 6)
+      ),
+      plot.subtitle = element_textbox_simple(
+        family = fonts$subtitle, size = rel(0.95), color = col_neutral,
+        lineheight = 1.1, margin = margin(b = 14)
+      ),
+      plot.caption = element_markdown(
+      size = 6.5, family = 'sans', color = col_neutral,
+      hjust = 0, margin = margin(t = 10), lineheight = 1.3
+      )
+    )
+  )
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = p_combined , 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 13, 
+  height = 7
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("Arsenal 25/26 Champions", data_main)`
+2. Original Chart: `r create_link("FBref — Arsenal Standard Stats (2025-26 Premier League)", "https://fbref.com/en/squads/18bb7c10/Arsenal-Stats")`
+   - Article context: `r create_link("Arsenal Analysed: How We Won the Premier League", "https://www.arsenal.com/news/arsenal-analysed-how-we-won-premier-league")`
+   - Coverage: all 20 Premier League clubs, 380 matches, matchweeks 1–38, 2025-26 season
+
+**Source Data:**
+3. `r create_link("FBref — Football Statistics and History", "https://fbref.com")`
+   - Coverage: player-level statistics for every Premier League fixture, 2025-26 season
+   - Unit: per-player, per-match counts (minutes, goals, assists, shots, cards, tackles, etc.)
+4. `r create_link("MakeoverMonday 2026 W22 — data.world", "https://data.world/makeovermonday/2026w22-arsenal-2526-champions")`
+   - CSV file: premier_league_player_match_stats.csv; 11,492 rows × 39 columns (league, season, game, team, player, minutes, goals, assists, match_score, match_week, …)
+
+**Note:** Team goals for and against are derived from each match's final score (`match_score`) rather than summed player goals — summing player goals omits own goals scored for a team and understates goals for (Arsenal: 71 from the final scores vs. 67 player-scored). Match outcomes (win/draw/loss and points) are reconstructed from the same final scores. The right panel groups Arsenal's 38 matches by goals conceded (0, 1, 2+); "53 of 85 points" and "62%" refer to championship points earned in matches where Arsenal conceded zero goals (a 17–2–0 record). No causal relationship between clean sheets and the title is asserted — the panel describes the association between defensive outcomes and points accumulation.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
