@@ -1,0 +1,398 @@
+---
+title: "Good Video Game Movies Used to Be Rare"
+subtitle: "The median reviewed adaptation rose from 17 in the 1990s to 51 in the 2020s, and Fresh films became more than three times as common."
+description: "A distribution view of Rotten Tomatoes critic scores for 73 video game film adaptations by release decade, showing that scores rose across the entire genre — not just among a few breakout hits — with the Fresh rate climbing from 4% in the 2000s to 37% in the 2020s. Built in R with ggplot2, ggtext, and showtext."
+date: "2026-06-06"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_W23.html"
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "TidyTuesday",
+  "Box Plot",
+  "Distribution",
+  "Film",
+  "Video Games",
+  "Movie Reviews",
+  "Rotten Tomatoes",
+  "Annotation",
+  "ggtext",
+  "showtext",
+  "ggplot2",
+  "2026"
+]
+image: "thumbnails/tt_2026_23.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Boxplot of Rotten Tomatoes critic scores for 73 video game film adaptations, grouped by release decade from the 1990s to the 2020s. Scores climb steadily: median scores are 17 (1990s), 18 (2000s), 37.5 (2010s), and 51 (2020s), and the entire distribution shifts upward, not just the top films. A horizontal line marks the "Fresh" threshold of 60. The share of films scoring Fresh rises from 11% in the 1990s and just 4% in the 2000s to 27% in the 2010s and 37% in the 2020s, with the sharpest jump between the 2000s and 2010s. The typical adaptation is still rated below Fresh, but good video game movies have gone from rare to fairly common.](tt_2026_23.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, ggrepel,      
+    scales, glue, skimr
+    )
+})
+
+### |- figure size ----          TODO I am HERE !@#$%^&*(!@#$%^&*())
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 8.5,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 23)
+game_films <- tt$game_films |> clean_names()
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(game_films)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- analysis frame: theatrical releases with an RT score ----
+df_rt <- game_films |>
+  filter(
+    category == "Theatrical releases",
+    !is.na(rotten_tomatoes)
+  ) |>
+  mutate(
+    year = year(release_date),
+    decade = case_when(
+      year < 2000 ~ "1990s",
+      year < 2010 ~ "2000s",
+      year < 2020 ~ "2010s",
+      TRUE ~ "2020s"
+    ),
+    decade = factor(decade, levels = c("1990s", "2000s", "2010s", "2020s"))
+  )
+
+### |- per-decade summary ----
+decade_stats <- df_rt |>
+  summarise(
+    n = n(),
+    median_rt = median(rotten_tomatoes),
+    fresh_pct = mean(rotten_tomatoes >= 60),
+    .by = decade
+  ) |>
+  arrange(decade) |>
+  mutate(
+    x = as.integer(decade),
+    fresh_lab = percent(fresh_pct, accuracy = 1),
+    fresh_disp = if_else(decade == "2020s", paste0(fresh_lab, " Fresh"), fresh_lab),
+    lab_size = if_else(decade == "2020s", 4.8, 4.3),
+    median_lab = if_else(
+      median_rt == floor(median_rt),
+      as.character(as.integer(median_rt)),
+      as.character(median_rt)
+    ),
+    axis_lab = paste0(decade, "\nn = ", n)
+  )
+
+# Named vector for the x-axis labels (decade + n)
+axis_labels <- setNames(decade_stats$axis_lab, decade_stats$decade)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    accent = "#722F37",
+    box    = "#4A5568",
+    point  = "#6B7280",
+    fresh  = "#B8BCC2",
+    note   = "#2E3338"
+  )
+)
+col_accent <- clrs$palette$accent
+col_box <- clrs$palette$box
+col_point <- clrs$palette$point
+col_fresh <- clrs$palette$fresh
+col_note <- clrs$palette$note
+
+### |- titles and caption ----
+title_text <- str_glue("Good Video Game Movies Used to Be Rare")
+
+subtitle_text <- str_glue(
+  "The median reviewed adaptation rose from **17** in the 1990s to **51** ",
+  "in the 2020s,<br>and *Fresh* films became more than three times as common."
+)
+
+base_caption <- create_social_caption(
+  tt_year     = 2026,
+  tt_week     = 23,
+  source_text = "Wikipedia: List of films based on video games"
+)
+
+caption_text <- str_glue(
+  "{base_caption}<br>",
+  "<span style='font-size:8pt;color:#9A9A9A'>Sample: 73 theatrical releases ",
+  "with a Rotten Tomatoes critic score, 1993\u20132026.</span>"
+)
+
+### |- annotation text  ----
+ann_text <- str_glue(
+  "Just **1 of 23** reviewed adaptations<br>",
+  "was *Fresh* in the 2000s.<br>",
+  "Today, more than **1 in 3** are."
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title = element_markdown(
+      face = "bold", family = fonts$title_1, size = rel(1.9),
+      margin = margin(b = 4)
+    ),
+    plot.subtitle = element_textbox_simple(
+      family = fonts$text, size = rel(0.85), color = "#3A3A3A",
+      width = unit(1, "npc"), lineheight = 1.1, margin = margin(b = 14)
+    ),
+    plot.caption = element_markdown(
+      family = fonts$text, size = rel(0.55), color = "#7F7F7F",
+      hjust = 0, margin = margin(t = 14), lineheight = 1.1
+    ),
+    # plain text (with \n)
+    axis.text.x = element_text(
+      family = fonts$text, size = rel(1.0),
+      lineheight = 0.95, color = "#3A3A3A"
+    ),
+    axis.text.y = element_text(family = fonts$text, size = rel(0.9)),
+    axis.title.y = element_text(
+      family = fonts$text, size = rel(0.9),
+      color = "#4A5568"
+    ),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank(),
+    plot.margin = margin(t = 20, r = 24, b = 16, l = 18)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- plot ----
+set.seed(1234)
+
+p <- ggplot(df_rt, aes(x = decade, y = rotten_tomatoes)) +
+
+  # Geoms
+  geom_hline(
+    yintercept = 60, color = col_fresh, linewidth = 0.5
+  ) +
+  geom_jitter(
+    width = 0.16, height = 0, size = 1.5, alpha = 0.42, color = col_point
+  ) +
+  geom_boxplot(
+    coef = 1.0, outlier.shape = NA, fill = NA,
+    color = col_box, linewidth = 0.55, width = 0.62, fatten = 0
+  ) +
+  geom_segment(
+    data = decade_stats,
+    aes(x = x - 0.31, xend = x + 0.31, y = median_rt, yend = median_rt),
+    inherit.aes = FALSE,
+    color = col_accent, linewidth = 1.1
+  ) +
+  geom_text(
+    data = decade_stats,
+    aes(x = x - 0.36, y = median_rt, label = median_lab),
+    inherit.aes = FALSE, hjust = 1, vjust = 0.5,
+    family = fonts$text, size = 3.1, color = col_accent
+  ) +
+  geom_text(
+    data = decade_stats,
+    aes(x = x, y = 97, label = fresh_disp, size = lab_size),
+    inherit.aes = FALSE,
+    family = fonts$title_2, fontface = "bold", color = col_accent
+  ) +
+  # Annotate
+  annotate(
+    "richtext",
+    x = 4.32, y = 62, label = "Fresh (60)",
+    hjust = 0, family = fonts$text, size = 3.3, color = "#4A5568",
+    fill = NA, label.color = NA
+  ) +
+  annotate(
+    "richtext",
+    x = 1.25, y = 92, label = ann_text,
+    hjust = 0, vjust = 1, family = fonts$text, size = 3.9,
+    color = col_note, fill = NA, label.color = NA, lineheight = 1.25
+  ) +
+  # Scales
+  scale_size_identity() +
+  scale_x_discrete(
+    labels = axis_labels,
+    expand = expansion(add = c(0.55, 0.75))
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 100, 20),
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  coord_cartesian(ylim = c(0, 100), clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = "Rotten Tomatoes critic score"
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 23, 
+  width  = 8,
+  height = 8.5,
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_23.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_23.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 23: [Films Based on Video Games](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-06-09/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
