@@ -1,0 +1,458 @@
+---
+title: "Darkness 'changes' how UFOs are described"
+subtitle: "Orb, circle, and sphere are three of the words witnesses use for a round light — and which one they reach for tracks how much daylight there was to see it."
+description: "Among round-shape UFO reports, 'sphere' sightings occurred in daylight more than twice as often as 'orb' sightings, while 'circle' sat near the overall average — the word a witness chooses tracks how much light there was to see it. Each word's daylight share is estimated with Wilson confidence intervals. Made in R with ggplot2, ggtext, and binom."
+date: "2026-06-23"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_25.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "rstats",
+  "dot-plot",
+  "ufo",
+  "nuforc",
+  "vocabulary",
+  "perception",
+  "wilson-interval",
+  "annotation",
+  "2026"
+]
+image: "thumbnails/mm_2026_25.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 25
+project_file <- "mm_2026_25.qmd"
+project_image <- "mm_2026_25.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026w25-ufo-sightings"
+data_secondary <- "https://data.world/makeovermonday/2026w25-ufo-sightings"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_25/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.kaggle.com/datasets/joebeachcapital/ufo-sightings"
+org_secondary <- "https://www.kaggle.com/datasets/joebeachcapital/ufo-sightings"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("UFO Sightings", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_25/original_chart.png)
+
+### Makeover
+
+![Horizontal dot plot titled "Darkness 'changes' how UFOs are described." Three words witnesses use for round UFOs are placed by the share of each word's reports that occurred in daylight: "orb" at 19%, "circle" at 29%, and "sphere" at 43%, against a dashed reference line marking the 28% overall daylight rate for all UFO reports. The words form an ordered gradient — luminous descriptions ("orb") skew nocturnal, solid-form descriptions ("sphere") skew toward daylight — showing that how a round UFO is described tracks how much light there was to see it. Based on 305 round-shaped NUFORC reports (orb 57, circle 180, sphere 68).](mm_2026_25.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, janitor, binom
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 7,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- read_csv(
+  here::here("data/MakeoverMonday/2026/MM2026 W25 UFO Sightings.csv")) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+day_start <- 7
+day_end <- 18
+
+sightings <- df_raw |>
+  filter(!is.na(time)) |>
+  mutate(
+    hour     = as.numeric(time) / 3600,
+    daylight = hour >= day_start & hour < day_end
+  )
+
+overall_day <- mean(sightings$daylight)
+
+round_data <- sightings |>
+  filter(shape %in% c("Orb", "Circle", "Sphere")) |>
+  summarise(n = n(), day = sum(daylight), .by = shape)
+
+ci <- binom::binom.wilson(round_data$day, round_data$n)
+
+round_data <- round_data |>
+  mutate(
+    day_share = ci$mean,
+    lower = ci$lower,
+    upper = ci$upper,
+    pole = case_when(
+      shape == "Orb" ~ "after dark",
+      shape == "Sphere" ~ "by daylight",
+      TRUE ~ ""
+    )
+  ) |>
+  arrange(day_share)
+
+# annotation values
+get_r <- function(s) round_data$day_share[round_data$shape == s]
+orb_pct <- percent(get_r("Orb"), accuracy = 1)
+sphere_pct <- percent(get_r("Sphere"), accuracy = 1)
+ratio_round <- round(get_r("Sphere") / get_r("Orb"), 1)
+n_total <- sum(round_data$n)
+n_orb <- round_data$n[round_data$shape == "Orb"]
+n_circle <- round_data$n[round_data$shape == "Circle"]
+n_sphere <- round_data$n[round_data$shape == "Sphere"]
+
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    luminous = "#722F37",
+    neutral  = "#908981",
+    solid    = "#3F3A36",
+    ink      = "#2C2825",
+    ref_grey = "#6F6A63",
+    ci_grey  = "#D7D2CA"
+  )
+)
+
+ink <- clrs$palette$ink
+ref_grey <- clrs$palette$ref_grey
+ci_grey <- clrs$palette$ci_grey
+bg_col <- clrs$background
+
+round_pal <- c(
+  "Orb"    = clrs$palette$luminous,
+  "Circle" = clrs$palette$neutral,
+  "Sphere" = clrs$palette$solid
+)
+
+### |-  titles and caption ----
+title_text <- "Darkness 'changes' how UFOs are described"
+
+subtitle_text <- str_glue(
+  "<b>Orb</b>, <b>circle</b>, and <b>sphere</b> are three of the words witnesses use for a ",
+  "round light \u2014 and which one they reach for tracks<br>how much daylight there was to see it."
+)
+
+annotation_text <- str_glue(
+  "<b>After dark, witnesses report an <i>orb</i> \u2014 a glow with no visible surface.</b><br>",
+  "By day, a <i>sphere</i> \u2014 a lit, solid form.<br>",
+  "<span style='color:{ref_grey}'>The same glowing-to-solid split runs across every reported shape.</span>"
+)
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 25,
+  source_text = str_glue(
+    "National UFO Reporting Center (NUFORC) \u00b7 reports with images \u00b7 data.world<br>",
+    "Round-shape reports only: orb ({n_orb}), circle ({n_circle}), sphere ({n_sphere}). ",
+    "Daylight = 07:00\u201318:00, fixed window. Points: daylight share with Wilson 95% CIs."
+  )
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title = element_markdown(
+      face = "bold", family = fonts$title_1,
+      size = rel(1.8), color = ink, margin = margin(b = 4)
+    ),
+    plot.subtitle = element_textbox_simple(
+      family = fonts$subtitle, size = rel(0.8),
+      color = ink, lineheight = 1.1,
+      width = unit(1, "npc"), margin = margin(b = 16)
+    ),
+    plot.caption = element_textbox_simple(
+      family = fonts$caption, size = rel(0.5),
+      color = ref_grey, lineheight = 1.3,
+      width = unit(1, "npc"), margin = margin(t = 14)
+    ),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(family = fonts$text, size = rel(0.8), color = ref_grey),
+    axis.title.x = element_text(family = fonts$text, size = rel(0.8), color = ref_grey),
+    panel.grid = element_blank(),
+    axis.ticks = element_blank()
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+y_word <- 0.55
+y_pct <- -0.48
+y_anno <- -1.00
+y_reflab <- 1.30
+
+p <- ggplot(round_data, aes(x = day_share, y = 0)) +
+
+  # Geoms
+  geom_vline(
+    xintercept = overall_day, linetype = "dashed",
+    linewidth = 0.4, color = ref_grey
+  ) +
+  geom_line(aes(group = 1), linewidth = 0.7, color = "gray75") +
+  geom_linerange(aes(xmin = lower, xmax = upper),
+    linewidth = 3.2,
+    color = ci_grey, alpha = 0.7
+  ) +
+  geom_point(aes(color = shape), size = 6) +
+  geom_text(aes(label = shape),
+    y = y_word, family = fonts$title,
+    fontface = "bold", size = 4.4, color = ink
+  ) +
+  geom_text(aes(label = percent(day_share, accuracy = 1)),
+    y = y_pct,
+    family = fonts$text, size = 3.6, color = ink
+  ) +
+  # Annotate
+  annotate("richtext",
+    x = overall_day + 0.006, y = y_reflab,
+    label = glue("All UFO reports: {percent(overall_day, accuracy = 1)} by day"),
+    hjust = 0, vjust = 1, family = fonts$text, size = 3, color = ref_grey,
+    fill = bg_col, label.color = NA,
+    label.padding = unit(c(0.12, 0.3, 0.12, 0.2), "lines")
+  ) +
+  annotate("richtext",
+    x = 0.30, y = y_anno, hjust = 0.5, vjust = 1,
+    label = annotation_text, family = fonts$text, size = 3.05,
+    color = ink, lineheight = 1.3,
+    fill = bg_col, label.color = NA,
+    label.padding = unit(c(0.2, 0.3, 0.2, 0.3), "lines")
+  ) +
+  # Scales
+  scale_x_continuous(
+    labels = percent_format(accuracy = 1),
+    breaks = seq(0, 0.6, 0.1), limits = c(0, 0.6),
+    expand = expansion(mult = c(0.02, 0.02))
+  ) +
+  scale_y_continuous(limits = c(-1.75, 1.45), expand = expansion(0)) +
+  scale_color_manual(values = round_pal, guide = "none") +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    x = "Share of that word's reports occurring in daylight",
+    y = NULL,
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p , 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 10, 
+  height = 7
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("UFO Sightings (NUFORC)", "https://data.world/makeovermonday/2026w25-ufo-sightings")`
+   - CSV: 1,317 rows × 13 columns (`posted`, `date`, `time`, `city`, `state`, `shape`, `duration`, `summary`, `images`, `img_link`, `lat`, `lng`, `population`); one row per reported sighting
+   - This is NUFORC's recent **"with-images" subset** (`images` = "Yes" for every row — a selection filter, not a variable), with reports `posted` across a 9-day window in March 2023; a snapshot, not a representative census
+
+2. Original Chart: **none** — this week's MakeoverMonday supplied the dataset without an original visualization to redesign; the chart is built from scratch
+
+**Source Data:**
+
+3. `r create_link("National UFO Reporting Center (NUFORC)", "https://nuforc.org/")`
+   - Ultimate source of the sighting records; NUFORC collects 100,000+ public UFO reports. The MakeoverMonday extract is a recent, filtered, standardized subset (cleaned city/state names, standardized dates, lat/lon) — not the full NUFORC archive
+4. Dataset packaging: `r create_link("Kaggle — UFO Sightings (Joe Beach Capital)", "https://www.kaggle.com/datasets/joebeachcapital/ufo-sightings")`
+   - The cleaned, standardized CSV distribution underlying the MakeoverMonday dataset
+
+**Classification (analytical layer added in the makeover):**
+
+5. Visibility class (**self-luminous / light-pattern / ambiguous / solid**) and the round-word grouping (**orb, circle, sphere**) are the author's own classifications, not an official or established taxonomy
+   - Assigned on physical grounds — does the shape word name something self-luminous, an arrangement of lights, or a solid reflective surface — **before** inspecting daylight share, to avoid circular grouping
+   - The "light-pattern" assignment of triangle/chevron/formation/rectangle (reports of configured lights, e.g. the "black triangle") is a disclosed interpretive call
+
+**Note:** The chart shows **round-shape reports only** — orb (n = 57), circle (n = 180), sphere (n = 68); 305 of 1,317 reports. Daylight is defined as **07:00–18:00 local time, a fixed window that is not seasonally adjusted**, so the values are a relative ranking rather than a seasonally-correct daylight rate. Points are each word's share of reports occurring in daylight, with **Wilson 95% confidence intervals**. Annotation values verified against the data: orb 19% (11/57), circle 29% (52/180), sphere 43% (29/68), against an overall daylight share of **28%** across all 1,317 reports — circle sits essentially on that baseline. **No causal relationship is asserted**: the chart describes an association between when a sighting was reported and which round-shape word was chosen, not why; the surface-resolution reading (a glow registers after dark, a solid form by day) is offered as interpretation, and the three words are not claimed to denote a single identical object. Because the extract is a 9-day posting snapshot of the with-images subset, **no trend-over-time claim is made** — all framing is cross-sectional. The statement that the "glowing-to-solid split runs across every reported shape" is backed by a supporting exhibit (daylight share by all shapes with n ≥ 20: self-luminous shapes ≈ 15% daytime, solid forms ≈ 38%), not by the three points shown here.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
