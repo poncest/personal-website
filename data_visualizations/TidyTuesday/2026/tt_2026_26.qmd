@@ -1,0 +1,410 @@
+---
+title: "Ireland's Shipwrecks Chronicle the End of the Age of Sail"
+subtitle: "For more than a century, nearly every classified wreck was a sailing vessel — over 9 in 10 classified wrecks carried wind. During the 1910s, steam and motor vessels became the majority, reaching 96% by the 1940s."
+description: "This line chart traces the technological succession from sail to steam through the lens of Irish shipwreck records, 1800–1945. Among records with a known vessel type, sail-powered vessels accounted for over 97% of classified wrecks in 1800 and fell to 4% by the 1940s, crossing below steam during the 1910s. Built with R and ggplot2."
+date: "2026-06-28"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_26.html"
+categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "TidyTuesday",
+  "Line Chart",
+  "Maritime History",
+  "Ireland",
+  "Technological Succession",
+  "Age of Sail",
+  "Steam Power",
+  "Shipwrecks",
+  "Historical Data",
+  "Composition",
+  "Time Series",
+  "ggplot2",
+  "2026"
+]
+image: "thumbnails/tt_2026_26.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Line chart titled "Ireland's Shipwrecks Chronicle the End of the Age of Sail." The x-axis spans 1800 to 1940 by decade; the y-axis shows the share of classified wrecks from 0% to 100%. A blue line representing sail-powered vessels starts near 97% in 1800 and declines gradually, then steeply, crossing below 50% during the 1910s before reaching 4% by the 1940s. A burgundy line representing steam and motor vessels begins near 3% and rises slowly through the 1880s, accelerating sharply after 1900 to reach 96% by the 1940s. The two lines cross between 1910 and 1920, marking the decade when steam became the dominant vessel type in Irish waters. Among records with known vessel type, approximately 6,500 of 17,981 total; unknown classification excluded. Source: Wreck Inventory of Ireland, National Monuments Service.](tt_2026_26.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, ggrepel,      
+    scales, glue, skimr
+    )
+})
+
+### |- figure size ----          
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 10,
+    height = 6.5,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+tt <- tidytuesdayR::tt_load(2026, week = 26)
+wreck_inventory <- tt$wreck_inventory |> clean_names()
+
+rm(tt)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(wreck_inventory)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- vessel type lookups ----
+# wreck_inventory |>
+#     count(classification, sort = TRUE) |>
+#     print(n = 30)
+
+sail_types <- c(
+  "Schooner", "Sloop", "Barque", "Brig", "Brigantine",
+  "Ketch", "Lugger", "Smack", "Cutter", "Yawl",
+  "Sailing Ship", "Sailing Boat", "Full-rigged ship",
+  "Ship", "Galley"
+)
+
+steam_types <- c(
+  "Steamship", "Steam Trawler", "Steel Steamship",
+  "Iron Steamship", "Collier", "Trawler", "Submarine"
+)
+
+### |- crossover data ----
+crossover <- wreck_inventory |>
+  filter(
+    !is.na(year),
+    year >= 1800, year <= 1945,
+    classification %in% c(sail_types, steam_types)
+  ) |>
+  mutate(
+    decade = floor(year / 10) * 10,
+    era    = if_else(classification %in% sail_types, "Sail", "Steam & Motor")
+  ) |>
+  count(decade, era) |>
+  group_by(decade) |>
+  mutate(pct = n / sum(n)) |>
+  ungroup() |>
+  select(decade, era, pct) |>
+  pivot_wider(names_from = era, values_from = pct, values_fill = 0) |>
+  arrange(decade) |>
+  pivot_longer(cols = c(Sail, `Steam & Motor`), names_to = "era", values_to = "pct")
+
+### |- pre-extract annotation coordinates ----
+crossover_x <- 1905
+crossover_y <- 0.50
+
+sail_1800_pct <- 0.973
+steam_1940_pct <- 0.963
+
+# n for scope note
+n_classified <- wreck_inventory |>
+  filter(
+    !is.na(year), year >= 1800, year <= 1945,
+    classification %in% c(sail_types, steam_types)
+  ) |>
+  nrow()
+
+# 1920s sparsity note coordinates
+sparse_x <- 1920
+sparse_y <- 0.53
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = c(
+    "Sail"          = "#5B7FA6",
+    "Steam & Motor" = "#722F37",
+    "annotation"    = "#4A5568",
+    "sparse"        = "#9CA3AF"
+  )
+)
+
+### |- titles and caption ----
+title_text <- "Ireland's Shipwrecks Chronicle the End of the Age of Sail"
+
+subtitle_text <- str_glue(
+  "For more than a century, sail-powered vessels dominated classified shipwrecks — ",
+  "over **<span style='color:#5B7FA6'>9 in 10</span>** ",
+  "classified wrecks were sail-powered.<br>",
+  "By the 1910s, **<span style='color:#722F37'>steam and motor vessels</span>** ",
+  "became the majority, reaching 96% by the 1940s."
+)
+
+caption_text <- create_social_caption(
+  tt_year     = 2026,
+  tt_week     = 26,
+  source_text = "Wreck Inventory of Ireland (National Monuments Service)"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    # Panel
+    panel.grid.major.y = element_line(color = "gray92", linewidth = 0.3),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    # Axes
+    axis.ticks = element_blank(),
+    axis.title.x = element_text(
+      family = fonts$text, size = 10, color = "#4A5568",
+      margin = margin(t = 8)
+    ),
+    axis.title.y = element_text(
+      family = fonts$text, size = 10, color = "#4A5568",
+      margin = margin(r = 8)
+    ),
+    axis.text = element_text(
+      family = fonts$text, size = 9, color = "#4A5568"
+    ),
+
+    # Title / subtitle
+    plot.title = element_text(
+      family = fonts$title_1, face = "bold", size = rel(1.85),
+      color = "#1A1A2E", margin = margin(b = 6)
+    ),
+    plot.subtitle = element_markdown(
+      family = fonts$subtitle, size = rel(0.80), lineheight = 1.4,
+      color = "#4A5568", margin = margin(b = 20)
+    ),
+    plot.caption = element_markdown(
+      family = fonts$caption, size = rel(0.5), color = "#9CA3AF",
+      hjust = 0, margin = margin(t = 16), lineheight = 1.2
+    ),
+
+    # Margins
+    plot.margin = margin(t = 20, r = 24, b = 12, l = 16)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- plot ----
+p <- crossover |>
+  ggplot(aes(x = decade, y = pct, color = era)) +
+  # Geoms
+  geom_line(linewidth = 1.1, lineend = "round") +
+  geom_point(size = 3, shape = 21, fill = "white", stroke = 1.5) +
+  # Annotate
+  annotate(
+    "rect",
+    xmin = 1914, xmax = 1918,
+    ymin = 0, ymax = 1,
+    fill = "#B5895A", alpha = 0.06, color = NA
+  ) +
+  annotate(
+    "text",
+    x = 1916, y = 0.94,
+    label = "WWI",
+    family = fonts$text, size = 2.7,
+    color = "#C0C8D0", fontface = "italic",
+    hjust = 0.5, lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = 1942, y = steam_1940_pct,
+    label = "Steam & Motor  96%",
+    family = fonts$text, size = 3.3,
+    color = "#722F37", fontface = "bold",
+    hjust = 0, lineheight = 1.2
+  ) +
+  annotate(
+    "text",
+    x = 1942, y = 0.04,
+    label = "Sail  4%",
+    family = fonts$text, size = 3.3,
+    color = "#5B7FA6", fontface = "bold",
+    hjust = 0
+  ) +
+  # Scales
+  scale_color_manual(
+    values = c(
+      "Sail"          = "#5B7FA6",
+      "Steam & Motor" = "#722F37"
+    )
+  ) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    limits = c(0, 1.02),
+    expand = expansion(mult = c(0, 0.02))
+  ) +
+  scale_x_continuous(
+    breaks = seq(1800, 1940, by = 10),
+    expand = expansion(mult = c(0.02, 0.14))
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = glue(
+      "{caption_text}<br>",
+      "<span style='color:#9CA3AF'>Among records with known vessel type ",
+      "(n ≈ 6,500 of 17,981 total); Unknown classification excluded.</span>"
+    ),
+    x = NULL,
+    y = "Share of classified wrecks",
+    color = NULL
+  ) +
+  # Theme
+  theme(legend.position = "none")
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot(
+  plot = p, 
+  type = "tidytuesday", 
+  year = 2026, 
+  week = 26, 
+  width  = 10,
+  height = 6.5
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`tt_2026_26.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_26.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   TidyTuesday 2026 Week 26: [Wreck Inventory of Ireland](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-06-30/readme.md)
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
