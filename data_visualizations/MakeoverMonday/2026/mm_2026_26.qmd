@@ -1,0 +1,640 @@
+---
+title: "The U.S. Launch Lead Is a Starlink Story"
+subtitle: "Starlink alone exceeds the U.S. lead over China. Without those launches, China has led the U.S. every year since 2018."
+description: "Annual and cumulative orbital launches (2016–2026 YTD) for the U.S. and China, comparing U.S. totals with and without Starlink missions. Decomposes the publisher's aggregate launch count to reveal that China has led the U.S. in non-Starlink launches every year since 2018. Built in R with ggplot2 and patchwork."
+date: "2026-06-30"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_26.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "patchwork",
+  "bar-chart",
+  "line-chart",
+  "space",
+  "geopolitics",
+  "China",
+  "United States",
+  "Starlink",
+  "annotation",
+  "decomposition",
+  "2026"
+]
+image: "thumbnails/mm_2026_26.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 26
+project_file <- "mm_2026_26.qmd"
+project_image <- "mm_2026_26.png"
+
+## Data Sources
+data_main <- "https://data.world/makeovermonday/2026wk26-the-worlds-space-launch-sites"
+data_secondary <- "https://data.world/makeovermonday/2026wk26-the-worlds-space-launch-sites"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_26/original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.voronoiapp.com/geopolitics/Mapped-The-Worlds-Space-Launch-Sites-2016-2026-8434"
+org_secondary <- "https://www.voronoiapp.com/geopolitics/Mapped-The-Worlds-Space-Launch-Sites-2016-2026-8434"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("UFO Sightings", data_secondary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_26/original_chart.png)
+
+### Makeover
+
+![Two-panel chart titled "The U.S. Launch Lead Is a Starlink Story." Left panel: grouped bar chart of annual orbital launches, 2016–2026 YTD, comparing China (burgundy) to U.S. launches excluding Starlink (blue), with gray dots showing U.S. totals including Starlink. China's bars exceed the U.S. non-Starlink bars every year from 2018 onward; the gray dots rise sharply after 2022, showing Starlink's growing share of the U.S. total. Right panel: cumulative line chart showing China reaching 544 total launches by 2026 versus 382 for the U.S., excluding Starlink, a gap of 162 missions, while total U.S. launches, including Starlink, reach 784. Annotation notes Starlink alone (402 launches) exceeds the U.S.'s 240-launch lead over China in total figures.](mm_2026_26.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, 
+    janitor, patchwork
+)
+})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 12,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- read_csv(
+  here::here("data/MakeoverMonday/2026/Launches (launches-launches-table-2026-06-29)_Launches.csv")) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+df <- df_raw |>
+  filter(
+    year(launch_date) >= 2016,
+    country_group %in% c("United States", "China")
+  ) |>
+  mutate(
+    year = year(launch_date),
+    group = case_when(
+      country_group == "United States" & !is.na(starlink_mission) ~ "Starlink launches",
+      country_group == "United States" & is.na(starlink_mission) ~ "U.S. (without Starlink)",
+      country_group == "China" ~ "China"
+    )
+  )
+
+### |- Panel 1: annual bars (China + US non-SL) and US total dots ----
+annual_counts <- df |>
+  count(year, group) |>
+  complete(year, group, fill = list(n = 0L))
+
+annual_us_total <- df |>
+  filter(country_group == "United States") |>
+  count(year, name = "us_total")
+
+annual_bars <- annual_counts |>
+  filter(group != "Starlink launches") |>
+  mutate(group = factor(group, levels = c("China", "U.S. (without Starlink)")))
+
+### |- Panel 2: cumulative — China, US non-Starlink, US Total (dashed reference only) ----
+cumulative_lines <- df |>
+  filter(group %in% c("China", "U.S. (without Starlink)")) |>
+  count(year, group) |>
+  complete(year, group, fill = list(n = 0L)) |>
+  arrange(group, year) |>
+  group_by(group) |>
+  mutate(cumulative = cumsum(n)) |>
+  ungroup()
+
+us_total_line <- df |>
+  filter(country_group == "United States") |>
+  count(year) |>
+  arrange(year) |>
+  mutate(
+    group      = "Total U.S. (with Starlink)",
+    cumulative = cumsum(n)
+  )
+
+cumulative_all <- bind_rows(cumulative_lines, us_total_line)
+
+### |- annotation coordinates (pre-extracted named scalars) ----
+p2_china_end <- cumulative_all |> filter(year == 2026, group == "China") |> pull(cumulative)
+p2_us_ns_end <- cumulative_all |> filter(year == 2026, group == "U.S. (without Starlink)") |> pull(cumulative)
+p2_us_tot_end <- cumulative_all |> filter(year == 2026, group == "Total U.S. (with Starlink)") |> pull(cumulative)
+p2_gap <- p2_china_end - p2_us_ns_end          
+p2_us_lead <- p2_us_tot_end - p2_china_end         
+p2_starlink_n  <- cumulative_all |>                    
+  filter(year == 2026) |>
+  summarise(sl = p2_us_tot_end - p2_us_ns_end) |>
+  pull(sl)
+p2_bracket_mid <- (p2_china_end + p2_us_ns_end) / 2
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+col_china <- "#722F37"
+col_us_ns <- "#2A6496"
+col_starlink <- "#AAAAAA"
+col_us_total <- "#BBBBBB"
+col_annotation <- "#333333"
+col_subtitle <- "#555555"
+col_bg <- "#FAF8F4"
+col_grid <- "#E8E4DE"
+
+clrs <- get_theme_colors(palette = list(
+  china      = col_china,
+  us_ns      = col_us_ns,
+  starlink   = col_starlink,
+  annotation = col_annotation,
+  background = col_bg
+))
+
+### |- titles and captions ----
+title_text    <- "The U.S. Launch Lead Is a Starlink Story"
+
+subtitle_text <- str_glue(
+  "Starlink alone exceeds the U.S. lead over China. Without those launches, ",
+  "<span style='color:{col_china}'>**China**</span> ",
+  "has led <span style='color:{col_us_ns}'>**the U.S.**</span> ",
+  "every year since 2018."
+)
+
+caption_text <- create_mm_caption(
+  mm_year     = 2026,
+  mm_week     = 26,
+  source_text = "AEI Space Data Center · Data: 2016–2026* through June 26, 2026<br>
+  Note: Orbital and deep space launches only. Starlink identified via AEI mission flag."
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- theme ----
+base_theme   <- create_base_theme(clrs)
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.background = element_rect(fill = col_bg, color = NA),
+    panel.background = element_rect(fill = col_bg, color = NA),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = col_grid, linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(
+      size = 8, color = col_annotation,
+      margin = margin(r = 6)
+    ),
+    axis.text = element_text(size = 8, color = col_annotation),
+    legend.position = "top",
+    legend.direction = "horizontal",
+    legend.justification = "left",
+    legend.background = element_rect(fill = col_bg, color = NA),
+    legend.text = element_text(size = 8.5, color = col_annotation),
+    legend.key.width = unit(1.2, "lines"),
+    legend.key.height = unit(0.7, "lines"),
+    legend.spacing.x = unit(0.5, "lines"),
+    plot.margin = margin(t = 6, r = 10, b = 4, l = 6)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- Panel 1: grouped bars + gray context dots ----
+
+# First dot only gets a label — 2016
+p1_dot_label <- annual_us_total |> filter(year == 2016)
+
+p1 <- ggplot() +
+
+  # Geoms
+  geom_col(
+    data = annual_bars,
+    aes(x = year, y = n, fill = group),
+    position = position_dodge(width = 0.72),
+    width = 0.65, alpha = 0.92
+  ) +
+  geom_point(
+    data = tibble(year = NA_real_, us_total = NA_real_, dot_label = "U.S. total (incl. Starlink)"),
+    aes(x = year, y = us_total, color = dot_label),
+    size = 2.2, shape = 16, alpha = 0.65
+  ) +
+  geom_point(
+    data = annual_us_total,
+    aes(x = year, y = us_total),
+    color = col_starlink, size = 2.2, shape = 16, alpha = 0.65,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    data = p1_dot_label,
+    aes(
+      x = year, y = us_total,
+      label = "U.S. total\n(incl. Starlink)"
+    ),
+    nudge_y = 9, size = 2.2, color = col_starlink,
+    lineheight = 1.15, hjust = 0.5, vjust = 0
+  ) +
+  # Scales
+  scale_fill_manual(
+    values = c(
+      "China"                   = col_china,
+      "U.S. (without Starlink)" = col_us_ns
+    ),
+    guide = guide_legend(
+      nrow = 1, order = 1,
+      override.aes = list(alpha = 1, shape = NA)
+    )
+  ) +
+  scale_color_manual(
+    values = c("U.S. total (incl. Starlink)" = col_starlink),
+    guide = guide_legend(
+      nrow = 1, order = 2,
+      override.aes = list(
+        shape = 16, size = 2.8, alpha = 0.85,
+        linetype = 0, fill = NA
+      )
+    )
+  ) +
+  scale_x_continuous(
+    breaks = 2016:2026,
+    labels = c(as.character(2016:2025), "2026*"),
+    expand = expansion(mult = c(0.02, 0.05))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 280),
+    breaks = seq(0, 250, 50),
+    expand = expansion(mult = c(0, 0.14))
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = "**1** &nbsp; Annual Launches",
+    subtitle = "China has led U.S. non-Starlink launches every year since 2018.",
+    y = "Number of launches",
+    fill = NULL,
+    color = NULL
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = 10, color = col_annotation,
+      margin = margin(b = 3)
+    ),
+    plot.subtitle = element_text(
+      size = 8, color = col_subtitle,
+      lineheight = 1.3, margin = margin(b = 6)
+    )
+  )
+
+### |- Panel 2: cumulative lines ----
+
+p2 <- ggplot(
+  cumulative_all |>
+    mutate(group = factor(group, levels = c(
+      "China", "U.S. (without Starlink)", "Total U.S. (with Starlink)"
+    ))),
+  aes(
+    x = year, y = cumulative,
+    color = group, linetype = group, linewidth = group
+  )
+) +
+  # Geoms
+  geom_line() +
+  geom_point(
+    data = cumulative_all |>
+      filter(group %in% c("China", "U.S. (without Starlink)")),
+    size = 2.4, show.legend = FALSE
+  ) +
+
+  # Annotate
+  annotate("segment",
+    x = 2026.35, xend = 2026.35,
+    y = p2_us_ns_end, yend = p2_china_end,
+    color = col_annotation, linewidth = 0.5
+  ) +
+  annotate("segment",
+    x = 2026.22, xend = 2026.35,
+    y = p2_china_end, yend = p2_china_end,
+    color = col_annotation, linewidth = 0.5
+  ) +
+  annotate("segment",
+    x = 2026.22, xend = 2026.35,
+    y = p2_us_ns_end, yend = p2_us_ns_end,
+    color = col_annotation, linewidth = 0.5
+  ) +
+  annotate("text",
+    x = 2026.5, y = p2_bracket_mid,
+    label = glue("+{p2_gap}"),
+    hjust = 0, vjust = 0.5, size = 3.2,
+    color = col_annotation, fontface = "bold"
+  ) +
+  annotate("text",
+    x = 2020.2, y = 845,
+    label = glue("Total U.S. (with Starlink): {p2_us_tot_end}"),
+    hjust = 0, vjust = 0.5, size = 2.5,
+    color = col_us_total, fontface = "italic"
+  ) +
+  annotate("text",
+    x = 2020.2, y = 775,
+    label = glue(
+      "U.S. leads China by +{p2_us_lead} total  \u2022  Starlink alone: {p2_starlink_n}"
+    ),
+    hjust = 0, vjust = 0.5, size = 2.4,
+    color = col_us_total, fontface = "italic"
+  ) +
+  annotate("text",
+    x = 2026.1, y = p2_china_end + 14,
+    label = as.character(p2_china_end),
+    hjust = 0, vjust = 0, size = 4.4,
+    color = col_china, fontface = "bold"
+  ) +
+  annotate("text",
+    x = 2026.1, y = p2_us_ns_end - 14,
+    label = as.character(p2_us_ns_end),
+    hjust = 0, vjust = 1, size = 4.4,
+    color = col_us_ns, fontface = "bold"
+  ) +
+  # Scales
+  scale_color_manual(
+    values = c(
+      "China" = col_china,
+      "U.S. (without Starlink)" = col_us_ns,
+      "Total U.S. (with Starlink)" = col_us_total
+    ),
+    guide = "none"
+  ) +
+  scale_linetype_manual(
+    values = c(
+      "China" = "solid",
+      "U.S. (without Starlink)" = "solid",
+      "Total U.S. (with Starlink)" = "dashed"
+    ),
+    guide = "none"
+  ) +
+  scale_linewidth_manual(
+    values = c(
+      "China" = 1.3,
+      "U.S. (without Starlink)" = 1.3,
+      "Total U.S. (with Starlink)" = 0.8
+    ),
+    guide = "none"
+  ) +
+  scale_x_continuous(
+    breaks = 2016:2026,
+    labels = c(as.character(2016:2025), "2026*"),
+    expand = expansion(mult = c(0.02, 0.22))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 920),
+    breaks = seq(0, 900, 100),
+    expand = expansion(mult = c(0, 0.04))
+  ) +
+  coord_cartesian(clip = "off") +
+  # Labs
+  labs(
+    title = "**2** &nbsp; Cumulative Launches",
+    subtitle = glue("By mid-2026, China leads U.S. non-Starlink launches by {p2_gap} missions."),
+    y = "Cumulative launches"
+  ) +
+  # Theme
+  theme(
+    plot.title = element_markdown(
+      size = 10, color = col_annotation,
+      margin = margin(b = 3)
+    ),
+    plot.subtitle = element_text(
+      size = 8.5, color = col_subtitle,
+      lineheight = 1.3, margin = margin(b = 6)
+    )
+  )
+
+### |- combine plots ----
+p_combined <- (p1 | p2) +
+  plot_layout(widths = c(1.15, 0.85)) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    theme = theme(
+      plot.title = element_text(
+        size = rel(1.85), face = "bold", family = fonts$title_1,
+        color = col_annotation,
+        margin = margin(b = 6)
+      ),
+      plot.subtitle = element_markdown(
+        size = rel(0.8),
+        color = col_subtitle, family = fonts$subtitle,
+        lineheight = 1.35,
+        margin = margin(b = 16)
+      ),
+      plot.caption = element_markdown(
+        size = rel(0.5),
+        color = alpha(col_annotation, 0.60),
+        hjust = 0,
+        lineheight = 1.3,
+        margin = margin(t = 8), family = fonts$caption
+      ),
+      plot.margin = margin(t = 20, r = 20, b = 10, l = 20),
+      plot.background = element_rect(fill = col_bg, color = NA)
+    )
+  )
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----  
+save_plot_patchwork(
+  plot = p_combined, 
+  type = "makeovermonday", 
+  year = current_year,
+  week = current_week,
+  width = 12, 
+  height = 8
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("The World's Space Launch Sites, 2016–2026", "https://data.world/makeovermonday/2026wk26-the-worlds-space-launch-sites")`
+   - CSV: 7,335 rows × 18 columns (`country`, `country_group`, `launch_category`, `launch_date`, `launch_outcome`, `launch_site`, `launch_site_name`, `launch_tag`, `launch_vehicle`, `lv_type`, `starlink_mission`, `variant`, `vehicle_size`, `actual_payload_metric_tons`, `latitude`, `longitude`, `leo_metric_tons`, `sso_metric_tons`); one row per individual launch, full history back to 1957-10-04
+   - The makeover filters to 2016–2026 YTD to match the original chart's stated scope, and further filters to `country_group` = United States / China only — the two countries the analytical argument concerns
+
+2. Original Chart: `r create_link("Mapped: The World's Space Launch Sites, 2016–2026", "https://www.voronoiapp.com/geopolitics/Mapped-The-Worlds-Space-Launch-Sites-2016-2026-8434")` — Visual Capitalist / Hinrich Foundation, published via Voronoi
+   - A proportional bubble map of launch sites by country, showing total launches 2016 through June 8, 2026. The original's headline claim — U.S. dominance (754 launches vs. China's 513) — motivated this makeover's central question: does that lead hold once Starlink's commercial megaconstellation missions are separated from sovereign/commercial launches?
+
+**Source Data:**
+
+3. `r create_link("AEI Space Data Center", "https://spacedata.aei.org/space/launches/")`
+   - Ultimate source of the launch records; the American Enterprise Institute's Space Data Center tracks orbital and deep-space launches globally, including mission-level flags (e.g., Starlink identification) not present in the original chart's published aggregates
+
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
