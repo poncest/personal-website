@@ -1,0 +1,406 @@
+---
+title: "Hosting the World Cup Doesn't Take Teams as Far as It Once Did"
+subtitle: "No World Cup host has reached the final since France in 1998. From 1930 through 2002, every host reached the knockout stage — and nearly half reached the final."
+description: "A chronological tile chart tracks how far each World Cup host advanced in their own tournament from 1930 to 2022, revealing that no host has reached the final since France in 1998. The color encoding compresses the ordinal stage scale into a single threshold — finalist or champion versus everything else — to match the editorial claim rather than raw progression. Built in R with ggplot2 and patchwork, using the Fjelstul World Cup Database."
+date: "2026-07-01"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/SWD%20Challenge/2026/swd_2026_07.html"
+categories: ["SWDchallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "SWDchallenge",
+  "world-cup",
+  "soccer",
+  "tile-chart",
+  "unit-chart",
+  "host-nation-advantage",
+  "sports-analytics",
+  "historical-pattern",
+  "threshold-encoding",
+  "patchwork",
+  "annotation",
+  "2026"
+]
+image: "thumbnails/swd_2026_07.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+### Challenge
+
+World Cup fever has hit! This month, join the excitement by creating a visualization inspired by the World Cup. Explore one of the suggested datasets or find your own, then uncover and communicate a story that interests you.
+
+Additional information can be found [HERE](https://community.storytellingwithdata.com/challenges)
+
+### Visualization
+
+![A two-row tile chart, "Hosting the World Cup Doesn't Take Teams as Far as It Once Did," showed how far each World Cup host advanced at its own tournament, 1930–2022. Twenty-two tiles, one per tournament, ran in chronological order, colored by the host's furthest stage: dark red for finalist or champion, rose for semifinal, light pink for quarterfinal/round of 16, pale gray for group stage. No host reached the final after France won on home soil in 1998, marked by a small gap following that tile. Before 1998, hosts reached the final nearly half the time and always advanced past the group stage; the eleven tournaments since have produced only mid-tier results, including two group-stage eliminations (South Africa 2010, Qatar 2022). The 2002 tile, co-hosted by Japan and South Korea, reflected South Korea's deeper semifinal run rather than Japan's round-of-16 finish. Source: Fjelstul World Cup Database (Joshua C. Fjelstul, Ph.D.).](swd_2026_07.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse, ggtext, showtext, janitor, scales, glue, patchwork
+)
+
+### |- figure size ---- 
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 10,
+  height = 5,
+  units  = "in",
+  dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+
+## Source: Fjelstul World Cup Database (Joshua C. Fjelstul, Ph.D.)
+## https://github.com/jfjelstul/worldcup -- CC-BY-SA 4.0
+## Proximate access: cloned from GitHub master branch, data-csv/ folder.
+tournaments     <- read_csv(here::here("data/SWDchallenge/2026/tournaments.csv"), show_col_types = FALSE) |> clean_names()
+host_countries  <- read_csv(here::here("data/SWDchallenge/2026/host_countries.csv"), show_col_types = FALSE) |> clean_names()
+qualified_teams <- read_csv(here::here("data/SWDchallenge/2026/qualified_teams.csv"), show_col_types = FALSE) |> clean_names()
+
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(tournaments)
+glimpse(host_countries)
+glimpse(qualified_teams)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| output: false
+
+### |- men's tournaments only ----
+tournaments_clean <- tournaments |>
+  mutate(is_womens = str_detect(tournament_name, "Women")) |>
+  filter(!is_womens) |>
+  select(tournament_id, year)
+
+### |- ordinal performance tier, 0 (group) to 5 (champion) ----
+performance_order <- c(
+  "group stage"         = 0,
+  "second group stage"  = 1.5,
+  "round of 16"         = 1,
+  "quarter-final"       = 2,
+  "quarter-finals"      = 2,
+  "final round"         = 2,
+  "semi-finals"         = 3,
+  "third-place match"   = 3,
+  "final"               = 4
+)
+
+### |- host teams joined to their tournament finish ----
+host_performance <- host_countries |>
+  distinct(tournament_id, team_id, team_name) |>
+  inner_join(tournaments_clean, by = "tournament_id") |>
+  left_join(
+    tournaments |> select(tournament_id, host_won),
+    by = "tournament_id"
+  ) |>
+  left_join(
+    qualified_teams |> select(tournament_id, team_id, performance),
+    by = c("tournament_id", "team_id")
+  ) |>
+  mutate(
+    perf_score = unname(performance_order[performance]),
+    tier = case_when(
+      host_won == 1 ~ 5, # champion
+      perf_score == 4 ~ 4, # reached final, runner-up
+      perf_score == 3 ~ 3, # semi-final / third-place match
+      perf_score %in% c(2, 1.5) ~ 2, # quarter-final / final-round equiv.
+      perf_score == 1 ~ 1, # round of 16
+      TRUE ~ 0 # group stage
+    )
+  )
+
+### |- one tile per TOURNAMENT ----
+tile_data <- host_performance |>
+  summarise(tier = max(tier), .by = c(tournament_id, year)) |>
+  arrange(year) |>
+  mutate(
+    idx = row_number() - 1,
+    ncol = 11,
+    col = idx %% ncol,
+    row = idx %/% ncol,
+    plot_row = max(row) - row,
+    color_bucket = case_when(
+      tier %in% c(4, 5) ~ "final_or_champion",
+      tier == 3 ~ "semi_final",
+      tier %in% c(1, 2) ~ "r16_or_qf",
+      TRUE ~ "group_stage"
+    )
+  )
+
+# France 1998 callout anchor 
+callout_tile <- tile_data |> filter(year == 1998)
+
+# small chronological gap right after the France 1998 tile
+# This makes "before/after 1998" readable without the viewer needing to
+# understand that the strip wraps row-to-row.
+gap_row <- callout_tile$row
+gap_col <- callout_tile$col
+gap_amount <- 0.4
+
+tile_data <- tile_data |>
+  mutate(x_pos = if_else(row == gap_row & col > gap_col, col + gap_amount, col))
+
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+
+### |-  plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    final_or_champion = "#722F37",
+    semi_final = "#A6717A",
+    r16_or_qf = "#D8B9BD",
+    group_stage = "#E4DFD6",
+    accent = "#722F37", 
+    neutral = "gray70"
+  )
+)
+
+### |- titles and caption ----
+title_text    <- "Hosting the World Cup Doesn't Take Teams as Far as It Once Did"
+
+subtitle_text <- glue(
+  "No World Cup host has reached the final since France in 1998. From ",
+  "1930 through 2002, every host reached the knockout stage — and nearly ",
+  "half reached the final."
+)
+
+caption_text <- create_swd_caption(
+  year = 2026,
+  month = "Jul",
+  source_text = "Fjelstul World Cup Database (Joshua C. Fjelstul, Ph.D.)"
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    axis.title       = element_blank(),
+    axis.text        = element_blank(),
+    axis.ticks       = element_blank(),
+    panel.grid       = element_blank(),
+    legend.position  = "none",
+    plot.title       = element_text(family = fonts$title_1, face = "bold", size = 20), margin = margin(b = 8),
+    plot.subtitle    = element_textbox_simple(family = 'sans', size = 9, margin = margin(t = 4, b = 8)),
+    plot.caption     = element_markdown(family = 'sans', size = 7, color = "grey40")
+  )
+)
+
+theme_set(weekly_theme)
+
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| output: false
+
+### |-  plot ----
+legend_data <- tibble(
+  bucket   = c("final_or_champion", "semi_final", "r16_or_qf", "group_stage"),
+  label    = c("Finalist or champion", "Semifinal", "Quarterfinal / R16", "Group stage"),
+  x_swatch = c(0, 4.4, 6.5, 9.1)
+)
+
+### |- panel 1: title + subtitle + real-tile legend ----
+p_header <- ggplot() +
+  geom_tile(
+    data = legend_data, aes(x = x_swatch, y = 0, fill = bucket),
+    width = 0.5, height = 0.5, color = NA
+  ) +
+  geom_text(
+    data = legend_data, aes(x = x_swatch + 0.45, y = 0, label = label),
+    hjust = 0, vjust = 0.5, size = 3, family = fonts$text, color = "grey30"
+  ) +
+  scale_fill_manual(values = clrs$palette, guide = "none") +
+  coord_cartesian(xlim = c(-0.5, 14), ylim = c(-0.6, 0.6), clip = "off") +
+  labs(title = title_text, subtitle = subtitle_text) +
+  theme(
+    axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(),
+    panel.grid = element_blank(), plot.margin = margin(t = 20, r = 40, b = 4, l = 40)
+  )
+
+### |- panel 2: the strip itself ----
+p_main <- ggplot(tile_data, aes(x = x_pos, y = plot_row, fill = color_bucket)) +
+  geom_tile(color = "white", linewidth = 1.2, width = 0.96, height = 0.96) +
+  annotate("text",
+    x = -0.8, y = max(tile_data$plot_row), label = "1930",
+    hjust = 1, size = 4.3, family = fonts$text, color = "grey28"
+  ) +
+  annotate("text",
+    x = 10.8 + gap_amount, y = 0, label = "2022",
+    hjust = 0, size = 4.3, family = fonts$text, color = "grey28"
+  ) +
+  annotate("segment",
+    x = callout_tile$col, xend = callout_tile$col,
+    y = callout_tile$plot_row - 0.55, yend = callout_tile$plot_row - 1.0,
+    linewidth = 0.3, color = "#722F37", alpha = 0.75
+  ) +
+  annotate("text",
+    x = callout_tile$col, y = callout_tile$plot_row - 1.15,
+    label = "Last host finalist\nFrance 1998",
+    family = fonts$text, size = 2.3, lineheight = 0.95,
+    hjust = 0.5, vjust = 1, color = "grey45"
+  ) +
+  scale_fill_manual(values = clrs$palette, guide = "none") +
+  coord_equal(clip = "off") +
+  theme(
+    axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(),
+    panel.grid = element_blank(), plot.title = element_blank(), plot.subtitle = element_blank(),
+    plot.margin = margin(t = 4, r = 40, b = 4, l = 40)
+  )
+  
+### |- panel 3: caption only ----
+caption_note <- "2002 tile reflects South Korea's semifinal — the deeper of the two co-host results (Japan reached the round of 16)."
+caption_text_full <- glue("{caption_note}<br>{caption_text}")
+
+p_caption <- ggplot() +
+  labs(caption = caption_text_full) +
+  theme_void() +
+  theme(
+    plot.caption = element_markdown(family = 'sans', size = 6, 
+                                    color = "grey40", lineheight = 1.1),
+    plot.margin  = margin(t = 4, r = 40, b = 10, l = 40)
+  )
+
+### |- compose ----
+final_plot <- p_header / p_main / p_caption +
+  plot_layout(heights = c(0.30, 1, 0.02))
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+
+### |-  plot image ----  
+save_plot_patchwork(
+  final_plot, 
+  type = 'swd', 
+  year = 2026, 
+  month = 07, 
+  width  = 10,
+  height = 5,
+  )
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`swd_2026_07.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2026/swd_2026_07.qmd). For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+**SWD Challenge:**
+- Storytelling with Data: [July 2026 — have a ball: visualize the World Cup](https://community.storytellingwithdata.com/challenges/jul-2026-have-a-ball-visualize-the-world-cup) *(URL inferred from June's pattern — not verified; the community site is JS-rendered and I couldn't confirm the exact slug. Worth a manual check before publishing.)*
+
+**Data Sources:**
+- Fjelstul, Joshua C. *World Cup Database*. GitHub. <https://github.com/jfjelstul/worldcup> — CC-BY-SA 4.0. Tables used: `tournaments`, `host_countries`, `qualified_teams`.
+- Fjelstul, Joshua C. *WorldCups.ai*. <https://www.worldcups.ai/> — actively maintained version of the same database; free for non-commercial use (CC-BY-NC-SA 4.0).
+
+**Methodology Note:**
+- 2002 was co-hosted by Japan and South Korea. The chart uses one tile per tournament; for 2002, South Korea's semifinal result (deeper of the two co-host outcomes) is shown rather than Japan's round of 16. Disclosed on-chart in the caption and in the alt text.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
