@@ -1,0 +1,321 @@
+---
+title: "Does This Look Random to You?"
+subtitle: "An interactive data-journalism piece about randomness, probability, and why real Powerball drawings often look suspicious"
+description: "An interactive data-journalism piece examining three real Powerball drawing patterns — consecutive numbers, shared numbers between draws, and long droughts — against 5,000-replicate Monte Carlo simulation, and what each reveals about how humans misread random processes."
+date: "2026-07-03"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:    
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-07-03.html"
+categories: ["R Programming", "Data Journalism", "Quarto", "2026"]
+tags: ["ggplot2", "quarto", "scrollytelling", "monte-carlo-simulation", "data-journalism", "statistics", "netlify"]
+image: "thumbnails/sa_2026-07-03.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme:
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options:  
+  chunk_output_type: inline
+execute:
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(dev = "png", fig.width = 9, fig.height = 10, dpi = 320)
+```
+
+::: {.callout-note appearance="simple"}
+## Read the interactive article
+
+**→ [Does This Look Random to
+You?](https://randomness-docket.netlify.app/)**
+
+This page documents the analysis, editorial decisions, and
+implementation behind the project.
+
+← [Back to Steven Ponce's Data Visualization
+Portfolio](https://stevenponce.netlify.app/)
+:::
+
+**The lottery isn't the subject of this piece — it's the evidence.**
+
+**Project at a glance**
+
+|  |  |
+|----|----|
+| **Duration** | July 2026 |
+| **Role** | Analysis, editorial design, visualization, implementation |
+| **Deliverable** | Interactive long-form data story |
+| **Tools** | R, ggplot2, Quarto, Monte Carlo simulation, HTML/CSS |
+| **Data** | NY State Gaming Commission Powerball drawings |
+| **Live article** | [randomness-docket.netlify.app](https://randomness-docket.netlify.app/) |
+
+------------------------------------------------------------------------
+
+> *Randomness isn't the absence of patterns. It's the presence of
+> patterns that don't mean anything.*
+
+------------------------------------------------------------------------
+
+## [1. Context, problem, and goal]{.smallcaps}
+
+**Context**
+
+Real Powerball drawings routinely produce results that *look* rigged —
+consecutive numbers, two draws sharing several numbers, a single number
+absent for dozens of drawings in a row. Each pattern triggers the same
+instinct: *this can't be an accident.*
+
+**Problem**
+
+At the sample sizes involved — thousands of drawings, each drawing
+picking 5 numbers from a pool of 69 — apparent patterns are not just
+possible, they're expected. The challenge was building a piece that
+could hold both truths at once: the patterns are real and visually
+striking, *and* they are exactly what a fair random process predicts.
+Neither half of that sentence can be dropped without misleading the
+reader.
+
+**Goal**
+
+Build an interactive, evidence-first narrative that walks readers
+through three real drawings, letting suspicion register before the
+explanation arrives and closing with a reframing rather than a simple
+"nothing to see here."
+
+This was a solo portfolio project, treated with the same editorial
+discipline as a public-facing data-journalism piece — not a one-off
+chart.
+
+------------------------------------------------------------------------
+
+## [2. Why Powerball?]{.smallcaps}
+
+Powerball provides a well-understood random process with publicly
+available data spanning thousands of drawings. That makes it an ideal
+case study for exploring how people interpret randomness. The goal
+wasn't to investigate the lottery itself, but to examine why perfectly
+ordinary random outcomes often appear suspicious.
+
+------------------------------------------------------------------------
+
+## [3. Approach: three exhibits, one evidentiary standard]{.smallcaps}
+
+The piece is structured as a docket — three "exhibits," each pairing a
+real drawing against what 5,000-replicate Monte Carlo simulation (real
+draw mechanics, 5-of-69, no replacement) says a fair process should
+produce at the same sample size:
+
+- **Exhibit A — Consecutive numbers.** A single drawing with
+  back-to-back numbers.
+- **Exhibit B — Shared numbers.** Two drawings overlapping more than
+  expected.
+- **Exhibit C — Long droughts.** A number absent for dozens of
+  consecutive drawings.
+
+All three exhibits use current-era statistics (2015–present), matching
+the 2015 change to the white-ball pool size — mixing eras would silently
+invalidate the comparison.
+
+One phrase carries the entire evidentiary weight of the piece:
+*consistent with a fair random process* — never *"is random."* The
+distinction matters. The piece never claims to prove randomness; it
+claims the observed pattern falls inside the range a fair process would
+produce.
+
+------------------------------------------------------------------------
+
+## [4. What the analysis finds]{.smallcaps}
+
+**Exhibit A — Consecutive numbers.**\
+26.4% of current-era drawings contain at least one consecutive pair,
+against a simulated expectation of 26.3%. The observed rate and the
+modeled rate are effectively identical.
+
+**Exhibit B — Shared numbers between draws.**\
+32.0% of consecutive drawing pairs share at least one number, against a
+hypergeometric expectation of 32.2% (n = 1,369 drawings, current era).
+Again, the observed frequency closely matches the theoretical
+expectation.
+
+**Exhibit C — Long droughts.**\
+Number 23's 48-drawing drought sits at the 16th percentile of the
+simulated drought-length distribution — unusual-*feeling*, but well
+within the range a fair process regularly produces across 69 numbers
+tracked over thousands of drawings.
+
+Across all three exhibits, the pattern is the same: what looks like
+signal is noise operating exactly as expected at this sample size.
+
+------------------------------------------------------------------------
+
+## [5. Piece structure: exhibits, not chapters]{.smallcaps}
+
+The reading experience pairs sticky figures with scrolling text — each
+panel stays in view while the surrounding prose builds the case, then
+releases as the next exhibit begins.
+
+### Exhibit A — Consecutive numbers
+
+Establishes the mechanism: a real drawing containing consecutive
+numbers, read against the simulated distribution. Sets the evidentiary
+pattern the other two exhibits repeat.
+
+### Exhibit B — Shared numbers
+
+Two real drawings, numbers in common, next to the hypergeometric
+expectation. The gold/blue distinction — gold for observed, blue for
+expected/model — carries through every panel so the reader doesn't have
+to re-learn the encoding.
+
+### Exhibit C — Long droughts
+
+A single number's absence stretched across 48 drawings, positioned
+against the full simulated drought-length distribution rather than a
+single expected value — droughts are inherently a *distribution*
+question, not a point-estimate one.
+
+------------------------------------------------------------------------
+
+## [6. Key design decisions]{.smallcaps}
+
+**No unverified audience claims**\
+First-person observational statements ("this looks unusual") are fine;
+unverified claims about what audiences *generally* think ("most people
+believe...", "the human brain evolved to...") were rejected throughout
+editing. The writing stays with what the evidence supports rather than
+making claims about what readers generally believe or why they believe
+it.
+
+**The standfirst does not preview the reveal**\
+Every exhibit's payoff belongs to that exhibit. The introduction sets up
+the investigation and stops there — testing each draft against a simple
+rule: does this sentence do work that belongs to a specific exhibit
+instead of the frame around it?
+
+**Micro-triggers are navigation, not narration**\
+The short text cues between exhibits move the reader forward. They don't
+restate what the panel already shows — the evidence carries itself.
+
+**The coda reframes rather than concludes**\
+*"Randomness isn't the absence of patterns. It's the presence of
+patterns that don't mean anything"* was chosen over a flatter "resolved
+investigation" ending because it gives the reader a new way to hold the
+whole piece, not just a summary of what they already saw.
+
+------------------------------------------------------------------------
+
+## [7. Out of scope — by design]{.smallcaps}
+
+- Claims that any single drawing is "random" (the piece's standard is
+  *consistent with* a fair process, never a proof of randomness)
+- Speculation about lottery integrity, rigging, or operator behavior
+- Predictive claims about future drawings
+- Statistical significance testing beyond percentile placement against
+  the simulated distribution
+
+These were excluded to keep the piece's claims exactly as strong as the
+evidence supports — no stronger.
+
+------------------------------------------------------------------------
+
+## [8. Technical lessons from the build]{.smallcaps}
+
+### From Closeread to plain CSS `position: sticky`
+
+The first implementation used Quarto's Closeread extension. During
+development it became clear that the interaction model — scroll-linked
+JavaScript, `cr-active` state, sequential-reveal wiring — was more
+complex than the narrative actually required, since this piece is one
+static image per section rather than multiple states per figure. The
+final version was rebuilt using plain CSS `position: sticky`. The result
+preserves the same reading experience while substantially reducing
+implementation complexity and removing the JavaScript dependency
+entirely. The Closeread build is preserved in git history — useful
+precedent for a future project whose format is naturally
+sequential-reveal, where that framework's value proposition genuinely
+applies.
+
+### `quarto publish netlify` renders and deploys in one command
+
+First run opens a browser tab for account authorization and writes
+`_publish.yml`; every subsequent run is the same one-line command and
+keeps the same URL. First publish always creates a **new** Netlify site
+rather than touching any existing one — worth renaming the
+auto-generated slug immediately, since that's the URL you may be
+committing to for years.
+
+------------------------------------------------------------------------
+
+## [9. Outcome and reflection]{.smallcaps}
+
+**Outcome**
+
+The final piece walks a reader through three real, visually convincing
+patterns and resolves each one against simulation — without ever
+overclaiming what "consistent with a fair random process" can support.
+The sticky-figure reading experience delivers the intended narrative
+feel at a fraction of the implementation cost of the framework
+originally chosen for the job. The finished article is designed to leave
+readers with a different intuition about randomness than they had when
+they began — that's the success criterion, not the statistics
+themselves.
+
+**Reflection**
+
+The experience reinforced that good data stories are driven by editorial
+structure rather than technology. Once the evidence, pacing, and
+narrative were established, the implementation became a means to support
+those decisions — not the other way around.
+
+------------------------------------------------------------------------
+
+**Project repository**
+
+- Interactive article: <https://randomness-docket.netlify.app/>
+- Source code: <https://github.com/poncest/randomness-docket>
+
+------------------------------------------------------------------------
+
+## [Appendix: Methodology & Build Notes]{.smallcaps}
+
+### Data
+
+- NY State Gaming Commission, Powerball Winning Numbers, 2010–present
+- Current-era statistics (all three exhibits): 2015–present draws only,
+  matching the 2015 white-ball pool-size change
+- Simulation: 5,000-replicate Monte Carlo using real draw mechanics
+  (5-of-69, no replacement)
+- Exhibit A: 26.4% observed vs. 26.3% expected consecutive-pair rate
+- Exhibit B: 32.0% observed vs. 32.2% hypergeometric expected overlap
+  rate (n = 1,369 drawing pairs)
+- Exhibit C: 48-drawing drought, 16th percentile of simulated
+  distribution
+
+### Technical Stack
+
+- **Language:** R
+- **Visualization:** ggplot2
+- **Publishing:** Quarto (`html` format, plain CSS sticky positioning)
+- **Typography:** Libre Caslon Display/Text + Archivo
+- **Deployment:** Netlify (`quarto publish netlify`)
