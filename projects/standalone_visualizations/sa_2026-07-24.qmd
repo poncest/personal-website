@@ -1,0 +1,414 @@
+---
+title: "What was once exceptional is now ordinary."
+subtitle: "Today's regular FDA review is faster than the FDA's expedited Priority review was four decades ago."
+description: "FDA drug review times fell across the board from 1985 to 2025, but the sharpest gains came from the collapse of the Priority pathway's once-widening advantage over Standard review. Built from 1,387 NME/BLA approvals using decade-median comparisons, with a cross-era THEN/NOW framing rather than a raw distribution chart. Created in R with ggplot2, patchwork, and ggtext."
+date: "2026-07-24"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-07-24.html"
+categories: ["Standalone", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "FDA",
+  "drug-approvals",
+  "regulatory-policy",
+  "healthcare",
+  "data-journalism",
+  "patchwork",
+  "ggtext",
+  "editorial-graphic",
+  "pharma",
+  "cross-era-comparison",
+  "R",
+  "ggplot2",
+  "2026"
+]
+image: "thumbnails/sa_2026-07-24.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Editorial infographic titled "What was once exceptional is now ordinary." A 1980s FDA Priority review took a median of 788 days; a 2020s FDA Standard review takes 365 days — less than half the time. A line chart below shows median review days by decade, 1985–2025, for both pathways: Priority stayed faster throughout, but its advantage over Standard widened through the 1990s–2000s before narrowing sharply after 2010. Based on 1,387 NME/BLA approvals. Source: FDA CDER.](sa_2026-07-24.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, janitor, patchwork,
+    scales, glue, here
+    )
+})
+
+### |- figure size ----          
+camcorder::gg_record(
+    dir    = here::here("temp_plots"),
+    device = "png",
+    width  = 8,
+    height = 9.6,
+    units  = "in",
+    dpi    = 320
+)
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+raw <- read_csv(
+  here::here("data/nme_approvals_raw.csv"), show_col_types = FALSE) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+nme <- raw |>
+  mutate(
+    receipt_date = mdy(fda_receipt_date),
+    approval_date = mdy(fda_approval_date),
+    review_days = as.numeric(approval_date - receipt_date),
+    decade = paste0(floor(approval_year / 10) * 10, "s"),
+    rd = if_else(str_starts(review_designation, "Priority"),
+      "Priority", "Standard"
+    )
+  ) |>
+  filter(!is.na(review_days), review_days >= 0)
+
+decade_levels <- c("1980s", "1990s", "2000s", "2010s", "2020s")
+
+medians <- nme |>
+  group_by(decade, rd) |>
+  summarise(median_days = median(review_days), n = n(), .groups = "drop") |>
+  mutate(decade = factor(decade, levels = decade_levels)) |>
+  arrange(decade)
+
+HERO_PRIORITY_80S <- medians |>
+  filter(decade == "1980s", rd == "Priority") |>
+  pull(median_days)
+
+HERO_STANDARD_20S <- medians |>
+  filter(decade == "2020s", rd == "Standard") |>
+  pull(median_days)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = c(
+    bg        = "#FAF7F1",
+    charcoal  = "#2B2B29",
+    priority  = "#9C8F73",
+    text      = "#1A1A18",
+    subtext   = "#5A5650",
+    ring      = "#1A1A18",
+    refline   = "#C9C2B2"
+  )
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+font_add_google("Inter Tight", "inter_tight_title")
+showtext_auto()
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- hero panel: THEN / NOW ----
+hero <- ggplot() +
+  xlim(0, 1) +
+  ylim(0, 1) +
+  annotate("segment",
+    x = 0.475, xend = 0.475, y = 0.42, yend = 0.95,
+    color = colors$palette["refline"], linewidth = 0.8
+  ) +
+  annotate("text",
+    x = 0.0, y = 0.95, label = "THEN \u2014 1985\u20131989",
+    hjust = 0, size = 3.6, family = fonts$text, fontface = "bold",
+    color = colors$palette["subtext"]
+  ) +
+  annotate("richtext",
+    x = 0.0, y = 0.82,
+    label = "FDA **Priority review**<br><i>faster pathway</i>",
+    hjust = 0, size = 4.4, family = fonts$text, color = colors$palette["subtext"],
+    fill = NA, label.color = NA
+  ) +
+  annotate("text",
+    x = 0.0, y = 0.55, label = glue("{HERO_PRIORITY_80S} days"),
+    hjust = 0, size = 12.5, family = fonts$text, fontface = "bold",
+    color = colors$palette["subtext"]
+  ) +
+  annotate("text",
+    x = 0.55, y = 0.95, label = "NOW \u2014 2020\u20132025",
+    hjust = 0, size = 3.6, family = fonts$text, fontface = "bold",
+    color = colors$palette["subtext"]
+  ) +
+  annotate("richtext",
+    x = 0.55, y = 0.82,
+    label = "FDA **Standard review**<br><i>regular pathway</i>",
+    hjust = 0, size = 4.4, family = fonts$text, color = colors$palette["text"],
+    fill = NA, label.color = NA
+  ) +
+  annotate("text",
+    x = 0.55, y = 0.55, label = glue("{HERO_STANDARD_20S} days"),
+    hjust = 0, size = 12.5, family = fonts$text, fontface = "bold",
+    color = colors$palette["text"]
+  ) +
+  annotate("text",
+    x = 0.5, y = 0.25,
+    label = "Today's regular review takes less than half the time.",
+    hjust = 0.5, size = 4.2, family = fonts$text, color = colors$palette["text"],
+    fontface = "italic"
+  ) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = colors$palette["bg"], color = NA))
+
+### |- supporting evidence panel ----
+med_wide <- medians |>
+  select(decade, rd, median_days) |>
+  pivot_wider(names_from = rd, values_from = median_days)
+
+label_df <- med_wide |> filter(decade == "2020s")
+
+ring_points <- medians |>
+  filter((decade == "1980s" & rd == "Priority") |
+    (decade == "2020s" & rd == "Standard"))
+
+evidence <- ggplot(medians, aes(x = decade, y = median_days, group = rd)) +
+  geom_ribbon(
+    data = med_wide, aes(x = decade, ymin = Priority, ymax = Standard, group = 1),
+    inherit.aes = FALSE, fill = colors$palette["priority"], alpha = 0.16
+  ) +
+  geom_line(aes(color = rd, linewidth = rd)) +
+  geom_point(aes(color = rd), size = 2.6) +
+  geom_point(
+    data = ring_points, color = colors$palette["ring"], size = 5.5,
+    shape = 21, stroke = 1.6, fill = NA
+  ) +
+  geom_text(
+    data = label_df |> pivot_longer(c(Priority, Standard),
+      names_to = "rd", values_to = "median_days"
+    ),
+    aes(x = 5.15, y = median_days, label = rd, color = rd),
+    hjust = 0, size = 3.6, family = fonts$text, fontface = "bold",
+    inherit.aes = FALSE
+  ) +
+  scale_color_manual(
+    values = c(Priority = "#9C8F73", Standard = "#2B2B29"),
+    guide = "none"
+  ) +
+  scale_linewidth_manual(values = c(Priority = 1.1, Standard = 1.4), guide = "none") +
+  scale_x_discrete(expand = expansion(add = c(0.3, 1.3))) +
+  scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0.02, 0.1))) +
+  labs(
+    title = "The gap between pathways widened before it narrowed.",
+    x = NULL, y = NULL
+  ) +
+  theme_minimal(base_family = fonts$text) +
+  theme(
+    plot.background = element_rect(fill = colors$palette["bg"], color = NA),
+    panel.background = element_rect(fill = colors$palette["bg"], color = NA),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(size = 9, color = colors$palette["subtext"]),
+    axis.text.y = element_blank(),
+    plot.title = element_textbox_simple(
+      size = 9.5, color = colors$palette["subtext"], margin = margin(b = 4), width = unit(1, "npc")
+    ),
+    plot.margin = margin(0, 30, 0, 6)
+  )
+
+### |- footer ----
+footer_text <- str_glue(
+  "Priority review is the FDA's faster pathway; Standard review is the regular pathway.<br><br>",
+  "Review time is measured from FDA receipt to approval.<br>",
+  "Values are decade medians across 1,387 NME/BLA approvals (1985\u20132025).<br>",
+  "Source: FDA CDER."
+)
+
+icons <- get_social_icons()
+
+caption_text <- str_glue(
+  "{footer_text}<br><br><br>",
+  "<span style='color:#8A8378'>{icons$linkedin} stevenponce &bull; {icons$bluesky} sponce1 &bull; ",
+  "{icons$github} poncest &bull; #rstats #ggplot2</span>"
+)
+
+footer <- ggplot() +
+  annotate("richtext",
+    x = 0, y = 0, label = caption_text,
+    hjust = 0, size = 3, family = fonts$text, color = colors$palette["subtext"],
+    fill = NA, label.color = NA
+  ) +
+  xlim(0, 1) +
+  ylim(-0.45, 0.45) +
+  theme_void() +
+  theme(plot.background = element_rect(fill = colors$palette["bg"], color = NA))
+
+### |- compose ----
+final_plot <- hero / evidence / footer +
+  plot_layout(heights = c(1.2, 2.0, 0.8)) +
+  plot_annotation(
+    title = "What was once exceptional is now ordinary.",
+    subtitle = "Today's regular FDA review is faster than the FDA's expedited Priority review was four decades ago.",
+    theme = theme(
+      plot.background = element_rect(fill = colors$palette["bg"], color = NA),
+      plot.title = element_text(
+        family = "inter_tight_title", face = "bold", size = 21,
+        color = colors$palette["text"], margin = margin(6, 0, 4, 6)
+      ),
+      plot.subtitle = element_text(
+        family = fonts$text, size = 11.5, color = colors$palette["subtext"],
+        margin = margin(0, 0, 14, 6)
+      )
+    )
+  ) &
+  theme(plot.background = element_rect(fill = colors$palette["bg"], color = NA))
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |-  plot image ----
+
+main_file <- here::here("projects/standalone_visualizations/sa_2026-07-24.png")
+thumb_file <- here::here("projects/standalone_visualizations/thumbnails/sa_2026-07-24.png")
+
+dir.create(dirname(main_file), recursive = TRUE, showWarnings = FALSE)
+dir.create(dirname(thumb_file), recursive = TRUE, showWarnings = FALSE)
+
+latest_frame <- list.files(here::here("temp_plots"), full.names = TRUE) |>
+  (\(f) f[order(file.info(f)$mtime)])() |>
+  tail(1)
+
+file.copy(from = latest_frame, to = main_file, overwrite = TRUE)
+
+magick::image_read(main_file) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_file)
+
+```
+
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`sa_2026-07-24.qmd`](https://github.com/poncest/personal-website/blob/master/projects/standalone_visualizations/sa_2026-07-24.qmd).
+
+For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+1.  **Data Source:**
+    -   U.S. Food and Drug Administration, CDER: [Compilation of CDER New Molecular Entity (NME) Drug and New Biologic Approvals](https://www.fda.gov/drugs/drug-approvals-and-databases/compilation-cder-new-molecular-entity-nme-drug-and-new-biologic-approvals)
+    -   Data pulled 2026-07-18. The FDA updates this page as new approvals occur; figures reflect approvals recorded as of the pull date, not the current state of the source page.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+    -   ⚠️ `save_plot_patchwork()` has a known reliability issue when called from a Quarto `.qmd` render alongside `camcorder::gg_record()` — the two appear to conflict over graphics device state, causing a `dev.off()` failure that masks the real underlying error. This piece uses plain `ggsave()` + manual thumbnail generation instead. Confirmed via a prior standalone project hitting the same root cause.
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
