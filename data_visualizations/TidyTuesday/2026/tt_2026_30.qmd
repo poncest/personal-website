@@ -66,7 +66,7 @@ suppressPackageStartupMessages({
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
     tidyverse, ggtext, showtext, janitor, ggrepel,      
-    scales, glue, skimr
+    scales, glue, skimr, patchwork, ggridges
     )
 })
 
@@ -74,8 +74,8 @@ pacman::p_load(
 camcorder::gg_record(
   dir    = here::here("temp_plots"),
     device = "png",
-    width  = 10,
-    height = 5.5,
+    width  = 11,
+    height = 6.5,
     units  = "in",
     dpi    = 320
 )
@@ -96,8 +96,9 @@ source(here::here("R/themes/base_theme.R"))
 #| warning: false
 
 ## 2. READ IN THE DATA ----
-tt <- tidytuesdayR::tt_load(2026, week = 29)
-nde_experiences <- tt$nde_experiences |> clean_names()
+tt <- tidytuesdayR::tt_load(2026, week = 30)
+occurrences <- tt$occurrences |> clean_names()
+weather     <- tt$weather     |> clean_names()
 rm(tt)
 ```
 
@@ -110,7 +111,8 @@ rm(tt)
 #| results: 'hide'
 #| warning: false
 
-glimpse(nde_experiences)
+glimpse(occurrences)
+glimpse(weather)
 ```
 
 #### [4. Tidy Data]{.smallcaps}
@@ -119,61 +121,61 @@ glimpse(nde_experiences)
 #| label: tidy
 #| warning: false
 
-### |- analytic sample ----
-nde_clean <- nde_experiences |>
-    filter(!is.na(greyson_score))
+## |- join, explicit suffixes ----
+occ_weather <- occurrences |>
+  left_join(weather, by = c("date", "ws_id"), suffix = c("_occ", "_wx"))
 
-### |- Wilson CI helper ----
-wilson_ci <- function(x, n, conf = 0.95) {
-    z <- qnorm(1 - (1 - conf) / 2)
-    p <- x / n
-    denom <- 1 + z^2 / n
-    center <- (p + z^2 / (2 * n)) / denom
-    half <- z * sqrt(p * (1 - p) / n + z^2 / (4 * n^2)) / denom
-    tibble(estimate = p, conf.low = center - half, conf.high = center + half)
-}
+### |- leave-one-out day-of-year baseline ----
+weather_loo <- weather |>
+  left_join(
+    weather |>
+      summarise(
+        baseline_sum = sum(temp, na.rm = TRUE),
+        baseline_n = sum(!is.na(temp)),
+        .by = c(ws_id, dayofyear)
+      ),
+    by = c("ws_id", "dayofyear")
+  ) |>
+  mutate(
+    temp_baseline_loo = case_when(
+      !is.na(temp) & baseline_n > 1 ~ (baseline_sum - temp) / (baseline_n - 1),
+      TRUE ~ NA_real_
+    ),
+    temp_anomaly_loo = temp - temp_baseline_loo
+  )
 
-### |- raw comparison table (OBE present/absent x ESP/Unity) ----
-raw_summary <- nde_clean |>
-    mutate(obe_group = if_else(ai_obe, "OBE reported", "No OBE reported")) |>
-    summarise(
-        n = n(),
-        esp_x = sum(ai_esp),
-        unity_x = sum(ai_unity),
-        .by = obe_group
-    ) |>
-    mutate(
-        esp = map2(esp_x, n, wilson_ci),
-        unity = map2(unity_x, n, wilson_ci)
-    ) |>
-    select(obe_group, n, esp, unity) |>
-    pivot_longer(c(esp, unity), names_to = "feature", values_to = "ci") |>
-    unnest(ci) |>
-    mutate(
-        feature = case_match(feature, "esp" ~ "ESP", "unity" ~ "Unity"),
-        obe_group = factor(obe_group, levels = c("No OBE reported", "OBE reported"))
-    )
+occ_weather_loo <- occ_weather |>
+  left_join(
+    weather_loo |> select(ws_id, date, temp_anomaly_loo),
+    by = c("ws_id", "date")
+  )
 
-### |- delta table ----
-delta_summary <- raw_summary |>
-    select(feature, obe_group, estimate) |>
-    pivot_wider(names_from = obe_group, values_from = estimate) |>
-    mutate(
-        delta = `OBE reported` - `No OBE reported`,
-        delta_label = glue("{if_else(delta >= 0, '+', '\u2212')}{abs(round(delta * 100, 1))} pp"),
-        raw_label = glue(
-            "{percent(`OBE reported`, accuracy = 1)} vs. {percent(`No OBE reported`, accuracy = 1)}"
-        ),
-        bar_color = if_else(feature == "ESP", "#722F37", "#C2B8AC"),  
-        bar_alpha = if_else(feature == "ESP", 1, 0.6),          
-        gloss_label = case_match(
-            feature,
-            "ESP"   ~ "**ESP**<br><span style='font-size:9pt;color:#8A8A8A'>(extrasensory perception)</span>",
-            "Unity" ~ "**Unity**<br><span style='font-size:9pt;color:#8A8A8A'>(feeling of oneness)</span>"
-        ),
-        feature = factor(feature, levels = c("Unity", "ESP")),
-        y_pos = as.integer(feature)   
-    )
+### |- dedup to species x station x date ----
+species_station_days <- occ_weather_loo |>
+  filter(!is.na(temp), !is.na(temp_anomaly_loo)) |>
+  summarise(
+    temp = first(temp),
+    temp_anomaly = first(temp_anomaly_loo),
+    .by = c(organism_name, ws_id, date)
+  )
+
+### |- species order + sample-size labels ----
+species_order <- species_station_days |>
+  summarise(median_temp = median(temp), n = n(), .by = organism_name) |>
+  arrange(median_temp) |>
+  mutate(label = glue::glue("{organism_name} (n={n})"))
+
+### |- attach ordered species label ----
+species_station_days <- species_station_days |>
+  left_join(species_order |> select(organism_name, label), by = "organism_name") |>
+  mutate(label = factor(label, levels = species_order$label))
+
+### |- split ridgeline species vs. sparse-observation species ----
+glowworm_label <- species_order$label[species_order$organism_name == "Glowworm"]
+
+ridge_data <- species_station_days |> filter(organism_name != "Glowworm")
+sparse_data <- species_station_days |> filter(organism_name == "Glowworm")
+
 ```
 
 #### [5. Visualization Parameters]{.smallcaps}
@@ -184,52 +186,66 @@ delta_summary <- raw_summary |>
 #| warning: false
 
 ### |- plot aesthetics ----
-colors <- get_theme_colors(
-    palette = c("highlight" = "#722F37", "muted" = "#C2B8AC")
+clrs <- get_theme_colors(
+    palette = list(
+        col_glowworm = "gray55",
+        col_orchid   = "#4A7A96",
+        col_manta    = "#C98A3C",
+        col_gouldian = "#722F37"
+    )
 )
 
-### |- titles and caption ----
-title_text <- str_wrap(
-    "Out-of-body experiences are linked to ESP—not to unity",
-    width = 55
-) |> str_replace_all("\n", "<br>")
-
-subtitle_text <- str_glue(
-    "How much more common was each feature when an out-of-body experience was also reported?"
-)
-
-footnote_text <- str_wrap(
-    "**Association, not causation.** The link between out-of-body experiences and ESP remained after adjusting for depth, narrative length, clinical death, and language. Unity showed no comparable link.",
-    width = 175
-) |> str_replace_all("\n", "<br>")
-
-caption_text <- create_social_caption(
-    tt_year = 2026,
-    tt_week = 29,
-    source_text = "NDERF (Near Death Experience Research Foundation)"
-)
+## literal hex values here instead of extracting from clrs.
+species_palette <- c("gray55", "#4A7A96", "#C98A3C", "#722F37")[
+    seq_along(levels(species_station_days$label))
+]
+names(species_palette) <- levels(species_station_days$label)
 
 ### |- fonts ----
 setup_fonts()
 fonts <- get_font_families()
 
+### |- titles and caption ----
+title_text    <- "Different climates, less distinct local weather"
+
+subtitle_text <- paste0(
+    "Observed temperatures span nearly 20\u00b0C across species \u2014<br>",
+    "comparing each station-day with its own seasonal normal removes much of the apparent separation."
+)
+
+### |- footnote + social caption ----
+footnote_line1 <- str_wrap(
+    "**Left: **temperature on observed station-days. **Right: **departure from each station's day-of-year average. One observation was retained per species \u00d7 station \u00d7 date. Glowworm is shown as points because only five station-days were available.",
+    width = 100) |> str_replace_all("\n", "<br>")
+
+footnote_line2 <- "Limited station coverage prevents species-level inference."
+
+footnote_text <- paste0(footnote_line1, "<br>", footnote_line2)
+
+social_caption <- create_social_caption(
+    tt_year = 2026,
+    tt_week = 30,
+    source_text = "ecotourism R package (occurrences, weather, and tourism data)"
+)
+
+caption_text <- paste0(footnote_text, "<br><br>", social_caption)
+
 ### |- plot theme ----
-base_theme <- create_base_theme(colors)
+base_theme <- create_base_theme(clrs)
 
 weekly_theme <- extend_weekly_theme(
-    base_theme,
-    theme(
-        plot.title = element_markdown(face = "bold", family = fonts$title_1, size = 20, lineheight = 1.15),
-        plot.subtitle = element_markdown(family = fonts$text, size = 11, margin = margin(b = 14), color = colors$subtitle),
-        plot.caption = element_markdown(family = fonts$text, size = 8, hjust = 0, color = colors$caption),
-        plot.margin = margin(t = 10, r = 40, b = 10, l = 10),
-        panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(color = "gray92", linewidth = 0.3),
-        panel.grid.minor = element_blank(),
-        axis.ticks = element_blank(),
-        axis.text.y = element_blank(),  
-        axis.text.x = element_text(size = 10)
-    )
+  base_theme,
+  theme(
+    plot.title = element_markdown(face = "bold", family = fonts$title_1, size = 24, lineheight = 1.15),
+    plot.subtitle = element_markdown(family = fonts$text, size = 11, margin = margin(b = 14), lineheight = 1.1, color = "#4A4340"),
+    plot.caption = element_markdown(family = fonts$caption, size = 6, hjust = 0, color = "#7A7068", lineheight = 1.4),
+    plot.margin = margin(t = 10, r = 40, b = 10, l = 10),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "gray92", linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.x = element_text(size = 10)
+  )
 )
 
 theme_set(weekly_theme)
@@ -241,50 +257,68 @@ theme_set(weekly_theme)
 #| label: plot
 #| warning: false
 
-### |- plot ----
-p <- delta_summary |>
-    ggplot(aes(x = delta, y = feature)) +
-    geom_col(aes(fill = bar_color, alpha = bar_alpha), width = 0.5) +
-    geom_vline(xintercept = 0, color = "gray50", linewidth = 0.3) +
-    annotate(
-        "text", x = 0, y = Inf, label = "No difference",
-        size = 3, family = fonts$text, color = "gray50", fontface = "italic",
-        hjust = 0.5, vjust = 1.8
-    ) +
-    scale_fill_identity() +
-    scale_alpha_identity() +
-    geom_richtext(
-        aes(x = -0.135, y = y_pos, label = gloss_label),
-        hjust = 1, vjust = 0.5,
-        family = fonts$text, size = 4,
-        fill = NA, label.color = NA,
-        inherit.aes = FALSE, data = delta_summary
-    ) +
-    geom_text(
-        aes(
-            label = delta_label,
-            x = delta + if_else(delta >= 0, 0.008, -0.008),
-            hjust = if_else(delta >= 0, 0, 1)
-        ),
-        size = 3.8, fontface = "bold", family = fonts$title_1, color = "gray40"
-    ) +
-    geom_text(
-        aes(label = raw_label, x = 0, hjust = if_else(delta >= 0, 1, 0)),
-        nudge_x = if_else(delta_summary$delta >= 0, -0.006, 0.006),
-        size = 4.4, fontface = "bold", family = fonts$text, color = "gray15"
-    ) +
-    scale_x_continuous(
-        limits = c(-0.2, 0.24),
-        labels = label_number(suffix = " pp", scale = 100),
-        breaks = c(-0.10, 0, 0.10, 0.20)
-    ) +
-    coord_cartesian(clip = "off") +
-    labs(
-        title = title_text,
-        subtitle = subtitle_text,
-        caption = glue("{footnote_text}<br><br>{caption_text}"),
-        x = "Percentage-point difference", y = NULL
-    )
+### |- panel A: climate where observed ----
+p_raw <- ggplot(species_station_days, aes(y = label)) +
+  annotate("segment",
+    x = -Inf, xend = Inf, y = glowworm_label, yend = glowworm_label,
+    color = "gray88", linewidth = 0.4
+  ) +
+  geom_density_ridges(
+    data = ridge_data, aes(x = temp, fill = label),
+    color = "white", alpha = 0.9, scale = 0.95
+  ) +
+  geom_point(
+    data = sparse_data, aes(x = temp, color = label),
+    size = 2.4, alpha = 0.9
+  ) +
+  scale_fill_manual(values = species_palette, guide = "none") +
+  scale_color_manual(values = species_palette, guide = "none") +
+  scale_x_continuous(labels = label_number(suffix = "\u00b0C")) +
+  labs(title = "Climate where observed", x = NULL, y = NULL) +
+  theme(
+    plot.title.position = "panel",
+    plot.title = element_markdown(
+      family = fonts$text, size = 12, color = "gray30",
+      hjust = 0.5, face = "plain"
+    ),
+    axis.text.y = element_text(family = fonts$text, face = "bold", size = 10, color = "gray20")
+  )
+
+### |- panel B: relative to local seasonal normal ----
+p_anomaly <- ggplot(species_station_days, aes(y = label)) +
+  annotate("segment",
+    x = -Inf, xend = Inf, y = glowworm_label, yend = glowworm_label,
+    color = "gray88", linewidth = 0.4
+  ) +
+  geom_vline(xintercept = 0, color = "gray50", linewidth = 0.4, linetype = "dashed", alpha = 0.55) +
+  geom_density_ridges(
+    data = ridge_data, aes(x = temp_anomaly, fill = label),
+    color = "white", alpha = 0.9, scale = 0.95
+  ) +
+  geom_point(
+    data = sparse_data, aes(x = temp_anomaly, color = label),
+    size = 2.4, alpha = 0.9
+  ) +
+  scale_fill_manual(values = species_palette, guide = "none") +
+  scale_color_manual(values = species_palette, guide = "none") +
+  scale_x_continuous(labels = label_number(suffix = "\u00b0C", style_positive = "plus")) +
+  labs(title = "Relative to local seasonal normal", x = NULL, y = NULL) +
+  theme(
+    plot.title.position = "panel",
+    plot.title = element_markdown(
+      family = fonts$text, size = 12, color = "gray30",
+      hjust = 0.5, face = "plain"
+    ),
+    axis.text.y = element_blank()
+  )
+
+### |- combine ----
+p <- (p_raw | p_anomaly) +
+  plot_annotation(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text
+  )
 ```
 
 #### [7. Save]{.smallcaps}
@@ -293,15 +327,16 @@ p <- delta_summary |>
 #| label: save
 #| warning: false
 
-### |-  plot image ----  
-save_plot(
-  plot = p, 
-  type = "tidytuesday", 
-  year = 2026, 
-  week = 29, 
-  width  = 10,
-  height = 5.5
-  )
+camcorder::gg_stop_recording()
+
+save_plot_patchwork(
+  plot = p,
+  type = "tidytuesday",
+  year = 2026,
+  week = 30,
+  width  = 11,
+  height = 6.5
+)
 ```
 
 #### [8. Session Info]{.smallcaps}
@@ -332,7 +367,7 @@ For the full repository, [click here](https://github.com/poncest/personal-websit
 ::: {.callout-tip collapse="true"}
 ##### Expand for References
 1.  **Data Source:**
-    -   TidyTuesday 2026 Week 29: [Near-Death Experiences (NDERF)](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-07-21/readme.md)
+    -   TidyTuesday 2026 Week 30: [Ecotourism](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-07-28/readme.md)
 
 :::
 
@@ -357,3 +392,4 @@ These utilities standardize theming, fonts, and output across all my data visual
 **Source Code:**\
 View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
 :::
+
