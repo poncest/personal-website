@@ -1,0 +1,406 @@
+---
+title: "The stage with the lowest odds isn't FDA review"
+subtitle: "Of 1,000 experimental drugs entering Phase I trials, more are lost during Phase II proof-of-concept testing than at any other stage of development"
+description: "A waterfall chart applying published clinical-trial transition rates to 1,000 hypothetical Phase I drug candidates, showing that Phase II proof-of-concept testing — not FDA review — is where the most candidates are lost. Built in R with ggplot2, ggtext, and ggview, sourced from BIO, Informa Pharma Intelligence and QLS Advisors (2011–2020)."
+date: "2026-08-01"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/SWD%20Challenge/2026/swd_2026_08.html"
+categories: ["SWDchallenge", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "SWDchallenge",
+  "waterfall-chart",
+  "drug-development",
+  "clinical-trials",
+  "pharma",
+  "attrition",
+  "ggplot2",
+  "ggtext",
+  "ggview",
+  "r-programming",
+  "annotation",
+  "storytelling-with-data",
+  "2026"
+]
+image: "thumbnails/swd_2026_08.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+### Challenge
+
+Good stories often have a clear beginning, middle, and end. They don’t all have to look the same, however. This month’s challenge is to share a waterfall chart that sends a message.
+
+Additional information can be found [HERE](https://community.storytellingwithdata.com/challenges)
+
+### Visualization
+
+![Waterfall chart titled "The stage with the lowest odds isn't FDA review." The chart tracks a hypothetical cohort of 1,000 experimental drugs from Phase I trials through FDA approval, with floating bars showing how many candidates are lost at each development stage. Phase II proof-of-concept testing, highlighted in burgundy, eliminates more candidates than any other single stage — 370, compared to 480 in Phase I safety testing, 63 in Phase III confirmation, and just 8 during FDA review. Only 28.9% of candidates advance beyond Phase II, versus a 90.6% approval rate at FDA review. The bridge ends with 79 of the original 1,000 candidates reaching approval. Source: BIO, Informa Pharma Intelligence and QLS Advisors, Clinical Development Success Rates 2011–2020.](thumbnails/swd_2026_08.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse, ggtext, showtext, janitor, scales, glue, patchwork, ggview
+  )
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+
+## No external file. Figures are sourced directly from the published report:
+## BIO, Informa Pharma Intelligence & QLS Advisors. "Clinical Development
+## Success Rates and Contributing Factors 2011-2020." February 2021.
+## 12,728 phase transitions across 9,704 development programs, 2011-2020.
+##
+## Phase transition success rates ("all indications"):
+##   Phase I   -> Phase II   : 52.0% (n = 4,414)
+##   Phase II  -> Phase III  : 28.9% (n = 4,933)   
+##   Phase III -> NDA/BLA    : 57.8% (n = 1,928)
+##   NDA/BLA   -> Approval   : 90.6% (n = 1,453)  
+##
+## Overall likelihood of approval (LOA) from Phase I: 7.9% (n = 12,728)
+
+phase_success_rates <- tribble(
+  ~stage,        ~success_rate,
+  "phase_1",     0.520,
+  "phase_2",     0.289,
+  "phase_3",     0.578,
+  "nda_bla",     0.906
+)
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(phase_success_rates)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| output: false
+
+## Apply the published rates to a hypothetical starting cohort of 1,000
+## Phase I programs. This is a compounded-probability illustration, NOT a
+## single tracked group of real drugs -- the "n" values above are
+## transition-specific denominators from the full 2011-2020 dataset, not
+## one cohort's headcount at each stage. Disclosed in the caption.
+
+cohort_start <- 1000
+
+cohort_totals <- phase_success_rates |>
+  mutate(
+    running_total = cohort_start * cumprod(success_rate),
+    running_total = round(running_total)
+  ) |>
+  pull(running_total)
+
+## Build the waterfall geometry
+waterfall_data <- tibble(
+  stage = c("Start", "Phase I", "Phase II", "Phase III", "NDA/BLA", "Approved"),
+  bar_type = c("total", "loss", "loss", "loss", "loss", "total"),
+  ymin = c(0, cohort_totals[1], cohort_totals[2], cohort_totals[3], cohort_totals[4], 0),
+  ymax = c(1000, 1000, cohort_totals[1], cohort_totals[2], cohort_totals[3], cohort_totals[4])
+) |>
+  mutate(
+    stage = fct_inorder(stage),
+    x_pos = row_number(),
+    bar_label = c(
+      "1,000",
+      glue("\u2212{comma(1000 - cohort_totals[1])}"),
+      glue("\u2212{comma(cohort_totals[1] - cohort_totals[2])}"),
+      glue("\u2212{comma(cohort_totals[2] - cohort_totals[3])}"),
+      glue("\u2212{comma(cohort_totals[3] - cohort_totals[4])}"),
+      comma(cohort_totals[4])
+    ),
+    is_accent = stage == "Phase II"
+  )
+
+## Connector segments
+connector_data <- tibble(
+  x    = waterfall_data$x_pos[1:5] + 0.4,
+  xend = waterfall_data$x_pos[2:6] - 0.4,
+  y    = c(1000, cohort_totals[1], cohort_totals[2], cohort_totals[3], cohort_totals[4]),
+  yend = y
+)
+
+## Secondary running-total labels at each landing point.
+running_total_labels <- tibble(
+  x = c(1.5, 2.5, 3.5, 4.5),
+  y = c(1000, cohort_totals[1], cohort_totals[2], cohort_totals[3]) + 30,
+  label = comma(c(1000, cohort_totals[1], cohort_totals[2], cohort_totals[3]))
+)
+
+## Plain-language subtext under each phase name
+stage_labels <- c(
+  "Start"      = "Start",
+  "Phase I"    = "Phase I\nSafety",
+  "Phase II"   = "Phase II\nProof of concept",
+  "Phase III"  = "Phase III\nConfirmation",
+  "NDA/BLA"    = "NDA/BLA\nFDA review",
+  "Approved"   = "Approved"
+)[as.character(waterfall_data$stage)]
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+
+### |-  plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    total  = "#2B2B2A",  
+    loss   = "gray70",   
+    accent = "#722F37"   
+  )
+)
+
+### |-  titles and caption ----
+title_text <- "The stage with the lowest odds isn't FDA review"
+
+subtitle_text <- str_glue("Of 1,000 experimental drugs entering Phase I trials, more are lost during<br>","
+                          Phase II proof-of-concept testing than at any other stage of development")
+
+annotation_text <- "Only 28.9% advance beyond Phase II \u2014 by comparison,<br>90.6% of submitted applications receive approval"
+
+caption_text <- create_swd_caption(
+  year = 2026,
+  month = "Aug",
+  source_text = "BIO, Informa Pharma Intelligence & QLS Advisors, Clinical Development Success Rates 2011\u20132020 (Feb 2021).<br>Figures show a **hypothetical cohort** of 1,000 Phase I programs computed by applying published industry-wide transition rates \u2014 not a single tracked group of drugs."
+)
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(lineheight = 1.1),
+    axis.title = element_blank(),
+    plot.title.position = "plot",
+    plot.title = element_text(
+      face = "bold", size = rel(1.6), family = fonts$title_1,
+      margin = margin(b = 8), fonts$title_1, color = clrs$title
+    ),
+    plot.subtitle = element_markdown(
+      size = rel(0.8), family = fonts$subtitle, lineheight = 1.15,
+      margin = margin(b = 16), color = clrs$subtitle
+    ),
+    plot.caption = element_textbox_simple(
+      size = rel(0.45), family = fonts$caption, color = alpha(clrs$caption, 0.8),
+      margin = margin(t = 10, b = 8)
+    )
+  )
+)
+
+theme_set(weekly_theme)
+
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| output: false
+
+### |-  plot ----
+p <- ggplot(waterfall_data) +
+  geom_segment(
+    data = connector_data,
+    aes(x = x, xend = xend, y = y, yend = yend),
+    color = "gray80", linewidth = 0.3
+  ) +
+  geom_rect(
+    aes(
+      xmin = x_pos - 0.4, xmax = x_pos + 0.4,
+      ymin = ymin, ymax = ymax,
+      fill = case_when(
+        bar_type == "total" ~ "total",
+        is_accent ~ "accent",
+        TRUE ~ "loss"
+      )
+    ),
+    color = NA
+  ) +
+  scale_fill_manual(
+    values = c(total = clrs$palette$total, loss = clrs$palette$loss, accent = clrs$palette$accent),
+    guide = "none"
+  ) +
+  geom_text(
+    data = waterfall_data |> filter(stage != "NDA/BLA"),
+    aes(x = x_pos, y = (ymin + ymax) / 2, label = bar_label),
+    color = "white", fontface = "bold", size = 4.2, family = fonts$text
+  ) +
+  geom_text(
+    data = waterfall_data |> filter(stage == "NDA/BLA"),
+    aes(x = x_pos, y = ymax + 45, label = bar_label),
+    color = "gray30", fontface = "bold", size = 4.2, family = fonts$text,
+    vjust = 0
+  ) +
+  geom_text(
+    data = running_total_labels,
+    aes(x = x, y = y, label = label),
+    color = "gray50", size = 3, family = fonts$text
+  ) +
+  annotate(
+    "richtext",
+    x = 4.5, y = 700,
+    label = annotation_text,
+    fill = NA, label.color = NA,
+    color = clrs$palette$accent, size = 3.6, family = fonts$text, fontface = "bold",
+    hjust = 0.5
+  ) +
+  scale_x_continuous(
+    breaks = waterfall_data$x_pos,
+    labels = stage_labels,
+    expand = expansion(mult = 0.03)
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL,
+    y = NULL
+  ) +
+  canvas(width = 11, height = 6.5, units = "in", dpi = 300)
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |- save ----
+main_path  <- here::here("data_visualizations", "SWD Challenge", "2026", "swd_2026_08.png")
+thumb_path <- here::here("data_visualizations", "SWD Challenge", "2026", "thumbnails", "swd_2026_08.png")
+
+# Full-size version, for the QMD figure
+save_ggplot(
+  plot = p,
+  file = main_path,
+  width = 11,
+  height = 6.5,
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
+
+# Reduced-size thumbnail, for the YAML `image:` field
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
+```
+
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in [`swd_2026_08.qmd`](https://github.com/poncest/personal-website/tree/master/data_visualizations/SWD%20Challenge/2026/swd_2026_08.qmd). For the full repository, [click here](https://github.com/poncest/personal-website/).
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**SWD Challenge:**
+- Storytelling with Data: [August 2026 — whip up a waterfall](https://community.storytellingwithdata.com/challenges/aug-2026-whip-up-a-waterfall) *(URL inferred from July's slug pattern — not verified; the community site is JS-rendered and I couldn't confirm the exact slug. Worth a manual check before publishing.)*
+
+**Data Sources:**
+- BIO, Informa Pharma Intelligence & QLS Advisors. *Clinical Development Success Rates and Contributing Factors 2011–2020*. February 2021. <https://www.bio.org/clinical-development-success-rates-and-contributing-factors-2011-2020> — phase-transition success rates: Phase I→II 52.0%, Phase II→III 28.9%, Phase III→NDA/BLA 57.8%, NDA/BLA→Approval 90.6% (12,728 transitions, 9,704 programs, 2011–2020).
+
+**Methodology Note:**
+- Figures represent a hypothetical cohort of 1,000 Phase I programs, computed by applying the report's published transition rates as compounded probabilities — not a single tracked group of real drugs. The underlying "n" values in the source report are transition-specific denominators from the full 2011–2020 dataset, not one cohort's headcount at each stage. Disclosed in the chart caption.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
