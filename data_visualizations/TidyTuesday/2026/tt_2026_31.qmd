@@ -283,18 +283,35 @@ p <- ggplot(seasonal_profile, aes(x = month_abb, y = pct_deviation, fill = repor
   canvas(width = 8, height = 8.7, units = "in", dpi = 300)
 ```
 
-#### [7. Save]{.smallcaps}
+### [7. Save]{.smallcaps}
 
 ```{r}
 #| label: save
 #| warning: false
 
+### |- save ----
+main_path  <- here::here("data_visualizations", "TidyTuesday", "2026", "tt_2026_31.png")
+thumb_path <- here::here("data_visualizations", "TidyTuesday", "2026", "thumbnails", "tt_2026_31.png")
+
+# Full-size version, for the QMD figure
 save_ggplot(
   plot = p,
-  file = here::here("data_visualizations/TidyTuesday/2026/tt_2026_31.png"),
-  width = 8, height = 8.7
+  file = main_path,
+  width = 8,
+  height = 8.7,
+  units = "in",
+  dpi = 320,
+  create.dir = TRUE
 )
+
+# Reduced-size thumbnail, for the YAML `image:` field
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
 ```
+
+
 
 #### [8. Session Info]{.smallcaps}
 
