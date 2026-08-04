@@ -1,0 +1,420 @@
+---
+title: "Large U.S. Services Surpluses Mask Overall Trade Deficits"
+subtitle: "Only 3 of 15 U.S. free trade partners have a services surplus but an overall trade deficit (2024): Canada, South Korea, and Mexico."
+description: "Compares U.S. services-only and overall (goods + services) trade balances for the three free-trade partners where the two diverge in sign in 2024. Canada, South Korea, and Mexico each show a services surplus that becomes an overall deficit once goods are included — a gap the original services-only ranking obscured. Built in R with ggplot2, ggtext, and scales."
+date: "2026-08-03"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_31.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "r-programming",
+  "trade-balance",
+  "international-trade",
+  "united-states",
+  "bar-chart",
+  "diverging-bar-chart",
+  "economics",
+  "canada",
+  "south-korea",
+  "mexico",
+  "2026"
+]
+image: "thumbnails/mm_2026_31.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 31
+project_file <- "mm_2026_31.qmd"
+project_image <- "mm_2026_31.png"
+
+## Data Sources
+data_main <- "https://pub-cee805df54de4b6c8f93bee984e3c725.r2.dev/datasets/america-s-services-trade-balances-with-its-free-trade-partners/Americas%20Services%20Trade%20Balances.xlsx"
+data_secondary <- "https://pub-cee805df54de4b6c8f93bee984e3c725.r2.dev/datasets/america-s-services-trade-balances-with-its-free-trade-partners/Americas%20Services%20Trade%20Balances.xlsx"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_31_original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://www.voronoiapp.com/geopolitics/Ranked-Americas-Services-Trade-Balances-with-Its-Free-Trade-Partners-4860"
+org_secondary <- "https://www.voronoiapp.com/geopolitics/Ranked-Americas-Services-Trade-Balances-with-Its-Free-Trade-Partners-4860"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+No 'original chart' was provided.
+
+### Makeover
+
+![Diverging column chart comparing the U.S. services trade balance to the overall (goods + services) trade balance for three countries in 2024. Canada: services +$34.9B, overall −$35.7B. South Korea: services +$10.7B, overall −$55.5B. Mexico: services +$2.5B, overall −$179.0B. All three show a positive services balance but a negative overall balance — the only 3 of 15 U.S. free-trade partners where this pattern holds in 2024.](mm_2026_31.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, 
+  janitor, ggview, patchwork
+)
+})
+
+# Source utility functions
+suppressMessages(
+  source(here::here("R/utils/fonts.R")))
+  source(here::here("R/utils/social_icons.R"))
+  source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- readxl::read_excel(
+  here::here("data/MakeoverMonday/2026/Americas_Services_Trade_Balances.xlsx"))  |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- verify the central claim ----
+# "Canada, South Korea, and Mexico are the only 3 of 15 partners with a
+# services surplus AND an overall deficit"
+n_total <- nrow(df_raw)
+
+df_selected <- df_raw |>
+  filter(services_b > 0, goods_and_services_b < 0)
+
+n_selected <- nrow(df_selected)
+
+### |- scope to the three hero countries ----
+hero_countries <- c("Canada", "South Korea", "Mexico")
+
+df3 <- df_raw |>
+  filter(country %in% hero_countries) |>
+  mutate(country = factor(country, levels = hero_countries))
+
+### |- long format, sign-coded ----
+# "Overall" -> "Goods + services"
+df_sign <- df3 |>
+  select(country, Services = services_b, `Goods + services` = goods_and_services_b) |>
+  pivot_longer(cols = -country, names_to = "metric", values_to = "value") |>
+  mutate(
+    metric = factor(metric, levels = c("Services", "Goods + services")),
+    sign = if_else(value >= 0, "Positive", "Negative"),
+    label = label_dollar(accuracy = 0.1, style_positive = "plus")(value) |>
+      str_replace("^-", "\u2212") |>
+      paste0("B")
+  )
+
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    positive  = "#1E3A5F",
+    negative  = "#B5532F",
+    zero_line = "gray20",
+    grid      = "gray92"
+  )
+)
+clrs <- colors$palette
+col_positive <- clrs[["positive"]]
+col_negative <- clrs[["negative"]]
+col_zero     <- clrs[["zero_line"]]
+col_grid     <- clrs[["grid"]]
+
+### |- titles and caption ----
+title_text <- "Large U.S. Services Surpluses Mask Overall Trade Deficits"
+
+subtitle_text <- str_glue(
+  "Only {n_selected} of {n_total} U.S. free trade partners have a services ",
+  "surplus but an overall trade deficit (2024):<br>",
+  "{glue_collapse(hero_countries, sep = ', ', last = ', and ')}."
+)
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 31,
+  source_text = paste0(
+    "Positive values indicate a U.S. surplus; negative values indicate a ",
+    "U.S. deficit.<br>",
+    "Source: U.S. Bureau of Economic Analysis (2024), via Visual Capitalist ",
+    "and the Hinrich Foundation."
+  )
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- plot theme ----
+base_theme <- create_base_theme(colors)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    legend.position = "none",
+    axis.text = element_text(size = 9, family = fonts$text),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_line(color = col_grid, linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 11.5, margin = margin(b = 4), family = fonts$title_2),
+    plot.title.position = "plot",
+    plot.title = element_text(
+      face = "bold", size = 22, family = fonts$title_1, color = colors$title,
+      margin = margin(b = 4), lineheight = 1.15
+    ),
+    plot.subtitle = element_textbox_simple(
+      color = colors$subtitle, size = 10, family = fonts$subtitle,
+      lineheight = 1.25, margin = margin(b = 8)
+    ),
+    plot.caption = element_textbox_simple(
+      hjust = 0, size = 6, color = colors$caption,
+      family = fonts$caption, margin = margin(t = 8)
+    ),
+    panel.spacing.x = unit(1.1, "lines"),
+    plot.margin = margin(t = 10, r = 16, b = 6, l = 12)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- plot ----
+p <- ggplot(df_sign, aes(x = metric, y = value, fill = sign)) +
+  geom_col(
+    data = df_sign |> filter(sign == "Positive"),
+    aes(fill = sign), width = 0.70
+  ) +
+  geom_col(
+    data = df_sign |> filter(sign == "Negative"),
+    aes(fill = sign), width = 0.62
+  ) +
+  geom_hline(yintercept = 0, color = col_zero, linewidth = 0.6) +
+  geom_text(
+    data = df_sign |> filter(sign == "Positive"),
+    aes(label = label), vjust = -0.5, size = 3.6, fontface = "bold", color = "gray15"
+  ) +
+  geom_text(
+    data = df_sign |> filter(sign == "Negative"),
+    aes(label = label), vjust = 1.5, size = 3.6, fontface = "bold", color = "gray15"
+  ) +
+  facet_wrap(~country, nrow = 1) +
+  scale_fill_manual(values = c(Positive = col_positive, Negative = col_negative)) +
+  scale_y_continuous(
+    labels = label_dollar(suffix = "B"),
+    breaks = c(-200, -100, 0, 50),
+    expand = expansion(mult = 0.13)
+  ) +
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL, y = NULL
+  ) +
+  canvas(width = 10, height = 5.6, units = "in")
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |- save ----
+main_path  <- here::here("data_visualizations", "MakeoverMonday", "2026", "mm_2026_31.png")
+thumb_path <- here::here("data_visualizations", "MakeoverMonday", "2026", "thumbnails", "mm_2026_31.png")
+
+# Full-size version, for the QMD figure
+save_ggplot(
+  plot = p,
+  file = main_path,
+  width = 10,
+  height = 5.6,
+  units = "in",
+  dpi = 320,
+  create.dir = TRUE
+)
+
+# Reduced-size thumbnail, for the YAML `image:` field
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+
+1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("Squirrel Census 2020", "https://makeovermonday.vercel.app/dataset/squirrel-census-2020")`
+   - CSV: 433 rows × 16 columns. Each record represents a single squirrel sighting from a 2020 NYC Open Data Week multi-park count, with fields covering location (area, park, coordinates), fur color, activities, human interaction, and free-text observation notes.
+   - No original visualization was published alongside this dataset, so this makeover was built directly from the raw data rather than as a redesign of an existing chart. Phase 0 exploratory analysis tested and discarded several candidate stories (fur color composition, height/vertical ecology, activity co-occurrence networks) before a behavioral-state finding — squirrels observed stationary vs. in movement — survived repeated falsification attempts.
+
+**Source Data:**
+
+2. `r create_link("The Squirrel Census — Data", "https://www.thesquirrelcensus.com/data")`
+   - The 2020 NYC Open Data Week multi-park sample count, compiled by The Squirrel Census as a smaller-scale companion effort to their 2018 Central Park census, covering 20 parks across four NYC census areas (Central Manhattan, Upper Manhattan, Lower Manhattan, Brooklyn).
+   - This visualization uses the `area_name`, `park_name`, and `activities` fields. Fur color, human interaction, and free-text note fields were reviewed during exploratory analysis but are not shown in the published chart, once the color-composition story was ruled out as a single-park artifact (see Methodological Notes).
+
+**Methodological Notes:**
+
+3. Squirrel-level activity records were classified into a four-category behavioral state, replacing the source's five-plus free-text activity field:
+   - **Stationary:** Foraging, Eating
+   - **Movement:** Running, Chasing, Climbing
+   - **Both:** record contains at least one activity from each group
+   - **Other:** record has an activity, but none map to Stationary or Movement (e.g., "Sitting," "Defending tree, shouting")
+   - This collapse was tested for robustness under all three defensible treatments of the ambiguous "Climbing" case (Movement / Stationary / excluded); the area-level result held under all three. "Climbing → Movement" was locked as final since a squirrel changing position is the clearest one-sentence justification.
+4. The area-level finding (Central Manhattan highest stationary share) was deliberately re-tested at the park level after an initial version overstated it. Standardized residuals showed the original color-composition claim was driven by a single park (McCarren Park, Brooklyn) rather than an area-wide pattern, and was dropped; the behavioral-state finding held under the same scrutiny, including a gray-squirrels-only subset that removes color as a confound.
+5. `park-data.csv`, which would contain park-level characteristics (size, canopy cover, visitor volume) potentially explaining the behavioral pattern, was not released with this dataset and was not available from The Squirrel Census's public data page. The finding is therefore reported as an observed association ("squirrels observed... were more likely to be recorded...") rather than an explained cause, and that boundary is stated in the chart's caption rather than implied by the title.
+6. Three parks (Columbus Park, Teardrop Park, Seward Park) had fewer than 10 usable activity records and are flagged with hollow point markers in the park-level panel rather than excluded, since their direction is still informative even at low precision. Washington Square Park had substantial activity-field missingness (70.6%) unrelated to the other five Central Manhattan parks in the sample and is flagged separately in the chart caption.
+:::
+
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
