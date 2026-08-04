@@ -93,7 +93,9 @@ create_citation_link <- function(text, url, title = NULL) {
 
 ### Original
 
-No 'original chart' was provided.
+The original visualization comes from `r create_link("America's Services Trade Balances with Its Free Trade Partners", org_primary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_31/original_chart.png)
 
 ### Makeover
 
@@ -371,32 +373,19 @@ For the full repository, `r create_link("click here", repo_main)`.
 #### [10. References]{.smallcaps}
 ::: {.callout-tip collapse="true"}
 ##### Expand for References
-
 **Primary Data (Makeover Monday):**
-
-1. Makeover Monday `r current_year` Week `r current_week`: `r create_link("Squirrel Census 2020", "https://makeovermonday.vercel.app/dataset/squirrel-census-2020")`
-   - CSV: 433 rows × 16 columns. Each record represents a single squirrel sighting from a 2020 NYC Open Data Week multi-park count, with fields covering location (area, park, coordinates), fur color, activities, human interaction, and free-text observation notes.
-   - No original visualization was published alongside this dataset, so this makeover was built directly from the raw data rather than as a redesign of an existing chart. Phase 0 exploratory analysis tested and discarded several candidate stories (fur color composition, height/vertical ecology, activity co-occurrence networks) before a behavioral-state finding — squirrels observed stationary vs. in movement — survived repeated falsification attempts.
+1. Makeover Monday 2026 Week 31: `r create_link("America's Services Trade Balances with Its Free Trade Partners", "https://www.voronoiapp.com/geopolitics/Ranked-Americas-Services-Trade-Balances-with-Its-Free-Trade-Partners-4860")`
+   - XLSX: 15 rows × 4 columns (`country`, `goods_and_services_b`, `goods_b`, `services_b`). Each row is one U.S. free-trade partner, with 2024 trade balance figures in USD billions.
+   - The original visualization shows only the services balance, ranked across all 15 partners in a radial layout. This makeover restores the omitted goods balance and total (goods + services) balance the original left out.
 
 **Source Data:**
-
-2. `r create_link("The Squirrel Census — Data", "https://www.thesquirrelcensus.com/data")`
-   - The 2020 NYC Open Data Week multi-park sample count, compiled by The Squirrel Census as a smaller-scale companion effort to their 2018 Central Park census, covering 20 parks across four NYC census areas (Central Manhattan, Upper Manhattan, Lower Manhattan, Brooklyn).
-   - This visualization uses the `area_name`, `park_name`, and `activities` fields. Fur color, human interaction, and free-text note fields were reviewed during exploratory analysis but are not shown in the published chart, once the color-composition story was ruled out as a single-park artifact (see Methodological Notes).
+2. U.S. Bureau of Economic Analysis, 2024, via `r create_link("Visual Capitalist and the Hinrich Foundation", "https://pub-cee805df54de4b6c8f93bee984e3c725.r2.dev/datasets/america-s-services-trade-balances-with-its-free-trade-partners/Americas%20Services%20Trade%20Balances.xlsx")`
 
 **Methodological Notes:**
-
-3. Squirrel-level activity records were classified into a four-category behavioral state, replacing the source's five-plus free-text activity field:
-   - **Stationary:** Foraging, Eating
-   - **Movement:** Running, Chasing, Climbing
-   - **Both:** record contains at least one activity from each group
-   - **Other:** record has an activity, but none map to Stationary or Movement (e.g., "Sitting," "Defending tree, shouting")
-   - This collapse was tested for robustness under all three defensible treatments of the ambiguous "Climbing" case (Movement / Stationary / excluded); the area-level result held under all three. "Climbing → Movement" was locked as final since a squirrel changing position is the clearest one-sentence justification.
-4. The area-level finding (Central Manhattan highest stationary share) was deliberately re-tested at the park level after an initial version overstated it. Standardized residuals showed the original color-composition claim was driven by a single park (McCarren Park, Brooklyn) rather than an area-wide pattern, and was dropped; the behavioral-state finding held under the same scrutiny, including a gray-squirrels-only subset that removes color as a confound.
-5. `park-data.csv`, which would contain park-level characteristics (size, canopy cover, visitor volume) potentially explaining the behavioral pattern, was not released with this dataset and was not available from The Squirrel Census's public data page. The finding is therefore reported as an observed association ("squirrels observed... were more likely to be recorded...") rather than an explained cause, and that boundary is stated in the chart's caption rather than implied by the title.
-6. Three parks (Columbus Park, Teardrop Park, Seward Park) had fewer than 10 usable activity records and are flagged with hollow point markers in the park-level panel rather than excluded, since their direction is still informative even at low precision. Washington Square Park had substantial activity-field missingness (70.6%) unrelated to the other five Central Manhattan parks in the sample and is flagged separately in the chart caption.
+3. The three highlighted partners (Canada, South Korea, Mexico) were selected with an objective rule computed directly from the data — positive services balance and negative overall balance — not chosen by hand. This is enforced in code with `stopifnot(n_selected == 3)`, so the chart's central claim ("only 3 of 15") fails loudly rather than silently going stale if the underlying data is ever refreshed.
+4. CAFTA-DR, one of the 15 partners in the denominator, is a six-country regional trade bloc, not a single nation. It is retained in the count consistent with how the source treats it; all copy in this piece says "partners," never "countries," so the claim stays accurate without needing a separate exclusion or footnote.
+5. The shared y-axis scale across all three country panels is intentional. Mexico's overall balance (−$179.0B) dominating the shared scale is part of the finding, not a distortion to correct with independent per-panel scales.
 :::
-
 
 #### [11. Custom Functions Documentation]{.smallcaps}
 
