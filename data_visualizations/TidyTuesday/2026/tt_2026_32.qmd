@@ -323,7 +323,7 @@ save_ggplot(
 # Reduced-size thumbnail, for the YAML `image:` field
 fs::dir_create(dirname(thumb_path))
 magick::image_read(main_path) |>
-  magick::image_resize("400") |>
+  magick::image_resize("600") |>
   magick::image_write(thumb_path)
 ```
 
