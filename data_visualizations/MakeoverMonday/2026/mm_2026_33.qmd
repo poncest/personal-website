@@ -1,0 +1,403 @@
+---
+title: "Half of Gen Z Investors Have Redirected Investing Dollars to Sports Betting"
+subtitle: "Redirecting investment funds to sports betting becomes far less common with age"
+description: "Half of Gen Z investors report redirecting investing funds to sports betting, twice the share who call it part of their long-term financial strategy. A dumbbell chart compares both measures across four generations, using open and filled circles to distinguish the two survey questions. Built in R with ggplot2, ggtext, and ggview."
+date: "2026-08-17"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_33.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "data-visualization",
+  "ggplot2",
+  "dumbbell-chart",
+  "gen-z",
+  "sports-betting",
+  "investing",
+  "personal-finance",
+  "generations",
+  "survey-data",
+  "r-programming",
+  "2026"
+]
+image: "thumbnails/mm_2026_33.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 33
+project_file <- "mm_2026_33.qmd"
+project_image <- "mm_2026_33.png"
+
+## Data Sources
+data_main <- "https://www.betterment.com/retail-report"
+data_secondary <- "https://www.betterment.com/retail-report"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_33_original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://x.com/EricBalchunas/status/2087618932597305457/photo/1"
+org_secondary <- "https://x.com/EricBalchunas/status/2087618932597305457/photo/1"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Sports Betting in Gen Z Financial Plans", org_primary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_33/original_chart.png)
+
+### Makeover
+
+![Dumbbell chart titled 'Half of Gen Z Investors Have Redirected Investing Dollars to Sports Betting.' Each row shows two connected dots per generation: an open circle for the share who consider sports betting part of their long-term financial strategy, and a filled circle for the share who have redirected investing funds to sports betting. Gen Z, highlighted in orange, moves from 26% to 52%. Millennials go from 14% to 31%, Gen X from 6% to 10%, and Boomers from 1% to 4%, showing the gap and the overall share both shrink sharply with age. Source: Betterment 2026 Retail Investor Survey, n=250 per generation.](mm_2026_33.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, janitor, ggview
+)
+})
+
+# Source utility functions
+suppressMessages(
+  source(here::here("R/utils/fonts.R")))
+  source(here::here("R/utils/social_icons.R"))
+  source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- read_csv(
+  here::here("data/MakeoverMonday/2026/gen_z_sports_betting_investing.csv"))  |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+df_plot <- df_raw |>
+  filter(is_overall == "No") |>
+  mutate(
+    metric_short = case_when(
+      str_detect(metric, regex("deliberate", ignore_case = TRUE)) ~ "deliberate",
+      str_detect(metric, regex("redirected|directed", ignore_case = TRUE)) ~ "redirected",
+      TRUE ~ metric
+    )
+  ) |>
+  select(generation, metric_short, percent, respondents) |>
+  pivot_wider(names_from = metric_short, values_from = percent) |>
+  mutate(
+    generation = factor(
+      generation,
+      levels = c("Boomers", "Gen X", "Millennials", "Gen Z")
+    ),
+    is_hero = generation == "Gen Z",
+    gap = redirected - deliberate
+  ) |>
+  arrange(generation) |>
+  mutate(y_pos = as.numeric(generation))
+
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    hero      = "#E8720C",
+    neutral   = "#ABB2B9",
+    text_dark = "#1A1A1A"
+  )
+)
+clrs <- colors$palette
+
+### |- titles and caption ----
+title_text <- str_glue("Half of Gen Z Investors Have Redirected Investing Dollars to Sports Betting")
+
+subtitle_text <- str_glue("Redirecting investment funds to sports betting becomes far less common with age")
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 33,
+  source_text = "Betterment 2026 Retail Investor Survey<br>Note: n=250 per generation. \"Overall\" omitted because equal generation quotas make it an unweighted average, not a population estimate."
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |- legend coordinates ----
+legend_y <- max(df_plot$y_pos) + 0.5
+legend_open_x <- 2
+legend_open_label_x <- 4.5
+legend_filled_x <- 25
+legend_filled_label_x <- 27.5
+
+### |- plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title = element_text(family = fonts$title_1, size = 16, face = "bold"),
+    plot.subtitle = element_text(family = fonts$subtitle, size = 11, color = "gray40"),
+    plot.caption = element_textbox_simple(
+      family = fonts$caption, size = 6, color = "gray45",
+      lineheight = 1.35, margin = margin(t = 10)
+    ),
+    axis.text.y = element_text(family = fonts$body, size = 10),
+    axis.text.x = element_text(family = fonts$body, size = 10, color = "gray50"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(color = "gray93", linewidth = 0.25),
+    panel.grid.minor = element_blank(),
+    axis.ticks = element_blank(),
+    legend.position = "none",
+    plot.margin = margin(t = 15, r = 20, b = 10, l = 10)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- plot ----
+p <- ggplot(df_plot) +
+  geom_segment(
+    aes(
+      x = deliberate, xend = redirected, y = y_pos, yend = y_pos,
+      color = is_hero, linewidth = is_hero
+    ),
+    lineend = "round"
+  ) +
+  geom_point(
+    aes(x = deliberate, y = y_pos, color = is_hero),
+    shape = 21, fill = "grey98", size = 4.2, stroke = 1.6
+  ) +
+  geom_point(
+    aes(x = redirected, y = y_pos, color = is_hero, fill = is_hero),
+    shape = 21, size = 4.2, stroke = 1.2
+  ) +
+  geom_text(
+    aes(x = deliberate, y = y_pos + 0.2, label = paste0(deliberate, "%")),
+    family = fonts$caption, size = 2.8, color = "gray35", fontface = "bold"
+  ) +
+  geom_text(
+    aes(x = redirected, y = y_pos + 0.2, label = paste0(redirected, "%")),
+    family = fonts$caption, size = 2.8, color = "gray35", fontface = "bold"
+  ) +
+  annotate(
+    "point",
+    x = legend_open_x, y = legend_y,
+    shape = 21, fill = "grey98", color = "gray40", size = 3, stroke = 1.4
+  ) +
+  annotate(
+    "point",
+    x = legend_filled_x + 3, y = legend_y,
+    shape = 21, fill = "gray40", color = "gray40", size = 3, stroke = 1.2
+  ) +
+  geom_text(
+    data = tibble(
+      x = c(legend_open_label_x, legend_filled_label_x + 3),
+      y = c(legend_y, legend_y),
+      label = c("Long-term financial strategy", "Redirected investing funds")
+    ),
+    aes(x = x, y = y, label = label),
+    family = fonts$caption, size = 2.85, color = "gray40", hjust = 0,
+    inherit.aes = FALSE
+  ) +
+  scale_color_manual(values = c(`TRUE` = clrs[["hero"]], `FALSE` = clrs[["neutral"]])) +
+  scale_fill_manual(values = c(`TRUE` = clrs[["hero"]], `FALSE` = clrs[["neutral"]])) +
+  scale_linewidth_manual(values = c(`TRUE` = 1.7, `FALSE` = 1.2)) +
+  scale_x_continuous(limits = c(0, 68), expand = expansion(mult = c(0, 0.02))) +
+  scale_y_continuous(
+    breaks = df_plot$y_pos, labels = df_plot$generation,
+    limits = c(min(df_plot$y_pos) - 0.5, max(df_plot$y_pos) + 0.7)
+  ) +
+  coord_cartesian(clip = "off") +
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL, y = NULL
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |- save ----
+main_path  <- here::here("data_visualizations", "MakeoverMonday", "2026", "mm_2026_33.png")
+thumb_path <- here::here("data_visualizations", "MakeoverMonday", "2026", "thumbnails", "mm_2026_33.png")
+
+# Full-size version, for the QMD figure
+save_ggplot(
+  plot = p,
+  file = main_path,
+  width = 8,
+  height = 6,
+  units = "in",
+  dpi = 320,
+  create.dir = TRUE
+)
+
+# Reduced-size thumbnail, for the YAML `image:` field
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### [10. References]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for References
+
+**Primary Data (Makeover Monday):**
+
+1. Makeover Monday 2026 Week 33: `r create_link("Sports Betting Competes With Investing for Gen Z's Dollars", "https://x.com/EricBalchunas/status/2087618932597305457/photo/1")`
+   - CSV: 10 rows × 9 columns (`generation`, `birth_years`, `metric`, `percent`, `respondents`, `is_overall`, `survey_field_start`, `survey_field_end`, `source`). Covers Overall plus four generations (Gen Z, Millennials, Gen X, Boomers), each with two survey measures: share who consider sports betting part of their long-term financial strategy, and share who have redirected investing funds to sports betting at least once. Generation quotas are equal (n=250), so the reported "Overall" row is an unweighted average, not a population estimate.
+   - The original visualization presents both measures as paired bars per generation, requiring the reader to subtract to see the gap between what respondents say and what they've done. This makeover encodes that gap directly with a dumbbell chart, drops the unweighted "Overall" category, and uses open/filled circles to distinguish the two measures without relying on a color-coded legend for the primary encoding.
+
+**Source Data:**
+
+2. Betterment, 2026, `r create_link("2026 Retail Investor Survey", "https://www.betterment.com/retail-report")`
+:::
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
