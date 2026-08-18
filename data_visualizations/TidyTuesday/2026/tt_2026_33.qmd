@@ -1,27 +1,27 @@
 ---
-title: "Galaxy Centers Shift From Mostly Non-Star-Forming to Mostly Star-Forming"
-subtitle: "Star-forming nuclei are rare in smooth, elliptical-type galaxies (8%) but dominate the latest-type spirals (89%). The companion figure explores what makes up the remaining nuclei."
-description: "This chart shows how the dominant power source of a galaxy's nucleus shifts across the Hubble sequence, from 8% star-forming in smooth elliptical galaxies to 89% in irregular spirals. Morphology groups are compared using a 100% stacked composition chart with direct sample-size labels. Built in R with ggplot2, ggtext, and ggview."
-date: "2026-08-11"
+title: "IELTS Averages Barely Moved. Reading and Listening Scores Didn't."
+subtitle: "Change in mean IELTS band score by component, 2022-23 to 2024-25 cohorts."
+description: "Change in mean IELTS band score between the 2022-23 and 2024-25 test-taker cohorts reveals that stable overall scores concealed a sharp divergence: Reading rose while Listening fell, in both Academic and General Training formats. The analysis is restricted to first-language groups reported in both cohorts, using an unweighted mean of per-language deltas. Built in R with ggplot2, ggtext, and ggview."
+date: "2026-08-18"
 author:
   - name: "Steven Ponce"
     url: "https://stevenponce.netlify.app"
 citation:
-  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/ttt_2026_33.html"
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_33.html"
 categories: ["TidyTuesday", "Data Visualization", "R Programming", "2026"]
 tags: [
   "TidyTuesday",
-  "Astronomy",
-  "Galaxies",
+  "IELTS",
   "Bar Chart",
-  "Composition Chart",
-  "Data Visualization",
-  "R Programming",
+  "Diverging Bar Chart",
+  "Small Multiples",
+  "Language Learning",
+  "Standardized Testing",
+  "Education",
+  "R",
   "ggplot2",
   "ggtext",
-  "Palomar Survey",
-  "Black Holes",
-  "Star Formation",
+  "Data Visualization",
   "2026"
 ]
 image: "thumbnails/tt_2026_33.png"
@@ -85,8 +85,12 @@ source(here::here("R/themes/base_theme.R"))
 #| warning: false
 
 ## 2. READ IN THE DATA ----
-tt <- tidytuesdayR::tt_load(2026, week = 32)
-palomar_survey <- tt$palomar_survey
+tt <- tidytuesdayR::tt_load(2026, week = 33)
+perf_lang <- tt$performance_by_first_language
+# demo_by_first_language <- tt$demo_by_first_language
+# demo_by_nationality <- tt$demo_by_nationality
+# demo_by_reasons <- tt$demo_by_reasons
+# performance_by_nationality <- tt$performance_by_nationality
 rm(tt)
 ```
 
@@ -99,8 +103,11 @@ rm(tt)
 #| results: 'hide'
 #| warning: false
 
-glimpse(palomar_survey)
-skim_without_charts(palomar_survey)
+## 3. EXAMINING THE DATA ----
+glimpse(perf_lang)
+skim_without_charts(perf_lang)
+distinct(perf_lang, year)
+distinct(perf_lang, part)
 ```
 
 #### [4. Tidy Data]{.smallcaps}
@@ -109,81 +116,72 @@ skim_without_charts(palomar_survey)
 #| label: tidy
 #| warning: false
 
-### |- derive broad morphology stage from hubble_type ----
-bucket_hubble <- function(h) {
-  case_when(
-    is.na(h) ~ NA_character_,
-    str_detect(h, "^E\\d") | h == "E" ~ "E",
-    str_detect(h, "^E\\d?/S0") ~ "S0",
-    str_detect(h, "0/a") ~ "Sa",
-    str_detect(h, "^(\\(R\\))?(RSB|RSA|SAB|SB|SA|S)?\\(?[a-z]{0,2}\\)?0") ~ "S0",
-    str_detect(h, "^I[Bm0]?(\\s|$|\\d)") |
-      str_detect(h, "^Im") | str_detect(h, "^IB") | str_detect(h, "^IAB") ~ "Irr",
-    TRUE ~ {
-      core <- h |>
-        str_remove_all("\\((s|r|rs|sr|b|B)\\)") |>
-        str_remove("^\\(R\\)") |>
-        str_remove("^R") |>
-        str_remove("^(SAB|SB|SA|S)") |>
-        str_trim()
-      stage <- str_extract(str_to_lower(core), "^(cd|bc|ab|dm|a|b|c|d|m)")
-      case_when(
-        stage == "a" ~ "Sa",  stage == "ab" ~ "Sab", stage == "b" ~ "Sb",
-        stage == "bc" ~ "Sbc", stage == "c" ~ "Sc",  stage == "cd" ~ "Scd",
-        stage == "d" ~ "Sd",  stage == "dm" ~ "Sdm", stage == "m" ~ "Sm",
-        str_detect(str_to_lower(h), "pec") ~ "Pec/Other",
-        TRUE ~ "Unclassified"
-      )
-    }
-  )
-}
+### |- harmonize cross-cohort spelling/label drift ----
+language_harmonize <- c(
+  "Gujurati"   = "Gujarati",
+  "Ibo/lgbo"   = "Ibo/Igbo",
+  "Singhalese" = "Sinhalese"
+)
 
-broad_group <- function(stage) {
-  case_when(
-    stage %in% c("E", "S0") ~ "E/S0",
-    stage %in% c("Sa", "Sab", "Sb") ~ "Sa-Sb",
-    stage %in% c("Sbc", "Sc") ~ "Sbc-Sc",
-    stage %in% c("Scd", "Sd", "Sdm", "Sm", "Irr") ~ "Scd+/Irr",
-    TRUE ~ NA_character_
-  )
-}
+perf_lang_clean <- perf_lang |>
+  mutate(language = recode(language, !!!language_harmonize))
 
-survey_tidy <- palomar_survey |>
-  clean_names() |>
-  mutate(
-    stage       = bucket_hubble(hubble_type),
-    morph_group = broad_group(stage)
-  )
+### |- restrict to languages present in BOTH comparison cohorts ----
+## robustness check already run in Phase 0.
+languages_both_cohorts <- perf_lang_clean |>
+  filter(year %in% c("2022-2023", "2024-2025")) |>
+  distinct(type, language, year) |>
+  count(type, language) |>
+  filter(n == 2) |>
+  distinct(type, language)
 
-### |- two-process composition by morphology, plain-language labels ----
-comp_data <- survey_tidy |>
-  filter(
-    !is.na(morph_group), !is.na(activity_type),
-    activity_type != "Absorption"
+matched_scores <- perf_lang_clean |>
+  filter(year %in% c("2022-2023", "2024-2025")) |>
+  mutate(part = str_to_title(part)) |>
+  semi_join(languages_both_cohorts, by = c("type", "language"))
+
+### |- aggregate spine: mean of per-language deltas, matched languages only ----
+per_language_delta <- matched_scores |>
+  pivot_wider(
+    id_cols = c(type, language, part),
+    names_from = year, values_from = score
   ) |>
+  mutate(delta = `2024-2025` - `2022-2023`)
+
+### |- y_pos ----
+component_positions <- tibble::tibble(
+  part  = c("Overall", "Speaking", "Writing", "Reading", "Listening"),
+  label = c("Overall score", "Speaking", "Writing", "Reading", "Listening"),
+  y_pos = c(1, 2.5, 3.5, 4.5, 5.5)
+)
+
+## Row labels
+label_data <- component_positions |>
   mutate(
-    morph_group = factor(morph_group,
-      levels = c("E/S0", "Sa-Sb", "Sbc-Sc", "Scd+/Irr"),
-      labels = c(
-        "Smooth (E/S0)",
-        "Early spiral (Sa\u2013Sb)",
-        "Late spiral (Sbc\u2013Sc)",
-        "Irregular (Scd+/Irr)"
-      )
+    label = if_else(
+      part %in% c("Overall", "Reading", "Listening"),
+      str_glue("**{label}**"),
+      label
     ),
-    bucket = if_else(activity_type == "H II", "Star-forming", "Non-star-forming"),
-    bucket = factor(bucket, levels = c("Star-forming", "Non-star-forming"))
+    type_label = "Academic"
   )
 
-comp_summary <- comp_data |>
-  summarise(n_total = n(), .by = morph_group) |>
-  arrange(morph_group)
-
-comp_pct <- comp_data |>
-  summarise(n = n(), .by = c(morph_group, bucket)) |>
-  complete(morph_group, bucket, fill = list(n = 0)) |>
-  mutate(pct = n / sum(n) * 100, .by = morph_group) |>
-  left_join(comp_summary, by = "morph_group")
+delta_data <- per_language_delta |>
+  summarise(delta = mean(delta, na.rm = TRUE), .by = c(type, part)) |>
+  mutate(
+    role = case_when(
+      part == "Reading" ~ "reading",
+      part == "Listening" ~ "listening",
+      part == "Overall" ~ "overall",
+      TRUE ~ "context"
+    ),
+    type_label = if_else(
+      type == "General_Training", "General Training", "Academic"
+    ),
+    label_this = part %in% c("Reading", "Listening", "Overall")
+  ) |>
+  left_join(component_positions, by = "part") |>
+  arrange(type, y_pos)
 ```
 
 #### [5. Visualization Parameters]{.smallcaps}
@@ -193,30 +191,28 @@ comp_pct <- comp_data |>
 #| include: true
 #| warning: false
 
-## |-  plot aesthetics ----
-clrs <- get_theme_colors(
-    palette = c(
-        "Star-forming"     = "#D9A441",  
-        "Non-star-forming" = "#722F37"   
-    )
+### |-  plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    reading   = "#2C6E6B",
+    listening = "#A67C3D",
+    context   = "#B8B0A6",
+    overall   = "#3E4A54"
+  )
 )
 
-### |-  titles and caption ----
-title_text <- str_glue("Galaxy Centers Shift From Mostly Non-Star-Forming to Mostly Star-Forming")
+### |- titles and caption ----
+title_text <- str_glue("IELTS Averages Barely Moved. Reading and Listening Scores Didn't.")
 
-subtitle_text <- str_glue(
-    "Star-forming nuclei are rare in smooth, elliptical-type galaxies ",
-    "(**8%**) but dominate the latest-type spirals (**89%**). The ",
-    "companion figure explores what makes up the remaining nuclei."
-)
+subtitle_text <- str_glue("Change in mean IELTS band score by component, 2022-23 to 2024-25 cohorts.")
 
-caption_text <- str_glue(
-    "Notes: H II nuclei are powered primarily by young stars. Transition, ",
-    "Seyfert, and LINER nuclei are grouped here as 'non-star-forming' to ",
-    "emphasize the overall shift shown above. The companion figure ",
-    "separates these classes. One quiescent (absorption-line) galaxy in ",
-    "the Irregular group is excluded.<br>",
-    "{create_social_caption(tt_year = 2026, tt_week = 32, source_text = 'Palomar Spectroscopic Survey (Ho, Filippenko & Sargent); via Golden Dome Data Science')}"
+caption_text <- create_social_caption(
+  tt_year = 2026,
+  tt_week = 33,
+  source_text = str_glue(
+    "Unweighted mean across first-language groups reported in both the ",
+    "2022-23 and 2024-25 cohorts. IELTS Test Statistics, via TidyTuesday"
+  )
 )
 
 ### |-  fonts ----
@@ -224,8 +220,7 @@ setup_fonts()
 fonts <- get_font_families()
 
 ### |-  plot theme ----
-### |- plot theme ----
-base_theme <- create_base_theme(clrs)
+base_theme <- create_base_theme(colors)
 
 weekly_theme <- extend_weekly_theme(
   base_theme,
@@ -246,16 +241,16 @@ weekly_theme <- extend_weekly_theme(
       margin = margin(t = 12)
     ),
     plot.margin = margin(t = 20, r = 20, b = 15, l = 20),
-    axis.text.y = element_text(face = "bold", size = 10),
+    strip.text = element_text(
+      face = "bold", family = fonts$title_1, size = 11, hjust = 0
+    ),
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
     axis.text.x = element_blank(),
     axis.title = element_blank(),
-    axis.ticks = element_blank(),
-    panel.grid = element_blank(),
-    legend.position = "top",
-    legend.justification = "left",
-    legend.title = element_blank(),
-    legend.margin = margin(t = 0, b = 4),
-    legend.box.spacing = unit(2, "pt")
+    legend.position = "none",
+    panel.spacing.x = unit(1.4, "lines")
   )
 )
 
@@ -267,36 +262,47 @@ theme_set(weekly_theme)
 ```{r}
 #| label: plot
 #| warning: false
-
-### |- plot----
-comp_pct <- comp_pct |>
-  mutate(label = if_else(pct >= 6, str_glue("{round(pct)}%"), ""))
-
-p <- ggplot(comp_pct, aes(x = pct, y = fct_rev(morph_group), fill = bucket)) +
-  geom_col(width = 0.62, position = position_stack(reverse = TRUE)) +
-  geom_text(
-    aes(label = label),
-    position = position_stack(vjust = 0.5, reverse = TRUE),
-    color = "white", size = 3.6, family = fonts$text, fontface = "bold"
-  ) +
+### |-  plot ----
+p <- delta_data |>
+  ggplot(aes(x = delta, y = y_pos, fill = role)) +
+  geom_col(width = 0.68, orientation = "y", na.rm = TRUE) +
+  geom_vline(xintercept = 0, color = "#2C3E50", linewidth = 0.4) +
   geom_richtext(
-    data = comp_summary,
-    aes(x = 103, y = fct_rev(morph_group), label = str_glue("n={n_total}")),
-    inherit.aes = FALSE, fill = NA, label.color = NA, hjust = 0,
-    size = 3.2, family = fonts$text, color = "gray40"
+    data = label_data,
+    aes(x = -0.55, y = y_pos, label = label),
+    inherit.aes = FALSE,
+    hjust = 1, size = 3.2, color = "#2C3E50",
+    family = fonts$subtitle,
+    fill = NA, label.color = NA,
+    label.padding = unit(0, "pt")
   ) +
-  annotate(
-    "richtext",
-    x = 50, y = 4.55, label = "Increasing spiral structure \u2192",
-    fill = NA, label.color = NA, hjust = 0.5, size = 3.1, color = "gray45",
-    family = fonts$text
+  geom_text(
+    data = filter(delta_data, label_this),
+    aes(
+      label = label_number(style_positive = "plus", accuracy = 0.01)(delta),
+      hjust = if_else(delta >= 0, -0.15, 1.15)
+    ),
+    size = 3, family = fonts$subtitle, color = "#2C3E50"
   ) +
-  scale_fill_manual(values = c("Star-forming" = "#D9A441", "Non-star-forming" = "#722F37")) +
-  scale_x_continuous(limits = c(0, 112), expand = expansion(mult = 0)) +
-  scale_y_discrete(expand = expansion(add = c(0.65, 0.75))) +
-  labs(title = title_text, subtitle = subtitle_text, caption = caption_text) +
-  guides(fill = guide_legend(nrow = 1)) +
-  canvas(width = 8, height = 5.5, units = "in", dpi = 300)
+  facet_wrap(~type_label, nrow = 1) +
+  coord_cartesian(clip = "off") +
+  scale_x_continuous(limits = c(-0.9, 0.65)) +
+  scale_y_continuous(breaks = NULL, limits = c(0.3, 6.2)) +
+  scale_fill_manual(
+    values = c(
+      reading   = "#2C6E6B",
+      listening = "#A67C3D",
+      context   = "#B8B0A6",
+      overall   = "#3E4A54"
+    ),
+    na.value = NA
+  ) +
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text,
+    x = NULL, y = NULL
+  )
 ```
 
 ### [7. Save]{.smallcaps}
@@ -313,7 +319,7 @@ thumb_path <- here::here("data_visualizations", "TidyTuesday", "2026", "thumbnai
 save_ggplot(
   plot = p,
   file = main_path,
-  width = 8,
+  width = 9,
   height = 5.5,
   units = "in",
   dpi = 300,
@@ -323,10 +329,9 @@ save_ggplot(
 # Reduced-size thumbnail, for the YAML `image:` field
 fs::dir_create(dirname(thumb_path))
 magick::image_read(main_path) |>
-  magick::image_resize("600") |>
+  magick::image_resize("400") |>
   magick::image_write(thumb_path)
 ```
-
 
 
 #### [8. Session Info]{.smallcaps}
@@ -357,7 +362,7 @@ For the full repository, [click here](https://github.com/poncest/personal-websit
 ::: {.callout-tip collapse="true"}
 ##### Expand for References
 1.  **Data Source:**
-    -   TidyTuesday 2026 Week 32: [the Palomar Spectroscopic Survey of Nearby Galaxies](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-08-11/readme.md)
+    -   TidyTuesday 2026 Week 33: [IELTS exam results](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-08-18/readme.md)
 
 :::
 
