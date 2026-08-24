@@ -1,0 +1,367 @@
+---
+title: "Two Economies Account for 42.5% of Global GDP"
+subtitle: "The remaining 57.5% is spread across 190 other economies"
+description: "The United States and China together account for 42.5% of global GDP, while the remaining 190 economies combined hold 57.5%. Built as a single 100% composition bar after diagnostic testing showed that cumulative and log-distribution geometries both suppressed the scale separation between the top two economies and the rest. R, ggplot2, ggtext."
+date: "2026-08-24"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_34.html"
+categories: ["MakeoverMonday", "Data Visualization", "R Programming", "2026"]
+tags: [
+  "makeover-monday",
+  "composition-chart",
+  "100-percent-bar",
+  "gdp",
+  "global-economy",
+  "concentration",
+  "economics",
+  "ggtext",
+  "data-storytelling",
+  "imf-data",
+  "2026"
+]
+image: "thumbnails/mm_2026_34.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Project-specific info 
+current_year <- 2026
+current_week <- 34
+project_file <- "mm_2026_34.qmd"
+project_image <- "mm_2026_34.png"
+
+## Data Sources
+data_main <- "https://www.imf.org/en/data"
+data_secondary <- "https://www.imf.org/en/data"
+
+## Repository Links  
+repo_main <- "https://github.com/poncest/personal-website/"
+repo_file <- paste0("https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/", current_year, "/", project_file)
+
+## External Resources/Images
+chart_original <- "https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_34_original_chart.png"
+
+## Organization/Platform Links
+org_primary <- "https://statisticsoftheworld.com/gdp-by-country"
+org_secondary <- "https://statisticsoftheworld.com/gdp-by-country"
+
+# Helper function to create markdown links
+create_link <- function(text, url) {
+  paste0("[", text, "](", url, ")")
+}
+
+# Helper function for citation-style links
+create_citation_link <- function(text, url, title = NULL) {
+  if (is.null(title)) {
+    paste0("[", text, "](", url, ")")
+  } else {
+    paste0("[", text, "](", url, ' "', title, '")')
+  }
+}
+```
+
+### Original
+
+The original visualization comes from `r create_link("Global GDP Ranks", org_primary)`
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_34/original_chart.png)
+
+### Makeover
+
+![Dumbbell chart titled 'Half of Gen Z Investors Have Redirected Investing Dollars to Sports Betting.' Each row shows two connected dots per generation: an open circle for the share who consider sports betting part of their long-term financial strategy, and a filled circle for the share who have redirected investing funds to sports betting. Gen Z, highlighted in orange, moves from 26% to 52%. Millennials go from 14% to 31%, Gen X from 6% to 10%, and Boomers from 1% to 4%, showing the gap and the overall share both shrink sharply with age. Source: Betterment 2026 Retail Investor Survey, n=250 per generation.](mm_2026_34.png){#fig-1}
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, janitor, ggview
+)
+})
+
+# Source utility functions
+suppressMessages(
+  source(here::here("R/utils/fonts.R")))
+  source(here::here("R/utils/social_icons.R"))
+  source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| 
+
+df_raw <- readxl::read_excel(
+  here::here("data/MakeoverMonday/2026/IMF_20GDP.xlsx"))  |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+skimr::skim_without_charts(df_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+gdp_total <- sum(df_raw$value, na.rm = TRUE)
+
+composition_data <- df_raw |>
+  mutate(
+    segment = case_when(
+      country == "United States" ~ "United States",
+      country == "China" ~ "China",
+      TRUE ~ "All other 190 economies"
+    )
+  ) |>
+  summarise(value = sum(value), .by = segment) |>
+  mutate(
+    share = value / gdp_total,
+    segment = factor(
+      segment,
+      levels = c("All other 190 economies", "China", "United States")
+    )
+  ) |>
+  arrange(segment)
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    us_accent    = "#722F37", 
+    china_accent = "#A8626C",  
+    neutral_rest = "#D9D2C9" 
+  )
+)
+
+fill_values <- c(
+  "United States"            = colors$palette[["us_accent"]],
+  "China"                    = colors$palette[["china_accent"]],
+  "All other 190 economies"  = colors$palette[["neutral_rest"]]
+)
+
+label_colors <- c(
+  "United States"            = "white",
+  "China"                    = "white",
+  "All other 190 economies"  = "gray20"
+)
+
+### |-  titles and caption ----
+title_text <- str_glue("Two Economies Account for 42.5% of Global GDP")
+
+subtitle_text <- str_glue(
+  "The remaining 57.5% is spread across 190 other economies"
+)
+
+caption_text <- create_mm_caption(
+  mm_year = 2026,
+  mm_week = 34,
+  source_text = paste0(
+    "IMF World Economic Outlook, 2026<br>",
+    "Note: 4 of 192 economies reflect 2024-2025 estimates (most recent available)"
+  )
+)
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+
+### |-  plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title = element_textbox_simple(
+      family = fonts$title_1, size = rel(1.6), face = "bold", margin = margin(b = 8),
+      lineheight = 1.05
+    ),
+    plot.subtitle = element_textbox_simple(
+      family = fonts$subtitle, size = rel(1.05), margin = margin(b = 20)
+    ),
+    plot.caption = element_markdown(
+      family = fonts$caption, size = rel(0.55), color = "gray40", hjust = 0
+    ),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "none",
+    plot.margin = margin(t = 20, r = 30, b = 20, l = 30)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- plot ----
+p <- ggplot(composition_data, aes(x = 1, y = share, fill = segment)) +
+  geom_col(width = 0.42) +
+  geom_text(
+    aes(
+      label = glue("{segment}\n{percent(share, accuracy = 0.1)}"),
+      color = segment
+    ),
+    position = position_stack(vjust = 0.5),
+    family = fonts$caption,
+    size = 4.2,
+    lineheight = 0.95
+  ) +
+  coord_flip(expand = FALSE) +
+  scale_fill_manual(values = fill_values) +
+  scale_color_manual(values = label_colors) +
+  labs(
+    title = title_text,
+    subtitle = subtitle_text,
+    caption = caption_text
+  )
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |- save ----
+main_path  <- here::here("data_visualizations", "MakeoverMonday", "2026", "mm_2026_34.png")
+thumb_path <- here::here("data_visualizations", "MakeoverMonday", "2026", "thumbnails", "mm_2026_34.png")
+
+# Full-size version, for the QMD figure
+save_ggplot(
+  plot = p,
+  file = main_path,
+  width = 10,
+  height = 6,
+  units = "in",
+  dpi = 320,
+  create.dir = TRUE
+)
+
+# Reduced-size thumbnail, for the YAML `image:` field
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
+```
+
+#### [8. Session Info]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for Session Info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+#### [9. GitHub Repository]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Expand for GitHub Repo
+
+The complete code for this analysis is available in `r create_link(project_file, repo_file)`.
+
+For the full repository, `r create_link("click here", repo_main)`.
+:::
+
+#### [10. References]{.smallcaps}
+::: {.callout-tip collapse="true"}
+##### Expand for References
+**Primary Data (Makeover Monday):**
+1. Makeover Monday 2026 Week 34: `r create_link("Global GDP Ranks", "https://statisticsoftheworld.com/gdp-by-country")`
+   - CSV: 192 rows × 5 columns (`rank`, `code`, `country`, `value`, `year`). Covers all 192 IMF-tracked economies ranked by GDP (USD). 188 of 192 observations reflect 2026; four economies (Pakistan, Sri Lanka, Lebanon, Afghanistan) carry the most recent available estimate from 2024–2025 rather than a 2026 figure.
+   - The original visualization presents a static sortable table of the top 10 economies by GDP and share of world total, requiring the reader to infer concentration from a truncated list — the other 182 economies are simply absent. This makeover abandons rank as the organizing structure entirely and encodes the finding directly: a single 100% composition bar showing the United States (25.9%) and China (16.6%) together account for 42.5% of global GDP, with all 190 remaining economies combined making up the other 57.5%.
+
+**Source Data:**
+2. International Monetary Fund, 2026, `r create_link("World Economic Outlook Database", "https://www.imf.org/en/data")`
+:::
+
+#### [11. Custom Functions Documentation]{.smallcaps}
+
+::: {.callout-note collapse="true"}
+##### 📦 Custom Helper Functions
+
+This analysis uses custom functions from my personal module library for efficiency and consistency across projects.
+
+**Functions Used:**
+
+-   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
+-   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
+-   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
+
+**Why custom functions?**\
+These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.
+
+**Source Code:**\
+View all custom functions → [GitHub: R/utils](https://github.com/poncest/personal-website/tree/master/R)
+:::
