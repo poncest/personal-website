@@ -1,0 +1,319 @@
+---
+title: "What Sits in the Difference"
+subtitle: "A scrollytelling argument about a half-degree of warming, built for Funafuti Atoll, Tuvalu — Pacific Dataviz Challenge 2026"
+description: "An interactive scrollytelling piece arguing that for Tuvalu, the difference between 1°C and 1.5°C of global warming is not a number — it's the island. Built on an open, reproducible GLO-30 elevation pipeline rather than restricted flood rasters, with a bathtub inundation model across three sea-level scenarios. Submitted to the Pacific Dataviz Challenge 2026 (Climate Change theme), International Global Mention category."
+date: "2026-09-02"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:
+    url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-09-02.html"
+categories: ["Standalone Visualization", "Data Visualization", "R Programming", "2026"]
+tags: ["ggplot2", "quarto", "closeread", "scrollytelling", "terra", "sf", "elevatr", "osmextract", "climate-change", "sea-level-rise", "tuvalu", "netlify", "pacific-dataviz-challenge"]
+image: "thumbnails/sa_2026-09-02.png"
+format:
+  html:
+    toc: true
+    toc-depth: 5
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+    self-contained: true
+    theme: 
+      light: [flatly, assets/styling/custom_styles.scss]
+      dark: [darkly, assets/styling/custom_styles_dark.scss]
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(dev = "png", fig.width = 9, fig.height = 10, dpi = 320)
+```
+
+::: {.callout-note appearance="simple"}
+## Read the interactive article
+
+**→ [What Sits in the
+Difference](https://what-sits-in-the-difference.netlify.app/)**
+
+This page documents the analysis, editorial decisions, and
+implementation behind the project.
+
+← [Back to Steven Ponce's Data Visualization
+Portfolio](https://stevenponce.netlify.app/)
+:::
+
+**Tuvalu isn't the subject of this piece — the threshold is.**
+
+**Project at a glance**
+
+|  |  |
+|----|----|
+| **Duration** | June–August 2026 |
+| **Role** | Analysis, editorial design, spatial modeling, visualization, implementation |
+| **Deliverable** | Interactive scrollytelling data story |
+| **Competition** | Pacific Dataviz Challenge 2026 (Climate Change theme) — International Global Mention category |
+| **Tools** | R, terra, sf, elevatr, osmextract, ggplot2, tidyterra, Quarto, Closeread |
+| **Data** | Pacific Data Hub .Stat Explorer (Sea Level Anomalies, SST Anomalies); GLO-30 DEM via elevatr |
+| **Live article** | [what-sits-in-the-difference.netlify.app](https://what-sits-in-the-difference.netlify.app/) |
+
+------------------------------------------------------------------------
+
+> *For Tuvalu, the difference between 1°C and 1.5°C of warming is not a
+> number — it's the island.*
+
+------------------------------------------------------------------------
+
+## [1. Context, problem, and goal]{.smallcaps}
+
+**Context**
+
+The Pacific Dataviz Challenge 2026 set climate change as its theme and
+opened its official dataset list — the Pacific Data Hub's .Stat
+Explorer climate indicators — on June 1. Scoping ahead of that date
+meant working through roughly 217 available Pacific climate datasets,
+the majority of which were static infrastructure-exposure snapshots
+rather than anything with a narrative spine.
+
+**Problem**
+
+Sea-level rise is almost always visualized as a line trending upward.
+That framing is accurate and almost never lands — a rising line reads
+as abstract, not as stakes. The harder problem wasn't finding data; it
+was finding one argument strong enough to carry an entire piece without
+padding it with additional metrics.
+
+**Goal**
+
+Build a single-spine argument, not a dashboard: for Funafuti Atoll,
+Tuvalu, the difference between a 1.0m and a 1.5m sea-level-rise
+scenario is not an incremental data point — it's the difference between
+a diminished island and a fragmented one. Everything in the piece
+either serves that one threshold or was cut.
+
+------------------------------------------------------------------------
+
+## [2. Why an open elevation pipeline, not the official flood rasters]{.smallcaps}
+
+Tuvalu's flood-scenario rasters exist through SPC/NIWA but are
+access-restricted. Using them would have meant citing a result I
+couldn't show the derivation of — a black box at the center of the
+piece's central claim.
+
+Instead, the inundation model is built from the ground up: a GLO-30
+digital elevation model (via `elevatr`), corrected for a uniform canopy
+bias offset calibrated against published Funafuti ground-truth
+elevations, run through a bathtub inundation model at each scenario
+threshold. Every step is inspectable and rebuildable from public data.
+
+That choice looked like it was trading away "official data"
+credibility. It turned out to be the opposite: full reproducibility —
+nothing taken on faith — is a stronger position for a climate argument
+than citing a restricted dataset, provided the methodology can stand on
+its own. It also meant the piece didn't compete on the same crowded
+dataset most other entries were reaching for (see [§7](#out-of-scope)).
+
+------------------------------------------------------------------------
+
+## [3. Approach: three scenes, one threshold]{.smallcaps}
+
+The piece steps through three sea-level scenarios for Funafuti — 0.0m
+baseline, 1.0m, and 1.5m — rendered as sticky maps against scrolling
+narrative text. An earlier version included a fourth scenario (0.5m),
+which was cut after the derived flood extents at 0.5m and 1.0m turned
+out to be visually indistinguishable — keeping a scenario that added no
+readable difference would have diluted the scroll pacing rather than
+strengthened it.
+
+Coastline geometry comes from OpenStreetMap via `osmextract`'s
+reproducible PBF-based access, chosen over the Overpass API after
+rate-limiting made Overpass unreliable for repeated pipeline runs.
+
+------------------------------------------------------------------------
+
+## [4. What the analysis finds]{.smallcaps}
+
+**Modeled exposure.** Land-area exposure nearly doubles between the
+1.0m and 1.5m scenarios — the single figure the piece is built around.
+That jump, not the raw flood extent at either scenario individually, is
+the argument.
+
+**Observed warming signal.** Sea surface temperature anomalies for
+Tuvalu (`SST_ANOM`, Pacific Data Hub, 1850–2025) show a clear warming
+trend accelerating in recent decades, reaching +0.9°C above baseline in
+2024 — the warmest year in the observed record. This grounds the
+modeled scenarios in a measured local signal rather than leaving them
+purely hypothetical.
+
+**Sea-level anomaly, cited but not charted.** The Pacific Data Hub's
+sea-level anomaly series for Tuvalu is rounded to 0.1m resolution — too
+coarse to trend-chart honestly without fabricating precision the data
+doesn't contain. It's used as a cited figure instead (~+0.1m of
+observed rise since 1993; Funafuti tide gauge trend ~3.9 mm/yr), not
+plotted as a smooth line.
+
+------------------------------------------------------------------------
+
+## [5. Piece structure: three scenes, not chapters]{.smallcaps}
+
+### Scene 1 — Baseline
+
+Establishes Funafuti as it stands today: the sticky map at 0.0m,
+narrative framing the threshold argument to come.
+
+### Scene 2 — 1.0m
+
+The first scenario. Margins begin failing along the atoll's narrowest
+points.
+
+### Scene 3 — 1.5m
+
+The second scenario. Fragmentation begins — the same coastline,
+visibly broken rather than merely diminished. This is the scene the
+entire piece is built to arrive at.
+
+A supporting slope chart ("A Half-Degree of Warming, Twice the
+Exposure") and the observed-signals chart (SST trend) sit alongside the
+scroll narrative as evidence, not as additional scenes competing for
+attention.
+
+------------------------------------------------------------------------
+
+## [6. Key design decisions]{.smallcaps}
+
+**One threshold, not a framework**\
+Feedback received after an early draft suggested adding a second axis —
+adaptation spending, a resilience score, something to "balance" the
+vulnerability story. It was declined. A piece built around one
+threshold doesn't get stronger by bolting on a second dimension; it
+gets diluted into a different, more generic piece. The single spine was
+treated as the thing under protection, not a first draft waiting to be
+completed.
+
+**Provenance has to be visible in the artifact, not just true in the
+repo**\
+Choosing an open, reproducible pipeline over restricted data is only a
+real advantage if a reader can see that choice without leaving the
+page. The methodology note and data-source footer are a deliberate
+part of the design, not an afterthought.
+
+**Match the chart to the data's actual resolution**\
+The sea-level anomaly series' 0.1m rounding made a trend line
+dishonest — see [§4](#what-the-analysis-finds). Citing it as a figure
+rather than forcing it into a chart it can't support was the correct
+call, even though a plotted trend would have made for a "busier" piece.
+
+**Verify indicator codes against the data, not the filename**\
+The temperature file is labeled "surface temperature" on download, but
+its indicator column reads `SST_ANOM` — sea *surface* temperature, not
+the broader global-mean-temperature indicator the filename implies.
+Every annotation citing that series was checked against the indicator
+code, not the file's name.
+
+------------------------------------------------------------------------
+
+## [7. Out of scope — by design]{#out-of-scope .smallcaps}
+
+- A resilience/adaptation axis alongside the vulnerability story
+- Additional scenario steps (0.5m) that didn't produce a visually
+  distinct flood extent from their neighbor
+- Restricted SPC/NIWA flood rasters, in favor of a fully reproducible
+  open pipeline
+- A plotted trend line for the sea-level anomaly series, given its
+  0.1m-rounded resolution
+- Framing the threshold as a eulogy for the island rather than a
+  mitigation-stakes argument — the piece argues *for* closing the gap,
+  not that the outcome is already settled
+
+These were excluded to keep the piece saying exactly one thing, clearly
+— not because any of them lacked merit on their own.
+
+------------------------------------------------------------------------
+
+## [8. Technical lessons from the build]{.smallcaps}
+
+### `theme: none` breaks Closeread's overlay layout
+
+Closeread's overlay-style sticky layouts depend on grid CSS that Quarto
+strips out under `theme: none`. Several overlay-layout attempts failed
+silently before the sidebar layout was accepted as the correct choice
+for this piece rather than a limitation to work around.
+
+### Terra SpatRaster objects don't survive `save()`/`load()`
+
+`SpatRaster` objects are pointers to external C++ objects — standard R
+serialization silently corrupts them across sessions. `writeRaster()`
+on save and `rast()` on load is the only reliable round-trip.
+
+### Closeread sticky visibility toggle
+
+The default Closeread behavior is `.sticky { opacity: 0 }`, which is
+correct for production scroll-reveal but makes prototyping painful.
+Forcing `.sticky { opacity: 1 !important }` fixes visibility during
+development but breaks the reveal for *every* sticky element at once
+when left in. The correct pattern is a state-based toggle —
+`.sticky.cr-active { opacity: 1 }` — not a blanket override.
+
+------------------------------------------------------------------------
+
+## [9. Outcome and reflection]{.smallcaps}
+
+**Outcome**
+
+The piece is live and submitted to the Pacific Dataviz Challenge 2026,
+competing for the International Global Mention category as a
+non-Pacific entrant. Results aren't out at time of writing, so this is
+a build reflection, not a victory lap.
+
+**Reflection**
+
+The hardest part of this project wasn't the spatial pipeline — it was
+holding the line on a single argument once the piece was mostly built
+and every additional idea started sounding reasonable in isolation. The
+discipline to keep cutting rather than adding turned out to matter more
+than any individual technical decision documented above.
+
+------------------------------------------------------------------------
+
+**Project repository**
+
+- Interactive article: <https://what-sits-in-the-difference.netlify.app/>
+- Source code: `github.com/poncest/pacific-dataviz-2026` — private
+  through the competition window, opening publicly after the
+  submission period closes on August 31, 2026.
+
+------------------------------------------------------------------------
+
+## [Appendix: Methodology & Build Notes]{.smallcaps}
+
+### Data
+
+- Pacific Data Hub .Stat Explorer, Climate Change Indicators: Sea Level
+  Anomalies (`SEA_LVL`, Tuvalu, 1993–2023) and Sea Surface Temperature
+  Anomalies (`SST_ANOM`, Tuvalu, 1850–2025)
+- GLO-30 digital elevation model via `elevatr`
+- Coastline geometry via OpenStreetMap (`osmextract`, PBF-based access)
+- SST anomaly, 2024: +0.9°C above baseline (warmest year in the
+  observed record)
+- Sea-level anomaly: ~+0.1m observed since 1993; Funafuti gauge trend
+  ~3.9 mm/yr (cited figure, not charted — 0.1m rounded resolution)
+
+### Technical Stack
+
+- **Language:** R
+- **Spatial:** terra, sf, elevatr, osmextract
+- **Visualization:** ggplot2, tidyterra, showtext, ggtext
+- **Publishing:** Quarto, Closeread v1.0.1
+- **Typography:** Big Shoulders Display, DM Sans, JetBrains Mono
+- **Deployment:** Netlify
