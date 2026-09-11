@@ -28,12 +28,12 @@
 
 
 
-<section id="the-spark" class="level4 smallcaps">
-<h4 class="smallcaps anchored" data-anchor-id="the-spark">The Spark</h4>
+<section id="the-spark" class="level4">
+<h4 class="anchored" data-anchor-id="the-spark"><span class="smallcaps">The Spark</span></h4>
 <p>This week’s TidyTuesday dataset asked a deceptively simple question: how long does a barista have to work to afford the cappuccino they just made? Across 87 countries, that question quickly turned into something more interesting: why does the index vary so much from one country to another?</p>
 </section>
-<section id="the-detour" class="level4 smallcaps">
-<h4 class="smallcaps anchored" data-anchor-id="the-detour">The Detour</h4>
+<section id="the-detour" class="level4">
+<h4 class="anchored" data-anchor-id="the-detour"><span class="smallcaps">The Detour</span></h4>
 <p>Early on, the data seemed to tell a clean story. The Cappuccino Index (minutes of work per cappuccino) correlated much more strongly with wages than with coffee prices:</p>
 <ul>
 <li>Index vs.&nbsp;wage: ρ = −0.927</li>
@@ -44,8 +44,8 @@
 <pre><code>index = 60 × price / wage</code></pre>
 <p>Wage is sitting in the formula’s own denominator. So a strong negative association between wage and the index isn’t surprising – part of that relationship is built into the metric itself. The same problem applies, in the other direction, to price. Comparing those two correlations doesn’t cleanly tell me which ingredient is doing more of the work.</p>
 </section>
-<section id="the-check" class="level4 smallcaps">
-<h4 class="smallcaps anchored" data-anchor-id="the-check">The Check</h4>
+<section id="the-check" class="level4">
+<h4 class="anchored" data-anchor-id="the-check"><span class="smallcaps">The Check</span></h4>
 <p>I needed a comparison that didn’t use the index itself. So I asked a simpler question: which ingredient varies more across countries?</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">driver_diag <span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -77,8 +77,8 @@ background-color: null;
 font-style: inherit;"># sd_log_wage:  0.949   &lt;- about 2.5× the price dispersion</span></span></code></pre></div></div>
 <p>What survived was a narrower observation. On the log scale, wages show about 2.5× the cross-country dispersion of coffee prices – a much more defensible statement than “it’s the wage, not the coffee.”</p>
 </section>
-<section id="the-chart" class="level4 smallcaps">
-<h4 class="smallcaps anchored" data-anchor-id="the-chart">The Chart</h4>
+<section id="the-chart" class="level4">
+<h4 class="anchored" data-anchor-id="the-chart"><span class="smallcaps">The Chart</span></h4>
 <div id="fig-1" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -91,13 +91,13 @@ Figure&nbsp;1: Scatter plot titled “Cheap coffee isn’t necessarily affordabl
 </div>
 <p>That detour changed the chart. Plotting wage against price directly makes both ingredients visible instead of hiding them inside a single ratio.</p>
 </section>
-<section id="the-takeaway" class="level4 smallcaps">
-<h4 class="smallcaps anchored" data-anchor-id="the-takeaway">The Takeaway</h4>
+<section id="the-takeaway" class="level4">
+<h4 class="anchored" data-anchor-id="the-takeaway"><span class="smallcaps">The Takeaway</span></h4>
 <p><strong>When a metric is built from the variables you’re comparing it with, inspect the formula before interpreting the correlations.</strong></p>
 <p>A strong relationship may partly reflect the metric’s construction rather than a new empirical finding. Stepping away from the index and comparing the ingredients directly led to a narrower claim I could actually defend.</p>
 </section>
-<section id="see-the-full-visualization" class="level4 smallcaps">
-<h4 class="smallcaps anchored" data-anchor-id="see-the-full-visualization">See the Full Visualization</h4>
+<section id="see-how-it-was-built" class="level4">
+<h4 class="anchored" data-anchor-id="see-how-it-was-built"><span class="smallcaps">See how it was built</span></h4>
 <p>See the full visualization, code, and write-up: <a href="https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_36.html">Cheap Coffee Isn’t Necessarily Affordable Coffee</a></p>
 
 
