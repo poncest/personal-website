@@ -4,15 +4,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Roboto+Serif:wght@100..900&display=swap');
 
 
-// Light theme colors
-$body-bg: #fafafa;
-$body-color: #212529;
-$link-color: #3b4252;
-$navbar-bg: #3b4252;
-$navbar-fg: #fafafa;
-$code-block-bg: #f8f9fa;
-$code-color: #3b4252;
-$caption-color: #3b4252;
+// Light theme colors — Editorial refresh, Batch 1 (color only)
+// Editorial tokens: paper #f4f1ea · surface #fbf9f4 · surface-alt #efe9dd
+//                   ink #22282b · ink-soft #5c5f5b · line #ddd5c6 · burgundy #a8323f
+$body-bg: #f4f1ea;        // paper   (was #fafafa)
+$body-color: #22282b;     // ink     (was #212529)
+$link-color: #a8323f;     // burgundy (was #3b4252)
+$primary: #a8323f;        // NEW — overrides navy primary coming from _brand.yml
+$border-color: #ddd5c6;   // NEW — line
+$navbar-bg: #22282b;      // ink — navbar stays dark until Batch 2 (was #3b4252)
+$navbar-fg: #f4f1ea;      // paper (was #fafafa)
+$code-block-bg: #efe9dd;  // surface-alt (was #f8f9fa)
+$code-color: #a8323f;     // burgundy (was #3b4252)
+$caption-color: #5c5f5b;  // ink-soft (was #3b4252)
+$mark-bg: #f3e2e1;                // burgundy-soft (was yellow)
+$callout-color-tip: #a8323f;      // burgundy (was flatly teal)
+$input-placeholder-color: #5c5f5b; // ink-soft (was teal)
+$callout-color-note: #5c5f5b;   // light file: warm ink-soft
+$callout-color-note: #9aa0a0;   // dark file
 
 // Add smooth transitions
 * {
@@ -199,26 +208,26 @@ nav, .navbar {
 nav#TOC.toc-active {
     background-color: transparent !important; /* Remove background color */
     font-size: 0.9em !important; /* Adjust the font size */
-    color: #212529 !important; /* Set readable text color */
+    color: $body-color !important; /* Set readable text color */
     padding: 10px !important; /* Add padding for better spacing */
 }
 
 /* Style the links inside the TOC */
 nav#TOC.toc-active a {
-    color: #212529 !important; /* Set readable color for links */
+    color: $body-color !important; /* Set readable color for links */
     font-size: 0.9em !important; /* Ensure smaller font size */
     text-decoration: none !important; /* Remove underline from links */
 }
 
 /* Add hover effects to TOC links */
 nav#TOC.toc-active a:hover {
-    color: #000 !important; /* Set darker color for better readability on hover */
+    color: $link-color !important; /* burgundy on hover */
 }
 
 nav#TOC.toc-active a.active {
     font-weight: bold; /* Make the active section bold */
-    color: #000 !important; /* Ensure visibility of the active section */
-    border-left: 3px solid #000; /* Add a left border for better visibility */
+    color: $link-color !important; /* burgundy active section */
+    border-left: 3px solid $link-color; /* burgundy active rule */
 }
 
 
