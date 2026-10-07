@@ -247,7 +247,37 @@ a {
     text-align: left;
 }
 
+// GALLERY SIDEBAR (Editorial refresh, Batch 3)
+// "Categories" as a mono kicker; counts in mono; selected category burgundy.
+h5.quarto-listing-category-title {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: $link-color;
+}
 
+.quarto-listing-category.category-default .category {
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.quarto-listing-category.category-default .category:hover {
+    color: $link-color;
+}
+
+.quarto-listing-category.category-default .category.active {
+    color: $link-color;
+    font-weight: 600;
+}
+
+.quarto-listing-category.category-default .quarto-category-count {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: $caption-color;
+}
+quart
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
 // Public Sans (body), JetBrains Mono (code/accents).
