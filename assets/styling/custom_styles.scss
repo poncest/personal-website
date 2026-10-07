@@ -286,6 +286,29 @@ h5.quarto-listing-category-title {
     box-shadow: 0 0 0 1px $link-color;    // visible focus ring, no blue glow
 }
 
+// CODE (Editorial refresh, Batch 3)
+// Code blocks: surface-alt with a hairline border; "Show code" as a mono label.
+main div.sourceCode {
+    border-color: $border-color;
+    border-radius: 4px;
+}
+
+.cell details.code-fold > summary {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: $caption-color;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.cell details.code-fold > summary:hover,
+.cell details.code-fold[open] > summary {
+    color: $link-color;
+}
+
+
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
 // Public Sans (body), JetBrains Mono (code/accents).

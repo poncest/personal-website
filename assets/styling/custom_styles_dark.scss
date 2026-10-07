@@ -12,7 +12,7 @@ $secondary: #9aa0a0;      // ink-soft — replaces the old teal secondary
 $border-color: #313839;   // NEW — line
 $navbar-bg: #1d2123;      // surface (was #2d333b)
 $navbar-fg: #ece7dc;      // ink     (was #fafafa)
-$code-block-bg: #1d2123;  // surface (was #2d2d2d)
+$code-block-bg: #262b2d;  // surface-alt (was #1d2123 surface)
 $code-color: #d98a82;     // burgundy (was teal)
 $caption-color: #9aa0a0;  // ink-soft (was teal)
 $mark-bg: #2f1e1d;                // dark burgundy-soft
@@ -152,16 +152,6 @@ nav#TOC.toc-active ul li {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-
-// Add styles for code blocks
-pre {
-    background-color: $code-block-bg !important;
-    color: $code-color !important;
-}
-
-code {
-    color: $code-color !important;
-}
 
 
 // Add styles for tables in dark mode
@@ -317,6 +307,28 @@ h5.quarto-listing-category-title {
 .quarto-listing-filter.input-group .form-control:focus {
     border-color: $link-color;
     box-shadow: 0 0 0 1px $link-color;    // visible focus ring, no blue glow
+}
+
+// CODE (Editorial refresh, Batch 3)
+// Code blocks: surface-alt with a hairline border; "Show code" as a mono label.
+main div.sourceCode {
+    border-color: $border-color;
+    border-radius: 4px;
+}
+
+.cell details.code-fold > summary {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: $caption-color;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.cell details.code-fold > summary:hover,
+.cell details.code-fold[open] > summary {
+    color: $link-color;
 }
 
 
