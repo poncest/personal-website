@@ -224,6 +224,17 @@ a {
     border-color: $link-color;
 }
 
+// Thumbnails: keep each chart's top-left (title/subtitle) in view
+.quarto-grid-item .card-img-top {
+    background-color: #efe9dd;            // surface-alt (DARK FILE: #262b2d)
+}
+
+.quarto-grid-item .card-img-top img,
+.quarto-grid-item img.thumbnail-image {
+    object-fit: cover;
+    object-position: left top;
+}
+
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
 // Public Sans (body), JetBrains Mono (code/accents).
