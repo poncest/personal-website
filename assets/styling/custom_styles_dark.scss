@@ -180,13 +180,6 @@ code {
 }
 
 
-// Add styles for inputs and buttons in dark mode
-input, select, textarea {
-    background-color: lighten($body-bg, 5%) !important;
-    color: $body-color !important;
-    border-color: lighten($body-bg, 15%) !important;
-}
-
 // Add styles for tables in dark mode
 table {
     color: $body-color;
@@ -315,6 +308,33 @@ h5.quarto-listing-category-title {
     font-size: 0.75rem;
     color: $caption-color;
 }
+
+// LISTING CONTROLS (Editorial refresh, Batch 3)
+// Order By / Filter: paper background, hairline borders, burgundy focus.
+.quarto-listing-sort.input-group .input-group-text,
+.quarto-listing-filter.input-group .input-group-text,
+.quarto-listing-sort.input-group .form-select,
+.quarto-listing-filter.input-group .form-control {
+    background-color: $body-bg;           // paper
+    border-color: $border-color;          // hairline
+    color: $body-color;
+}
+
+.quarto-listing-sort.input-group .input-group-text,
+.quarto-listing-filter.input-group .input-group-text {
+    color: $caption-color;                // muted icon
+}
+
+.quarto-listing-filter.input-group .form-control::placeholder {
+    color: $caption-color;
+}
+
+.quarto-listing-sort.input-group .form-select:focus,
+.quarto-listing-filter.input-group .form-control:focus {
+    border-color: $link-color;
+    box-shadow: 0 0 0 1px $link-color;    // visible focus ring, no blue glow
+}
+
 
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
