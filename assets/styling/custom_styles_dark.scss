@@ -273,6 +273,18 @@ a {
     object-position: left top;
 }
 
+// Date: left-aligned under the title
+// (.card + .end outrank Quarto's own .card-attribution.end rule)
+.quarto-grid-item.card .card-attribution.end {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.quarto-grid-item.card .card-attribution.end .listing-date {
+    margin-left: 0;
+    text-align: left;
+}
+
 
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
