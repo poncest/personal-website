@@ -8,9 +8,8 @@ $body-color: #22282b;     // ink     (was #212529)
 $link-color: #a8323f;     // burgundy (was #3b4252)
 $primary: #a8323f;        // NEW — overrides navy primary coming from _brand.yml
 $border-color: #ddd5c6;   // NEW — line
-$navbar-bg: #22282b;      // ink — navbar stays dark until Batch 2 (was #3b4252)
-$navbar-fg: #f4f1ea;      // paper (was #fafafa)
-$code-block-bg: #efe9dd;  // surface-alt (was #f8f9fa)
+$navbar-bg: #fbf9f4;      // surface — light navbar (Batch 2)
+$navbar-fg: #22282b;      // ink$code-block-bg: #efe9dd;  // surface-alt (was #f8f9fa)
 $code-color: #a8323f;     // burgundy (was #3b4252)
 $caption-color: #5c5f5b;  // ink-soft (was #3b4252)
 $mark-bg: #f3e2e1;                // burgundy-soft (was yellow)
@@ -32,6 +31,12 @@ $pagination-disabled-color: #5c5f5b;
 $pagination-disabled-bg: transparent;
 $pagination-disabled-border-color: #ddd5c6;
 
+// The global `a { color: ... !important }` rule would otherwise paint the
+// active page number burgundy on burgundy.
+.pagination .page-item.active .page-link {
+    color: $pagination-active-color !important;
+}
+
 // Add smooth transitions
 * {
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -43,69 +48,43 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
     margin-top: 40px;
 }
 
+// NAV (Editorial refresh, Batch 2)
+// Scoped to .navbar so these rules no longer hit the table of contents.
 
-// NAV
-
-/* Change the font size of the navigation links */
-nav ul li a {
-    font-size: 15px;
-    color: $navbar-fg !important; /* Adjust text color if needed */
-}
-
-/* Change the banner background color */
-nav {
+.navbar {
     background-color: $navbar-bg !important;
+    border-bottom: 1px solid $border-color;
 }
 
-nav ul li:first-child a {
-    font-size: 26px;  /* Font size for "Steven Ponce" */
-    color: $navbar-fg !important;  // Using the light theme variable
+// Wordmark: "Steven Ponce" next to the monogram
+.navbar .navbar-title {
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
 }
 
-
-/* Align the navbar items using Flexbox */
-nav ul {
-    display: flex;
-    justify-content: space-between; /* Ensure space between items */
-    align-items: center; /* Vertically align items */
-}
-
-/* Ensure spacing between navbar items */
-nav ul li {
-    margin-right: 20px;
-}
-
-/* Specific styling for 'Steven Ponce' */
-.site-owner {
-    font-size: 26px;
-    font-family: 'Roboto Mono', monospace;
-}
-
-/* Apply 'Roboto Mono' to all navbar items */
-nav ul li a, .site-owner {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 15px; /* Adjust font size for other navbar links */
-}
-
-/* Apply background to navbar only */
-nav, .navbar {
-    background-color: $navbar-bg !important;
-}
-
-/* Make sure all navbar links are white */
-.navbar-nav .nav-link,
-.navbar-brand,
-.nav-item a {
+.navbar .navbar-brand,
+.navbar .navbar-title,
+.navbar .nav-link {
     color: $navbar-fg !important;
 }
 
-/* Add hover effect for better interaction */
-.navbar-nav .nav-link:hover,
-.navbar-brand:hover,
-.nav-item a:hover {
-    color: darken($navbar-fg, 10%) !important;
-    text-decoration: none;
+.navbar .nav-link {
+    font-size: 0.95rem;
 }
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: $link-color !important;
+}
+
+// Active page: burgundy text with an underline
+.navbar .nav-link.active {
+    color: $link-color !important;
+    box-shadow: inset 0 -2px 0 $link-color;
+}
+
 
 
 
@@ -152,30 +131,11 @@ nav, .navbar {
   }
 }
 
-.page-footer {
-  padding: 0.5rem 1rem;
-  background-color: $navbar-bg; 
-  color: $navbar-fg;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-  
-  .link-secondary {
-    color: var(--bs-light);
-    text-decoration: none;
-    opacity: 0.8;
-    
-    &:hover {
-      opacity: 1;
-      color: var(--bs-light);
-    }
-  }
-  
-  span {
-    display: block;
-    margin-bottom: 0.3rem;
-  }
+// Footer (Editorial refresh, Batch 2)
+.nav-footer {
+    border-top: 1px solid $border-color;
+    color: $caption-color;
+    font-size: 0.85rem;
 }
 
 /* Add some space between footer elements on mobile */
