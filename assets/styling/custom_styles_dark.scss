@@ -1,8 +1,4 @@
 /*-- scss:defaults --*/
-  
-// IMPORT FONTS
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Roboto+Serif:wght@100..900&display=swap');
-
 
 // Dark theme colors
 // Editorial refresh, Batch 1 (color only)
@@ -12,6 +8,7 @@ $body-bg: #16191b;        // paper   (was #1a1a1a)
 $body-color: #ece7dc;     // ink     (was #f8f9fa)
 $link-color: #d98a82;     // lightened burgundy (was teal #75b5aa)
 $primary: #d98a82;        // NEW — overrides navy primary coming from _brand.yml
+$secondary: #9aa0a0;      // ink-soft — replaces the old teal secondary
 $border-color: #313839;   // NEW — line
 $navbar-bg: #1d2123;      // surface (was #2d333b)
 $navbar-fg: #ece7dc;      // ink     (was #fafafa)
@@ -22,33 +19,26 @@ $mark-bg: #2f1e1d;                // dark burgundy-soft
 $mark-color: #ece7dc;             // keep highlighted text readable
 $callout-color-tip: #d98a82;
 $input-placeholder-color: #9aa0a0;
-$callout-color-note: #5c5f5b;   // light file: warm ink-soft
 $callout-color-note: #9aa0a0;   // dark file
 
+// Pagination
+$pagination-color: #d98a82;
+$pagination-bg: transparent;
+$pagination-border-color: #313839;
+$pagination-hover-color: #d98a82;
+$pagination-hover-bg: #2f1e1d;
+$pagination-hover-border-color: #d98a82;
+$pagination-active-color: #1a0f0e;
+$pagination-active-bg: #d98a82;
+$pagination-active-border-color: #d98a82;
+$pagination-disabled-color: #9aa0a0;
+$pagination-disabled-bg: transparent;
+$pagination-disabled-border-color: #313839;
 
-/* Apply Roboto Mono to all heading tags */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Roboto Mono', monospace;
-  color: $body-color;
-}
-
-/* Apply Roboto Serif to all paragraphs, captions, and other text */
-p, caption, body, .caption, blockquote, li, .text, div {
-  font-family: 'Roboto Serif', serif;
-  color: $body-color;
-}
-
-/* You can customize specific elements as needed, for example: */
-h1 {
-  font-size: 2.5em;
-}
-
-h2 {
-  font-size: 2em;
-}
-
-p {
-  font-size: 1.1em;
+// The global `a { color: ... !important }` rule would otherwise paint the
+// active page number burgundy on burgundy.
+.pagination .page-item.active .page-link {
+    color: $pagination-active-color !important;
 }
 
 
@@ -58,54 +48,42 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
 }
 
 
-// NAV
+// NAV (Editorial refresh, Batch 2)
+// Scoped to .navbar so these rules no longer hit the table of contents.
 
-/*  Dark theme specific navbar */
-nav {
+.navbar {
     background-color: $navbar-bg !important;
-    
-    ul li a {
-        font-size: 15px;
-        color: $navbar-fg !important;
-    }
+    border-bottom: 1px solid $border-color;
 }
 
-
-nav ul li:first-child a {
-    font-size: 26px;  /* Font size for "Steven Ponce" */
-    color: white;     /* Adjust color if necessary */
+// Wordmark: "Steven Ponce" next to the monogram
+.navbar .navbar-title {
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
 }
 
-
-/* Align the navbar items using Flexbox */
-nav ul {
-    display: flex;
-    justify-content: space-between; /* Ensure space between items */
-    align-items: center; /* Vertically align items */
+.navbar .navbar-brand,
+.navbar .navbar-title,
+.navbar .nav-link {
+    color: $navbar-fg !important;
 }
 
-/* Ensure spacing between navbar items */
-nav ul li {
-    margin-right: 20px;
+.navbar .nav-link {
+    font-size: 0.95rem;
 }
 
-/* Specific styling for 'Steven Ponce' */
-.site-owner {
-    font-size: 26px;
-    font-family: 'Roboto Mono', monospace;
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: $link-color !important;
 }
 
-/* Apply 'Roboto Mono' to all navbar items */
-nav ul li a, .site-owner {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 15px; /* Adjust font size for other navbar links */
+// Active page: burgundy text with an underline
+.navbar .nav-link.active {
+    color: $link-color !important;
+    box-shadow: inset 0 -2px 0 $link-color;
 }
-
-/* Apply background to navbar only */
-nav, .navbar {
-    background-color: $navbar-bg !important;  
-}
-
 
 // banner
 .quarto-title-banner {
@@ -127,63 +105,13 @@ nav, .navbar {
 
 
 // FOOTER
-/* Footer styling */
-.footer-items {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
 
-.footer-link {
-  color: var(--bs-light);
-  text-decoration: none;
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
-  
-  &:hover {
-    opacity: 1;
-    text-decoration: none;
-    color: var(--bs-light);
-  }
-  
-  i, svg {
-    margin-right: 0.5rem;
-  }
-}
-
-.page-footer {
-  padding: 0.5rem 1rem;
-  background-color: $navbar-bg;
-  color: $navbar-fg; 
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-  
-  
-  .link-secondary {
-    color: var(--bs-light);
-    text-decoration: none;
-    opacity: 0.8;
-    
-    &:hover {
-      opacity: 1;
-      color: var(--bs-light);
-    }
-  }
-  
-  span {
-    display: block;
-    margin-bottom: 0.3rem;
-  }
-}
-
-/* Add some space between footer elements on mobile */
-@media (max-width: 768px) {
-  .footer-items {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+// Footer (Editorial refresh, Batch 2)
+.nav-footer {
+    border-top: 1px solid $border-color;
+    color: $caption-color;
+    font-size: 0.85rem;
+    padding: 0.75rem 1.5rem;
 }
 
 
@@ -318,26 +246,26 @@ h5.no-anchor.card-title.listing-title {
 }
 
 
-// FONTS
+// TYPOGRAPHY (Editorial refresh, Batch 2)
+// Font families come from _brand.yml: Newsreader (headings),
+// Public Sans (body), JetBrains Mono (code/accents).
 
-/* Set base font size for the entire document */
 body {
-    font-size: 1em !important; /* Adjust as necessary */
-    line-height: 1.6 !important; /* Ensure proper readability */
-    font-family: 'Roboto Mono', monospace; /* Apply Roboto Mono for consistency */
+    font-size: 1.0625rem;
+    line-height: 1.6;
 }
 
-/* Heading adjustments */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto Mono', monospace !important;
-    font-size: 1.5em !important; /* Adjust heading size */
-    margin-bottom: 15px; /* Add some spacing */
+    letter-spacing: -0.015em;
+    margin-bottom: 15px;
 }
 
-/* Paragraph adjustments */
+h1, .h1 { font-size: 2.6rem; }
+h2, .h2 { font-size: 1.7rem; }
+h3, .h3 { font-size: 1.3rem; }
+
 p {
-    font-size: 1em !important; /* Adjust for readability */
-    margin-bottom: 20px; /* Add spacing after paragraphs */
+    margin-bottom: 20px;
 }
 
 
@@ -393,4 +321,30 @@ div.quarto-figure .quarto-float-caption {
         }
     }
 }
+
+// MONO ACCENTS (Editorial refresh, Batch 2)
+// Dates, category tags and meta labels in JetBrains Mono, uppercase.
+
+.listing-date,
+.quarto-category,
+.listing-category,
+.quarto-title-meta-heading {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+}
+
+.listing-date,
+.quarto-title-meta-heading {
+    color: $caption-color;
+}
+
+.quarto-category,
+.listing-category {
+    color: $link-color;
+    border-color: $border-color;
+}
+
+
 

@@ -4,23 +4,35 @@ meta:
   
 color:
   palette:
-    primary: "#3b4252"   
-    secondary: "#75b5aa"  
-    light-theme: "#FFFFFF"  
-    dark-theme: "#000000"   
-  foreground: "#3b4252"    
-  background: "#FFFFFF" 
+    burgundy: "#a8323f"
+    ink: "#22282b"
+    ink-soft: "#5c5f5b"
+    paper: "#f4f1ea"
+  primary: burgundy
+  foreground: ink
+  background: paper
 
 typography:
   fonts:
-    - family: Roboto Mono
+    - family: Newsreader
       source: google
-    - family: Roboto Serif
+      weight: [400, 500, 600]
+      style: [normal, italic]
+    - family: Public Sans
       source: google
-  base: Roboto Serif
+      weight: [400, 500, 600, 700]
+    - family: JetBrains Mono
+      source: google
+      weight: [400, 500, 600]
+  base:
+    family: Public Sans
+    line-height: 1.6
   headings:
-    family: Roboto Mono
-    weight: 400
+    family: Newsreader
+    weight: 500
+  monospace: JetBrains Mono
     
-logo: 
-  medium: assets/img/sp_monogram-512.png
+logo:
+  medium:
+    light: assets/img/sp_monogram-512.png
+    dark: assets/img/sp_monogram_dark-512.png
