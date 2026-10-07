@@ -1,8 +1,4 @@
 /*-- scss:defaults --*/
-  
-// IMPORT FONTS
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Roboto+Serif:wght@100..900&display=swap');
-
 
 // Light theme colors — Editorial refresh, Batch 1 (color only)
 // Editorial tokens: paper #f4f1ea · surface #fbf9f4 · surface-alt #efe9dd
@@ -39,30 +35,6 @@ $pagination-disabled-border-color: #ddd5c6;
 // Add smooth transitions
 * {
     transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-
-/* Apply Roboto Mono to all heading tags */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Roboto Mono', monospace;
-}
-
-/* Apply Roboto Serif to all paragraphs, captions, and other text */
-p, caption, body, .caption, blockquote, li, .text, div {
-  font-family: 'Roboto Serif', serif;
-}
-
-/* You can customize specific elements as needed, for example: */
-h1 {
-  font-size: 2.5em;
-}
-
-h2 {
-  font-size: 2em;
-}
-
-p {
-  font-size: 1.1em;
 }
 
 
@@ -300,26 +272,26 @@ h5.no-anchor.card-title.listing-title {
 }
 
 
-// FONTS
+// TYPOGRAPHY (Editorial refresh, Batch 2)
+// Font families come from _brand.yml: Newsreader (headings),
+// Public Sans (body), JetBrains Mono (code/accents).
 
-/* Set base font size for the entire document */
 body {
-    font-size: 1em !important; /* Adjust as necessary */
-    line-height: 1.6 !important; /* Ensure proper readability */
-    font-family: 'Roboto Mono', monospace; /* Apply Roboto Mono for consistency */
+    font-size: 1.0625rem;
+    line-height: 1.6;
 }
 
-/* Heading adjustments */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Roboto Mono', monospace !important;
-    font-size: 1.5em !important; /* Adjust heading size */
-    margin-bottom: 15px; /* Add some spacing */
+    letter-spacing: -0.015em;
+    margin-bottom: 15px;
 }
 
-/* Paragraph adjustments */
+h1, .h1 { font-size: 2.6rem; }
+h2, .h2 { font-size: 1.7rem; }
+h3, .h3 { font-size: 1.3rem; }
+
 p {
-    font-size: 1em !important; /* Adjust for readability */
-    margin-bottom: 20px; /* Add spacing after paragraphs */
+    margin-bottom: 20px;
 }
 
 
