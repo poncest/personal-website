@@ -17,7 +17,29 @@ css: assets/styling/home.css
     </div>
   </div>
   <div class="home-hero-figure">
-    <!-- Step 3: signal dot-grid illustration -->
+    <figure class="home-figure">
+      <svg viewBox="0 0 396 288" role="img" aria-label="A grid of grey dots with a few highlighted in burgundy, one marked as a signal">
+        <defs>
+          <pattern id="sp-dots" width="36" height="36" patternUnits="userSpaceOnUse">
+            <circle class="sig-dot" cx="18" cy="18" r="5"/>
+          </pattern>
+          <linearGradient id="sp-fade-grad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0.55" stop-color="#fff"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <mask id="sp-fade">
+            <rect width="396" height="288" fill="url(#sp-fade-grad)"/>
+          </mask>
+        </defs>
+        <rect x="0" y="36" width="396" height="252" fill="url(#sp-dots)" mask="url(#sp-fade)"/>
+        <line class="sig-rule" x1="234" y1="26" x2="234" y2="188"/>
+        <text class="sig-label" x="234" y="16" text-anchor="middle">signal</text>
+        <circle class="sig-hit" cx="126" cy="90" r="7"/>
+        <circle class="sig-hit" cx="234" cy="198" r="7"/>
+        <circle class="sig-hit" cx="54" cy="234" r="7"/>
+      </svg>
+      <figcaption>Figure 1. Most points are noise. A few are signals.</figcaption>
+    </figure>
   </div>
 </section>
 ```
