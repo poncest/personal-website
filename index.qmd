@@ -1,53 +1,122 @@
 ---
-title: "Steven Ponce" 
+title: "Steven Ponce"
 image: assets/img/sp_monogram-512.png
-toc: false 
-about: 
-  template: solana    
-  image-shape: round
-  image-width: 12em
-  links:
-    - icon: github
-      text: GitHub
-      href: https://github.com/poncest
-    - icon: linkedin 
-      text: LinkedIn
-      href: https://www.linkedin.com/in/stevenponce/
-    - icon: twitter-x
-      text: X
-      href: https://x.com/sponce1
-    - text: "{{< iconify fa6-brands bluesky >}} Bluesky" 
-      href: https://bsky.app/profile/sponce1.bsky.social
-    - icon: envelope
-      text: Email
-      href: mailto:steven_ponce@yahoo.com
+toc: false
+css: assets/styling/home.css
+execute:
+  freeze: false
+listing:
+  id: recent-viz
+  contents: data_visualizations
+  exclude:
+    title: "Template"
+  sort: "date desc"
+  type: grid
+  grid-columns: 3
+  max-items: 3
+  image-height: "200px"
+  fields: [image, title, categories, date]
+  sort-ui: false
+  filter-ui: false
+  categories: false
 ---
 
-### Data visualization, R, and clinical trial risk analytics
-
-<hr>
-
-### About Me
-
-I share data visualizations built for weekly community challenges — TidyTuesday, MakeoverMonday, and SWD Challenge — along with the R code behind them, and the occasional lesson learned along the way.
-
-By day, I'm a Senior Manager and Clinical Trial Risk Analyst in Clinical Trial Risk Management at Bristol Myers Squibb in New Jersey. Views here are my own.
-
-<hr>
-
-### Interests
-
-* Data storytelling and visual communication
-* R, the tidyverse, and the ggplot2 ecosystem
-* Clinical trial risk analytics and signal detection
-* Open data and community challenges
-
 ```{=html}
-<style>
-  /* Dark mode: show the rose monogram (the image: field can't switch by theme) */
-  body.quarto-dark .about-image {
-    content: url("assets/img/sp_monogram_dark-512.png");
-  }
-</style>
+<section class="home-hero">
+  <div class="home-hero-text">
+    <p class="home-kicker">Clinical trial analytics · Data visualization · R</p>
+    <h1 class="home-headline">Data visualization and analytics <em>for decisions that matter</em>.</h1>
+    <p class="home-intro">I turn clinical trial data into clear, early signals, and share weekly data visualizations built in R, with the code behind them.</p>
+    <div class="home-actions">
+      <a class="btn btn-primary" href="/data_visualizations.html">View the portfolio</a>
+      <a class="btn btn-outline-primary" href="/cv/Steven_Ponce_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+    </div>
+  </div>
+  <div class="home-hero-figure">
+    <figure class="home-figure">
+      <svg viewBox="0 0 396 288" role="img" aria-label="A grid of grey dots with a few highlighted in burgundy, one marked as a signal">
+        <defs>
+          <pattern id="sp-dots" width="36" height="36" patternUnits="userSpaceOnUse">
+            <circle class="sig-dot" cx="18" cy="18" r="5"/>
+          </pattern>
+          <linearGradient id="sp-fade-grad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0.55" stop-color="#fff"/>
+            <stop offset="1" stop-color="#000"/>
+          </linearGradient>
+          <mask id="sp-fade">
+            <rect width="396" height="288" fill="url(#sp-fade-grad)"/>
+          </mask>
+        </defs>
+        <rect x="0" y="36" width="396" height="252" fill="url(#sp-dots)" mask="url(#sp-fade)"/>
+        <line class="sig-rule" x1="234" y1="26" x2="234" y2="188"/>
+        <text class="sig-label" x="234" y="16" text-anchor="middle">signal</text>
+        <circle class="sig-hit" cx="126" cy="90" r="7"/>
+        <circle class="sig-hit" cx="234" cy="198" r="7"/>
+        <circle class="sig-hit" cx="54" cy="234" r="7"/>
+      </svg>
+      <figcaption>Figure 1. Most points are noise. A few are signals.</figcaption>
+    </figure>
+  </div>
+</section>
 ```
 
+```{=html}
+<div class="home-section-head">
+  <p class="home-kicker">Recent visualizations</p>
+  <a href="/data_visualizations.html">See all →</a>
+</div>
+```
+
+::: {#recent-viz}
+:::
+
+```{r}
+#| label: home-stats
+#| echo: false
+#| output: asis
+
+# Count posts the same way the listing pages do:
+# every .qmd under the folder, skipping "_" files and the "Template" post.
+read_meta <- function(f) {
+  tryCatch(rmarkdown::yaml_front_matter(f), error = function(e) list())
+}
+
+post_meta <- function(dir) {
+  files <- list.files(dir, pattern = "\\.qmd$", recursive = TRUE, full.names = TRUE)
+  files <- files[!startsWith(basename(files), "_")]
+  meta  <- lapply(files, read_meta)
+  keep  <- vapply(meta, function(m) !identical(m$title, "Template"), logical(1))
+  meta[keep]
+}
+
+viz   <- post_meta("data_visualizations")
+projs <- post_meta("projects")
+
+years <- vapply(viz, function(m) {
+  d <- as.character(if (is.null(m$date)) "" else m$date)
+  if (grepl("^\\d{4}", d)) as.integer(substr(d, 1, 4)) else NA_integer_
+}, integer(1))
+first_year <- min(years, na.rm = TRUE)
+
+stat <- function(num, label) {
+  sprintf('<div class="home-stat"><span class="home-stat-num">%s</span><span class="home-stat-label">%s</span></div>',
+          num, label)
+}
+
+cat("```{=html}\n",
+    '<div class="home-stats">',
+    stat(length(viz),   "visualizations"),
+    stat(length(projs), "projects"),
+    stat(first_year,    "publishing since"),
+    "</div>\n```\n", sep = "\n")
+```
+
+```{=html}
+<p class="home-kicker">About</p>
+```
+
+::: {.home-about}
+By day, I'm a Senior Manager and Clinical Trial Risk Analyst in Clinical Trial Risk Management at Bristol Myers Squibb in New Jersey, after nearly a decade at Pfizer. My work centers on risk-based monitoring and early signal detection across clinical trials. Views here are my own.
+
+Outside work, I take part in community challenges (TidyTuesday, MakeoverMonday, SWD Challenge and the 30DayChartChallenge) and publish each chart with its R code, plus the occasional lesson learned in [Behind the Viz](/behind_the_viz.html).
+:::

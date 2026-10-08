@@ -33,10 +33,13 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./assets/img/favicon-32.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-listing/list.min.js"></script>
+<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-6a50bd621f08fdc5c26e43d254df0a90.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-9bfc61b20ce54e18ae6b25bf56d136e1.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
@@ -76,6 +79,36 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script>
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-recent-viz .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-image','listing-title','listing-categories','listing-date',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      page: 18,
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },
+      searchColumns: ["listing-title","listing-author","listing-date","listing-image","listing-description"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-recent-viz'] = new List('listing-recent-viz', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  </script>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-SG5QD2EXYM"></script>
 
 <script type="text/javascript">
@@ -105,7 +138,51 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 }
 </script>
 
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="assets/styling/home.css">
 <meta property="og:title" content="Steven Ponce">
 <meta property="og:description" content="Data Visualizations and R Code">
 <meta property="og:image" content="https://stevenponce.netlify.app/assets/img/sp_monogram-512.png">
@@ -365,72 +442,164 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 <!-- margin-sidebar -->
     
 <!-- main -->
-<div class="quarto-about-solana column-page">
-  <div class="about-entity">
-    <div class="entity-contents">
-      <header id="title-block-header" class="quarto-title-block default">
+<main class="content column-page" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Steven Ponce</h1>
 </div>
+
+
+
 <div class="quarto-title-meta column-page">
+
+    
+  
+    
   </div>
-</header> <div class="about-links">
-  <a href="https://github.com/poncest" class="about-link" rel="" target="">
-    <i class="bi bi-github"></i>
-     <span class="about-link-text">GitHub</span>
-  </a>
-  <a href="https://www.linkedin.com/in/stevenponce/" class="about-link" rel="" target="">
-    <i class="bi bi-linkedin"></i>
-     <span class="about-link-text">LinkedIn</span>
-  </a>
-  <a href="https://x.com/sponce1" class="about-link" rel="" target="">
-    <i class="bi bi-twitter-x"></i>
-     <span class="about-link-text">X</span>
-  </a>
-  <a href="https://bsky.app/profile/sponce1.bsky.social" class="about-link" rel="" target="">
-     <span class="about-link-text"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon> Bluesky</span>
-  </a>
-  <a href="mailto:steven_ponce@yahoo.com" class="about-link" rel="" target="">
-    <i class="bi bi-envelope"></i>
-     <span class="about-link-text">Email</span>
-  </a>
-</div>
-      <div class="about-contents"><main class="content column-page" id="quarto-document-content">
-
-<section id="data-visualization-r-and-clinical-trial-risk-analytics" class="level3">
-<h3 data-anchor-id="data-visualization-r-and-clinical-trial-risk-analytics">Data visualization, R, and clinical trial risk analytics</h3>
-<hr>
-</section>
-<section id="about-me" class="level3">
-<h3 data-anchor-id="about-me">About Me</h3>
-<p>I share data visualizations built for weekly community challenges — TidyTuesday, MakeoverMonday, and SWD Challenge — along with the R code behind them, and the occasional lesson learned along the way.</p>
-<p>By day, I’m a Senior Manager and Clinical Trial Risk Analyst in Clinical Trial Risk Management at Bristol Myers Squibb in New Jersey. Views here are my own.</p>
-<hr>
-</section>
-<section id="interests" class="level3">
-<h3 data-anchor-id="interests">Interests</h3>
-<ul>
-<li>Data storytelling and visual communication</li>
-<li>R, the tidyverse, and the ggplot2 ecosystem</li>
-<li>Clinical trial risk analytics and signal detection</li>
-<li>Open data and community challenges</li>
-</ul>
-<style>
-  /* Dark mode: show the rose monogram (the image: field can't switch by theme) */
-  body.quarto-dark .about-image {
-    content: url("assets/img/sp_monogram_dark-512.png");
-  }
-</style>
+  
 
 
-</section>
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main></div>
+</header>
+
+
+<section class="home-hero">
+  <div class="home-hero-text">
+    <p class="home-kicker">Clinical trial analytics · Data visualization · R</p>
+    <h1 class="home-headline">Data visualization and analytics <em>for decisions that matter</em>.</h1>
+    <p class="home-intro">I turn clinical trial data into clear, early signals, and share weekly data visualizations built in R, with the code behind them.</p>
+    <div class="home-actions">
+      <a class="btn btn-primary" href="./data_visualizations.html">View the portfolio</a>
+      <a class="btn btn-outline-primary" href="./cv/Steven_Ponce_Resume.pdf" target="_blank" rel="noopener">Resume</a>
     </div>
-    <img src="assets/img/sp_monogram-512.png" class="about-image
-  round " style="height: 12em; width: 12em;">
   </div>
+  <div class="home-hero-figure">
+    <figure class="home-figure figure">
+      <svg viewbox="0 0 396 288" role="img" aria-label="A grid of grey dots with a few highlighted in burgundy, one marked as a signal">
+        <defs>
+          <pattern id="sp-dots" width="36" height="36" patternunits="userSpaceOnUse">
+            <circle class="sig-dot" cx="18" cy="18" r="5"></circle>
+          </pattern>
+          <lineargradient id="sp-fade-grad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0.55" stop-color="#fff"></stop>
+            <stop offset="1" stop-color="#000"></stop>
+          </lineargradient>
+          <mask id="sp-fade">
+            <rect width="396" height="288" fill="url(#sp-fade-grad)"></rect>
+          </mask>
+        </defs>
+        <rect x="0" y="36" width="396" height="252" fill="url(#sp-dots)" mask="url(#sp-fade)"></rect>
+        <line class="sig-rule" x1="234" y1="26" x2="234" y2="188"></line>
+        <text class="sig-label" x="234" y="16" text-anchor="middle">signal</text>
+        <circle class="sig-hit" cx="126" cy="90" r="7"></circle>
+        <circle class="sig-hit" cx="234" cy="198" r="7"></circle>
+        <circle class="sig-hit" cx="54" cy="234" r="7"></circle>
+      </svg>
+      <figcaption>Figure 1. Most points are noise. A few are signals.</figcaption>
+    </figure>
+  </div>
+</section>
+<div class="home-section-head">
+  <p class="home-kicker">Recent visualizations</p>
+  <a href="./data_visualizations.html">See all →</a>
 </div>
- <!-- /main -->
+<div id="listing-recent-viz" class="quarto-listing quarto-listing-container-grid">
+<div class="list grid quarto-listing-cols-3">
+<div class="g-col-1" data-index="0" data-categories="VGlkeVR1ZXNkYXklMkMyMDI2" data-listing-date-sort="1791259200000" data-listing-file-modified-sort="1791423503725" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="14" data-listing-word-count-sort="2775">
+<a href="./data_visualizations/TidyTuesday/2026/tt_2026_40.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./data_visualizations/TidyTuesday/2026/thumbnails/tt_2026_40.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+23 of 27 tested avocado-oil products failed authenticity testing in both tested lots
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('VGlkeVR1ZXNkYXk='); return false;">TidyTuesday</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('MjAyNg=='); return false;">2026</div>
+
+</div>
+<div class="card-attribution card-text-small end">
+<div class="listing-date">
+Oct 6, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="1" data-categories="TWFrZW92ZXJNb25kYXklMkMyMDI2" data-listing-date-sort="1791259200000" data-listing-file-modified-sort="1791423503710" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="12" data-listing-word-count-sort="2344">
+<a href="./data_visualizations/MakeoverMonday/2026/mm_2026_40.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./data_visualizations/MakeoverMonday/2026/thumbnails/mm_2026_40.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Most cowbell comes one song at a time
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('TWFrZW92ZXJNb25kYXk='); return false;">MakeoverMonday</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('MjAyNg=='); return false;">2026</div>
+
+</div>
+<div class="card-attribution card-text-small end">
+<div class="listing-date">
+Oct 6, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="2" data-categories="TWFrZW92ZXJNb25kYXklMkMyMDI2" data-listing-date-sort="1790654400000" data-listing-file-modified-sort="1791423503710" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="15" data-listing-word-count-sort="2857">
+<a href="./data_visualizations/MakeoverMonday/2026/mm_2026_39.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="./data_visualizations/MakeoverMonday/2026/thumbnails/mm_2026_39.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Growth Slowed. The Yearly Additions Didn’t. Where They Happen Did.
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('TWFrZW92ZXJNb25kYXk='); return false;">MakeoverMonday</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('MjAyNg=='); return false;">2026</div>
+
+</div>
+<div class="card-attribution card-text-small end">
+<div class="listing-date">
+Sep 29, 2026
+</div>
+</div>
+</div>
+</div></a>
+</div>
+</div>
+<div class="listing-no-matching d-none">No matching items</div>
+</div>
+
+<div class="home-stats">
+<div class="home-stat"><span class="home-stat-num">275</span><span class="home-stat-label">visualizations</span></div>
+<div class="home-stat"><span class="home-stat-num">23</span><span class="home-stat-label">projects</span></div>
+<div class="home-stat"><span class="home-stat-num">2024</span><span class="home-stat-label">publishing since</span></div>
+</div>
+<p class="home-kicker">About</p>
+<div class="home-about">
+<p>By day, I’m a Senior Manager and Clinical Trial Risk Analyst in Clinical Trial Risk Management at Bristol Myers Squibb in New Jersey, after nearly a decade at Pfizer. My work centers on risk-based monitoring and early signal detection across clinical trials. Views here are my own.</p>
+<p>Outside work, I take part in community challenges (TidyTuesday, MakeoverMonday, SWD Challenge and the 30DayChartChallenge) and publish each chart with its R code, plus the occasional lesson learned in <a href="./behind_the_viz.html">Behind the Viz</a>.</p>
+</div>
+
+
+
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
@@ -446,6 +615,13 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
       window.document.body.appendChild(a);
     }
     setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
         if (clz.startsWith('code-annotation-')) {                     
