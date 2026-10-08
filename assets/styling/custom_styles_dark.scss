@@ -7,6 +7,7 @@
 $body-bg: #16191b;        // paper   (was #1a1a1a)
 $body-color: #ece7dc;     // ink     (was #f8f9fa)
 $link-color: #d98a82;     // lightened burgundy (was teal #75b5aa)
+$link-hover-color: lighten($link-color, 15%);
 $primary: #d98a82;        // NEW — overrides navy primary coming from _brand.yml
 $secondary: #9aa0a0;      // ink-soft — replaces the old teal secondary
 $border-color: #313839;   // NEW — line
@@ -177,14 +178,6 @@ hr {
     border-color: lighten($body-bg, 15%) !important;
 }
 
-// links 
-a {
-    color: $link-color !important;
-    
-    &:hover {
-        color: lighten($link-color, 15%) !important;
-    }
-}
 
 // selection highlighting
 ::selection {
