@@ -3,6 +3,8 @@ title: "Steven Ponce"
 image: assets/img/sp_monogram-512.png
 toc: false
 css: assets/styling/home.css
+execute:
+  freeze: false
 ---
 
 ```{=html}
@@ -42,6 +44,47 @@ css: assets/styling/home.css
     </figure>
   </div>
 </section>
+```
+
+```{r}
+#| label: home-stats
+#| echo: false
+#| output: asis
+
+# Count posts the same way the listing pages do:
+# every .qmd under the folder, skipping "_" files and the "Template" post.
+read_meta <- function(f) {
+  tryCatch(rmarkdown::yaml_front_matter(f), error = function(e) list())
+}
+
+post_meta <- function(dir) {
+  files <- list.files(dir, pattern = "\\.qmd$", recursive = TRUE, full.names = TRUE)
+  files <- files[!startsWith(basename(files), "_")]
+  meta  <- lapply(files, read_meta)
+  keep  <- vapply(meta, function(m) !identical(m$title, "Template"), logical(1))
+  meta[keep]
+}
+
+viz   <- post_meta("data_visualizations")
+projs <- post_meta("projects")
+
+years <- vapply(viz, function(m) {
+  d <- as.character(if (is.null(m$date)) "" else m$date)
+  if (grepl("^\\d{4}", d)) as.integer(substr(d, 1, 4)) else NA_integer_
+}, integer(1))
+first_year <- min(years, na.rm = TRUE)
+
+stat <- function(num, label) {
+  sprintf('<div class="home-stat"><span class="home-stat-num">%s</span><span class="home-stat-label">%s</span></div>',
+          num, label)
+}
+
+cat("```{=html}\n",
+    '<div class="home-stats">',
+    stat(length(viz),   "visualizations"),
+    stat(length(projs), "projects"),
+    stat(first_year,    "publishing since"),
+    "</div>\n```\n", sep = "\n")
 ```
 
 ### About Me

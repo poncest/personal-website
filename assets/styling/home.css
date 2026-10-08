@@ -73,6 +73,41 @@
   color: var(--bs-secondary);
 }
 
+/* Stats row: computed in R at render time (index.qmd, chunk home-stats) */
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1.5rem 2rem;
+  padding: 1.5rem 0;
+  margin: 0 0 3rem;
+  border-top: 1px solid var(--bs-border-color);
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.home-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.home-stat-num {
+  font-family: "Newsreader", serif;
+  font-size: 2.4rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: var(--bs-body-color);
+}
+
+.home-stat-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--bs-secondary);
+}
+
+
 /* Phones and small tablets: stack the columns */
 @media (max-width: 767.98px) {
   .home-hero {
