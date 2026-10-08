@@ -5,6 +5,20 @@ toc: false
 css: assets/styling/home.css
 execute:
   freeze: false
+listing:
+  id: recent-viz
+  contents: data_visualizations
+  exclude:
+    title: "Template"
+  sort: "date desc"
+  type: grid
+  grid-columns: 3
+  max-items: 3
+  image-height: "200px"
+  fields: [image, title, categories, date]
+  sort-ui: false
+  filter-ui: false
+  categories: false
 ---
 
 ```{=html}
@@ -45,6 +59,16 @@ execute:
   </div>
 </section>
 ```
+
+```{=html}
+<div class="home-section-head">
+  <p class="home-kicker">Recent visualizations</p>
+  <a href="/data_visualizations.html">See all →</a>
+</div>
+```
+
+::: {#recent-viz}
+:::
 
 ```{r}
 #| label: home-stats

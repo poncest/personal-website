@@ -73,13 +73,35 @@
   color: var(--bs-secondary);
 }
 
+/* Recent visualizations strip: heading row + spacing (listing id: recent-viz) */
+.home-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.home-section-head .home-kicker { margin: 0; }
+
+.home-section-head a {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+}
+
+.home-section-head a:hover { text-decoration: underline; }
+
+
 /* Stats row: computed in R at render time (index.qmd, chunk home-stats) */
 .home-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: 1.5rem 2rem;
   padding: 1.5rem 0;
-  margin: 0 0 3rem;
+  margin: 3rem 0;
   border-top: 1px solid var(--bs-border-color);
   border-bottom: 1px solid var(--bs-border-color);
 }
