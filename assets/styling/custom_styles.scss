@@ -6,17 +6,22 @@
 $body-bg: #f4f1ea;        // paper   (was #fafafa)
 $body-color: #22282b;     // ink     (was #212529)
 $link-color: #a8323f;     // burgundy (was #3b4252)
+$link-hover-color: darken($link-color, 15%);
 $primary: #a8323f;        // NEW — overrides navy primary coming from _brand.yml
 $secondary: #5c5f5b;      // ink-soft — replaces the old teal secondary
 $border-color: #ddd5c6;   // NEW — line
 $navbar-bg: #fbf9f4;      // surface — light navbar (Batch 2)
-$navbar-fg: #22282b;      // ink$code-block-bg: #efe9dd;  // surface-alt (was #f8f9fa)
+$navbar-fg: #22282b;      // ink
+$code-block-bg: #efe9dd;  // surface-alt (was #f8f9fa)
 $code-color: #a8323f;     // burgundy (was #3b4252)
 $caption-color: #5c5f5b;  // ink-soft (was #3b4252)
 $mark-bg: #f3e2e1;                // burgundy-soft (was yellow)
 $callout-color-tip: #a8323f;      // burgundy (was flatly teal)
 $input-placeholder-color: #5c5f5b; // ink-soft (was teal)
 $callout-color-note: #5c5f5b;   // light file: warm ink-soft
+$callout-color-important: #22282b; // ink
+$callout-color-warning: #b07d2b;   // muted ochre
+$callout-color-caution: #b07d2b;   // muted ochre
 
 // Pagination (flatly default is green)
 $pagination-color: #a8323f;
@@ -38,10 +43,12 @@ $pagination-disabled-border-color: #ddd5c6;
     color: $pagination-active-color !important;
 }
 
-// Add smooth transitions
-* {
-    transition: background-color 0.3s ease, color 0.3s ease;
+
+// Links: subtle color change on hover (replaces the old * transition)
+a {
+    transition: color 0.15s ease;
 }
+
 
 
 /* Space before title */
@@ -84,25 +91,6 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
 .navbar .nav-link.active {
     color: $link-color !important;
     box-shadow: inset 0 -2px 0 $link-color;
-}
-
-
-
-
-// banner 
-.quarto-title-banner {
-  background-color: $navbar-bg !important;  // Using your navbar color variable
-  color: $navbar-fg !important;  // Using your navbar font color variable
-  padding: 0.5rem 1rem;
-  
-  .quarto-title {
-    color: $navbar-fg !important;
-  }
-}
-
-// For any text in the header/banner
-.header-section-number {
-  color: $navbar-fg !important;
 }
 
 
@@ -167,41 +155,158 @@ nav#TOC.toc-active ul li {
 }
 
 
-// Add styles for links
-a {
-    color: $link-color !important;
-    
-    &:hover {
-        color: darken($link-color, 15%) !important;
-    }
-}
-
 // Add styles for selection highlighting
 ::selection {
     background-color: $link-color !important;
     color: $body-bg !important;
 }
 
-// Add styles for callouts
-.callout {
-    background-color: darken($body-bg, 5%) !important;
-    border-color: $link-color !important;
-    
-    .callout-title {
-        background-color: darken($body-bg, 8%) !important;
-    }
-}
+
 
 
 
 // OTHERS
 
-/* Reduce the font size of card titles */
-h5.no-anchor.card-title.listing-title {
-    font-size: 20px !important; /* Adjust the size to your preference */
-    line-height: 1.3; /* Adjust line height for better spacing */
+// Card titles: clamped to 3 lines (Editorial refresh, Batch 3)
+.quarto-grid-item .card-title.listing-title {
+    font-size: 1.25rem;          // same size as the old 20px, without !important
+    line-height: 1.3;
+    font-weight: 500;
+    margin-top: 0;               // cancels the site-wide 40px heading margin inside cards
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
 }
 
+// CARDS (Editorial refresh, Batch 3)
+// Listing grid cards: surface background, hairline border, burgundy on hover.
+.quarto-grid-item.card {
+    background-color: #fbf9f4;            // surface (DARK FILE: #1d2123)
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    box-shadow: none;
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+
+.quarto-grid-item.card:hover {
+    border-color: $link-color;
+}
+
+// Thumbnails: keep each chart's top-left (title/subtitle) in view
+.quarto-grid-item .card-img-top {
+    background-color: #efe9dd;            // surface-alt (DARK FILE: #262b2d)
+}
+
+.quarto-grid-item .card-img-top img,
+.quarto-grid-item img.thumbnail-image {
+    object-fit: cover;
+    object-position: left top;
+}
+
+// Date: left-aligned under the title
+// (.card + .end outrank Quarto's own .card-attribution.end rule)
+.quarto-grid-item.card .card-attribution.end {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.quarto-grid-item.card .card-attribution.end .listing-date {
+    margin-left: 0;
+    text-align: left;
+}
+
+// GALLERY SIDEBAR (Editorial refresh, Batch 3)
+// "Categories" as a mono kicker; counts in mono; selected category burgundy.
+h5.quarto-listing-category-title {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: $link-color;
+}
+
+.quarto-listing-category.category-default .category {
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.quarto-listing-category.category-default .category:hover {
+    color: $link-color;
+}
+
+.quarto-listing-category.category-default .category.active {
+    color: $link-color;
+    font-weight: 600;
+}
+
+.quarto-listing-category.category-default .quarto-category-count {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: $caption-color;
+}
+
+// LISTING CONTROLS (Editorial refresh, Batch 3)
+// Order By / Filter: paper background, hairline borders, burgundy focus.
+.quarto-listing-sort.input-group .input-group-text,
+.quarto-listing-filter.input-group .input-group-text,
+.quarto-listing-sort.input-group .form-select,
+.quarto-listing-filter.input-group .form-control {
+    background-color: $body-bg;           // paper
+    border-color: $border-color;          // hairline
+    color: $body-color;
+}
+
+.quarto-listing-sort.input-group .input-group-text,
+.quarto-listing-filter.input-group .input-group-text {
+    color: $caption-color;                // muted icon
+}
+
+.quarto-listing-filter.input-group .form-control::placeholder {
+    color: $caption-color;
+}
+
+.quarto-listing-sort.input-group .form-select:focus,
+.quarto-listing-filter.input-group .form-control:focus {
+    border-color: $link-color;
+    box-shadow: 0 0 0 1px $link-color;    // visible focus ring, no blue glow
+}
+
+// CODE (Editorial refresh, Batch 3)
+// Code blocks: surface-alt with a hairline border; "Show code" as a mono label.
+main div.sourceCode {
+    border-color: $border-color;
+    border-radius: 4px;
+}
+
+.cell details.code-fold > summary {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: $caption-color;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.cell details.code-fold > summary:hover,
+.cell details.code-fold[open] > summary {
+    color: $link-color;
+}
+
+// HIGHLIGHT (Editorial refresh, Batch 3)
+// .mark (used on "Steps to Create this Graphic" and its TOC entry):
+// burgundy-soft background with readable ink text in both modes.
+main mark, main .mark,
+#TOC mark, #TOC .mark {
+    background-color: $mark-bg;
+    color: $body-color;
+    padding: 0 0.2em;
+    border-radius: 2px;
+}
 
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
@@ -238,46 +343,6 @@ figure figcaption,
 /* Additional specificity if needed */
 div.quarto-figure .quarto-float-caption {
   color: $caption-color !important; 
-}
-
-/* Target the specific ID if the above selectors don't work */
-#fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca {
-  color: $caption-color !important; 
-}
-
-
-// SOCIAL SHARE
-.page-layout-article {
-    .social-share {
-        display: flex;
-        justify-content: space-evenly;
-        align-items: center;
-        gap: 1rem;
-        width: 847px;  // Set specific width based on the inspect element
-        margin: 2rem auto;
-        padding: 0;
-        
-        // Container to enforce centering
-        &::after {
-            content: '';
-            display: block;
-            width: 847px;  // Match container width
-            margin: 0 auto;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        a {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 37.88px;  // Set specific width from inspect
-            height: 37.88px; // Make it square
-            margin: 0;
-            padding: 0;
-        }
-    }
 }
 
 // MONO ACCENTS (Editorial refresh, Batch 2)
