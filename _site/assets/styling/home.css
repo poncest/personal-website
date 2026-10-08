@@ -1,0 +1,149 @@
+/* Homepage only (Editorial refresh, Batch 4).
+   Loaded by index.qmd via `css:`, so edits here don't touch other pages. */
+
+/* Hide Quarto's title block; the hero has its own h1 */
+#title-block-header { display: none; }
+
+/* Hero: two columns, text left, illustration right */
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+  margin: 1.5rem 0 3.5rem;
+}
+
+.home-kicker {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--bs-primary);
+  margin-bottom: 1rem;
+}
+
+.home-headline {
+  font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 1.25rem;
+}
+
+.home-headline em { color: var(--bs-primary); }
+
+.home-intro {
+  font-size: 1.15rem;
+  color: var(--bs-secondary);
+  max-width: 38rem;
+  margin-bottom: 1.75rem;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.home-actions .btn { border-radius: 4px; }
+
+/* Dark mode: dark text on the rose primary button (white on rose is ~3:1, below AA) */
+body.quarto-dark .home-actions .btn-primary {
+  --bs-btn-color: #1a0f0e;
+  --bs-btn-hover-color: #1a0f0e;
+  --bs-btn-active-color: #1a0f0e;
+}
+
+
+/* Hero illustration: dot grid, a few signals (colors follow the theme) */
+.home-figure {
+  margin: 0;
+  padding: 1.25rem 1.25rem 1rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 4px;
+}
+
+.home-figure svg { display: block; width: 100%; height: auto; }
+
+.home-figure .sig-dot  { fill: var(--bs-border-color); }
+.home-figure .sig-hit  { fill: var(--bs-primary); }
+.home-figure .sig-rule { stroke: var(--bs-primary); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.home-figure .sig-label {
+  fill: var(--bs-primary);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.home-figure figcaption {
+  margin-top: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+  color: var(--bs-secondary);
+}
+
+/* Recent visualizations strip: heading row + spacing (listing id: recent-viz) */
+.home-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.home-section-head .home-kicker { margin: 0; }
+
+.home-section-head a {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+}
+
+.home-section-head a:hover { text-decoration: underline; }
+
+
+/* Stats row: computed in R at render time (index.qmd, chunk home-stats) */
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1.5rem 2rem;
+  padding: 1.5rem 0;
+  margin: 3rem 0;
+  border-top: 1px solid var(--bs-border-color);
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.home-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.home-stat-num {
+  font-family: "Newsreader", serif;
+  font-size: 2.4rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: var(--bs-body-color);
+}
+
+.home-stat-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--bs-secondary);
+}
+
+/* About: comfortable reading width */
+.home-about { max-width: 70ch; }
+
+/* Phones and small tablets: stack the columns */
+@media (max-width: 767.98px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
