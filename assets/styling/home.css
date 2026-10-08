@@ -1,0 +1,55 @@
+/* Homepage only (Editorial refresh, Batch 4).
+   Loaded by index.qmd via `css:`, so edits here don't touch other pages. */
+
+/* Hide Quarto's title block; the hero has its own h1 */
+#title-block-header { display: none; }
+
+/* Hero: two columns, text left, illustration right */
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+  margin: 1.5rem 0 3.5rem;
+}
+
+.home-kicker {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--bs-primary);
+  margin-bottom: 1rem;
+}
+
+.home-headline {
+  font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0 0 1.25rem;
+}
+
+.home-headline em { color: var(--bs-primary); }
+
+.home-intro {
+  font-size: 1.15rem;
+  color: var(--bs-secondary);
+  max-width: 38rem;
+  margin-bottom: 1.75rem;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.home-actions .btn { border-radius: 4px; }
+
+/* Phones and small tablets: stack the columns */
+@media (max-width: 767.98px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
