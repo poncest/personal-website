@@ -74,9 +74,12 @@ listing:
 #| label: home-stats
 #| echo: false
 #| output: asis
+#| cache: false
 
 # Count posts the same way the listing pages do:
 # every .qmd under the folder, skipping "_" files and the "Template" post.
+# cache: false overrides the site-wide `execute: cache: true` in _quarto.yml;
+# without it, knitr replays the first result and the counts never change.
 read_meta <- function(f) {
   tryCatch(rmarkdown::yaml_front_matter(f), error = function(e) list())
 }
