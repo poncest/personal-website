@@ -723,7 +723,7 @@ Figure&nbsp;1: European NUTS 2 regions with data. Each row is one region and eac
 <span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>legend_title <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
 <span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Each row = one region (not weighted by size), most summer-heavy at top.</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Colour = that month's share of the region's 2025 nights; neutral = an even 1/12."</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Color = that month's share of the region's 2025 nights; neutral = an even 8.3% per month."</span></span>
 <span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>note_text <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
@@ -819,7 +819,7 @@ Figure&nbsp;1: European NUTS 2 regions with data. Each row is one region and eac
 <span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> col_low, <span class="at">mid =</span> col_mid, <span class="at">high =</span> col_high,</span>
 <span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, cap), <span class="at">oob =</span> squish,</span>
 <span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>, <span class="fl">0.15</span>, cap),</span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0%"</span>, <span class="st">"1/12"</span>, <span class="st">"15%"</span>, <span class="fu">glue</span>(<span class="st">"{cap * 100}%+"</span>)),</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0%"</span>, <span class="st">"8.3%"</span>, <span class="st">"15%"</span>, <span class="fu">glue</span>(<span class="st">"{cap * 100}%+"</span>)),</span>
 <span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> legend_title</span>
 <span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
@@ -1825,7 +1825,7 @@ the Year It Takes Doesn’t.”</span> October 11. <a href="https://stevenponce.
 <span id="cb9-369"><a href="#cb9-369" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-370"><a href="#cb9-370" aria-hidden="true" tabindex="-1"></a>legend_title <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
 <span id="cb9-371"><a href="#cb9-371" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Each row = one region (not weighted by size), most summer-heavy at top.</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Colour = that month's share of the region's 2025 nights; neutral = an even 1/12."</span></span>
+<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Color = that month's share of the region's 2025 nights; neutral = an even 8.3% per month."</span></span>
 <span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb9-374"><a href="#cb9-374" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a>note_text <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
@@ -1920,7 +1920,7 @@ the Year It Takes Doesn’t.”</span> October 11. <a href="https://stevenponce.
 <span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> col_low, <span class="at">mid =</span> col_mid, <span class="at">high =</span> col_high,</span>
 <span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint =</span> <span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, cap), <span class="at">oob =</span> squish,</span>
 <span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">/</span> <span class="dv">12</span>, <span class="fl">0.15</span>, cap),</span>
-<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0%"</span>, <span class="st">"1/12"</span>, <span class="st">"15%"</span>, <span class="fu">glue</span>(<span class="st">"{cap * 100}%+"</span>)),</span>
+<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"0%"</span>, <span class="st">"8.3%"</span>, <span class="st">"15%"</span>, <span class="fu">glue</span>(<span class="st">"{cap * 100}%+"</span>)),</span>
 <span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> legend_title</span>
 <span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>

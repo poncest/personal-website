@@ -357,7 +357,7 @@ subtitle_text <- glue(
 
 legend_title <- paste0(
   "Each row = one region (not weighted by size), most summer-heavy at top.\n",
-  "Colour = that month's share of the region's 2025 nights; neutral = an even 1/12."
+  "Color = that month's share of the region's 2025 nights; neutral = an even 8.3% per month."
 )
 
 note_text <- glue(
@@ -452,7 +452,7 @@ p <- ggplot(cells, aes(month_i, row_y, fill = share)) +
     low = col_low, mid = col_mid, high = col_high,
     midpoint = 1 / 12, limits = c(0, cap), oob = squish,
     breaks = c(0, 1 / 12, 0.15, cap),
-    labels = c("0%", "1/12", "15%", glue("{cap * 100}%+")),
+    labels = c("0%", "8.3%", "15%", glue("{cap * 100}%+")),
     name = legend_title
   ) +
   scale_x_continuous(
