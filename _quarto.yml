@@ -110,6 +110,15 @@ format:
             }
           }
           </script>
+    include-after-body:
+      - text: |
+          <script>
+          // Listing-card thumbnails sit next to their own title, so mark them
+          // decorative (alt="") unless the post sets image-alt.
+          document.querySelectorAll("img.thumbnail-image:not([alt])").forEach(function (img) {
+            img.setAttribute("alt", "");
+          });
+          </script>
     # Resource optimization
     smooth-scroll: true
     anchor-sections: true
