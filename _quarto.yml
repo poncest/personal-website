@@ -72,7 +72,7 @@ website:
         href: mailto:steven_ponce@yahoo.com
 
   page-footer:
-      left: "&#169; 2026 Steven Ponce · Built with R + Quarto"
+      left: "&#169; 2024–<span class='footer-year'>2026</span> Steven Ponce · Built with R + Quarto"
       center: |
         <a class="me-1" href="https://github.com/poncest" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener">{{< fa brands github >}}</a>
         <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener">{{< fa brands linkedin >}}</a>
@@ -117,6 +117,10 @@ format:
           // decorative (alt="") unless the post sets image-alt.
           document.querySelectorAll("img.thumbnail-image:not([alt])").forEach(function (img) {
             img.setAttribute("alt", "");
+          });
+          // Footer copyright: keep the end year current (HTML fallback: 2026).
+          document.querySelectorAll(".footer-year").forEach(function (el) {
+            el.textContent = new Date().getFullYear();
           });
           </script>
     # Resource optimization
