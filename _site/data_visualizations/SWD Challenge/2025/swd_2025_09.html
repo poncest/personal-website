@@ -116,7 +116,6 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 </script><style>html{ scroll-behavior: smooth; }</style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -336,12 +335,12 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 <span class="menu-text">Data Visualizations</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="../../../behind_the_viz.html"> 
-<span class="menu-text">Behind the Viz</span></a>
-  </li>  
-  <li class="nav-item">
     <a class="nav-link" href="../../../projects.html"> 
 <span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../behind_the_viz.html"> 
+<span class="menu-text">Behind the Viz</span></a>
   </li>  
 </ul>
 <ul class="navbar-nav navbar-nav-scroll ms-auto">
@@ -351,17 +350,17 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 <span class="menu-text">Resume</span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/poncest"> <i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://github.com/poncest"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://www.linkedin.com/in/stevenponce/"> <i class="bi bi-linkedin" role="img">
+    <a class="nav-link" href="https://www.linkedin.com/in/stevenponce/"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com/sponce1"> <i class="bi bi-twitter-x" role="img">
+    <a class="nav-link" href="https://twitter.com/sponce1"> <i class="bi bi-twitter-x" role="img" aria-label="X (Twitter)">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -1386,16 +1385,26 @@ loaded via a namespace (and not attached):
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
     <div class="nav-footer-left">
-<p>© 2026 Steven Ponce · Built with R + Quarto</p>
+<p>© 2024–<span class="footer-year">2026</span> Steven Ponce · Built with R + Quarto</p>
 </div>   
     <div class="nav-footer-center">
-<p><a class="me-1" href="https://github.com/poncest" title="github" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i></a> <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a> <a class="me-1" href="https://twitter.com/sponce1" title="X/Twitter" target="_blank" rel="noopener"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a> <a class="me-1" href="https://bsky.app/profile/sponce1.bsky.social" title="Bluesky" target="_blank" rel="noopener"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon></a></p>
+<p><a class="me-1" href="https://github.com/poncest" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i></a> <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a> <a class="me-1" href="https://twitter.com/sponce1" title="X/Twitter" aria-label="X (Twitter)" target="_blank" rel="noopener"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a> <a class="me-1" href="https://bsky.app/profile/sponce1.bsky.social" title="Bluesky" aria-label="Bluesky" target="_blank" rel="noopener"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon></a></p>
 </div>
     <div class="nav-footer-right">
 <p><a class="me-1" href="https://github.com/poncest/personal-website"><i class="fa-solid fa-code" aria-hidden="true"></i> Source</a> <a class="me-1" href="https://github.com/poncest/personal-website/issues"><i class="fa-solid fa-bug" aria-hidden="true"></i> Issues</a></p>
 </div>
   </div>
-</footer>
+</footer><script>
+// Listing-card thumbnails sit next to their own title, so mark them
+// decorative (alt="") unless the post sets image-alt.
+document.querySelectorAll("img.thumbnail-image:not([alt])").forEach(function (img) {
+  img.setAttribute("alt", "");
+});
+// Footer copyright: keep the end year current (HTML fallback: 2026).
+document.querySelectorAll(".footer-year").forEach(function (el) {
+  el.textContent = new Date().getFullYear();
+});
+</script>
 
 
 <script src="../../../site_libs/quarto-html/zenscroll-min.js"></script>
