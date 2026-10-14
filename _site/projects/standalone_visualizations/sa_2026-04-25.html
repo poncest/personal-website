@@ -78,9 +78,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-6a50bd621f08fdc5c26e43d254df0a90.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-b87ee19d8a809327146b19256111b332.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-f2dc6265eba6a48fb14afb3306860409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-b87ee19d8a809327146b19256111b332.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-df69d0d95e9e3a7970828b2f2d051a3d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-6b5ac32df590bf0251110ff5c1338830.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-df69d0d95e9e3a7970828b2f2d051a3d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script src="../../site_libs/quarto-contrib/iconify-2.1.0/iconify-icon.min.js"></script><script id="quarto-search-options" type="application/json">{
@@ -116,6 +116,7 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 </script><style>html{ scroll-behavior: smooth; }</style>
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1103,347 +1104,344 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: true</span></span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
 <span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="co">    code-summary: "Show code"</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">    theme:</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">      light: [flatly, assets/styling/custom_styles.scss]</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co">      dark: [darkly, assets/styling/custom_styles_dark.scss]</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="an">editor_options:</span><span class="co">  </span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">  chunk_output_type: inline</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">  freeze: true</span></span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true</span></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co">  error: false</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="co">  message: false</span></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co">  eval: true</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> </span></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="co">  markdown: </span></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="co">    wrap: 72</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup}</span></span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">dev =</span> <span class="st">"png"</span>, <span class="at">fig.width =</span> <span class="dv">9</span>, <span class="at">fig.height =</span> <span class="dv">10</span>, <span class="at">dpi =</span> <span class="dv">320</span>)</span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>🚀 **Live app:**\</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>[Noise Solution Impact</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>Dashboard](https://0l6jpd-steven-ponce.shinyapps.io/noise-solution-impact/)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="an">editor_options:</span><span class="co">  </span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">  chunk_output_type: inline</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co">  freeze: true</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="co">  error: false</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">  message: false</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co">  eval: true</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> </span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="co">  markdown: </span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co">    wrap: 72</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{r setup}</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(<span class="at">dev =</span> <span class="st">"png"</span>, <span class="at">fig.width =</span> <span class="dv">9</span>, <span class="at">fig.height =</span> <span class="dv">10</span>, <span class="at">dpi =</span> <span class="dv">320</span>)</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>🚀 **Live app:**\</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>[Noise Solution Impact</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>Dashboard](https://0l6jpd-steven-ponce.shinyapps.io/noise-solution-impact/)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>💻 **Source code:**\</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">GitHub repository</span><span class="co">](https://github.com/poncest/noise_solutions)</span></span>
 <span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>💻 **Source code:**\</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">GitHub repository</span><span class="co">](https://github.com/poncest/noise_solutions)</span></span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *The challenge wasn't building a dashboard. It was deciding what to</span></span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; report honestly when the data doesn't tell a clean story — and making</span></span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; that honesty useful.*</span></span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## [1. Context, problem, and goal]{.smallcaps}</span></span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>**Context**</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Noise Solution</span><span class="co">](https://www.noisesolution.org/)</span> is a UK-based charity</span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>that uses digital music mentoring to support young people facing</span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>significant barriers — including mental health challenges, exclusion</span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>from education, and social isolation. Mentors work one-to-one with</span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>participants, using music creation as the medium for building</span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>psychological wellbeing. After each session, mentors write free-text</span>
-<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>reflections: observations, participant responses, and qualitative notes.</span>
-<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>**Problem**</span>
-<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>Noise Solution collects qualitative reflection data from young people</span>
-<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>across every session. This project translates that data into</span>
-<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>decision-ready insight — connecting session-level observations to</span>
-<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>programme-level patterns in a form accessible to commissioners and</span>
-<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a>funders. AI-derived scores provided quantitative structure, but without</span>
-<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>clear integration with participant voice, they lacked the contextual</span>
-<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>grounding needed for credible reporting.</span>
-<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>**Goal**</span>
-<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>Design an interface that integrates AI-derived quantitative scores with</span>
-<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>qualitative participant evidence, enabling stakeholders to identify</span>
-<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>strengths, understand gaps, and interpret findings with appropriate</span>
-<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>caution — without requiring familiarity with the underlying methodology.</span>
-<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>This project was completed as a **pro bono contribution** through the</span>
-<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>Data ChangeMakers volunteer programme, treated as a consulting</span>
-<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>engagement rather than a portfolio exercise.</span>
-<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a><span class="fu">## [2. Approach: a structured scoring pipeline]{.smallcaps}</span></span>
-<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>**Self-Determination Theory (SDT)** provided the analytical scaffold.</span>
-<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>SDT is a well-validated framework in which psychological wellbeing</span>
-<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a>depends on the satisfaction of three Basic Psychological Needs (BPN):</span>
-<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Competence** — feeling capable and effective</span>
-<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Autonomy** — experiencing choice and creative agency</span>
-<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Relatedness** — feeling connected to others</span>
-<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>For each of 229 sessions across 35 participants, Claude (Anthropic)</span>
-<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a>reviewed the mentor's free-text notes and assigned BPN scores on a 1–9</span>
-<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>scale, along with representative quotes and sentiment classification</span>
-<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>(positive / challenge).</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *The challenge wasn't building a dashboard. It was deciding what to</span></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; report honestly when the data doesn't tell a clean story — and making</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; that honesty useful.*</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="fu">## [1. Context, problem, and goal]{.smallcaps}</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>**Context**</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Noise Solution</span><span class="co">](https://www.noisesolution.org/)</span> is a UK-based charity</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>that uses digital music mentoring to support young people facing</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>significant barriers — including mental health challenges, exclusion</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>from education, and social isolation. Mentors work one-to-one with</span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>participants, using music creation as the medium for building</span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>psychological wellbeing. After each session, mentors write free-text</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>reflections: observations, participant responses, and qualitative notes.</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>**Problem**</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>Noise Solution collects qualitative reflection data from young people</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>across every session. This project translates that data into</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>decision-ready insight — connecting session-level observations to</span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>programme-level patterns in a form accessible to commissioners and</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a>funders. AI-derived scores provided quantitative structure, but without</span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a>clear integration with participant voice, they lacked the contextual</span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a>grounding needed for credible reporting.</span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>**Goal**</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a>Design an interface that integrates AI-derived quantitative scores with</span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a>qualitative participant evidence, enabling stakeholders to identify</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>strengths, understand gaps, and interpret findings with appropriate</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>caution — without requiring familiarity with the underlying methodology.</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>This project was completed as a **pro bono contribution** through the</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a>Data ChangeMakers volunteer programme, treated as a consulting</span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a>engagement rather than a portfolio exercise.</span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a><span class="fu">## [2. Approach: a structured scoring pipeline]{.smallcaps}</span></span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a>**Self-Determination Theory (SDT)** provided the analytical scaffold.</span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>SDT is a well-validated framework in which psychological wellbeing</span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>depends on the satisfaction of three Basic Psychological Needs (BPN):</span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Competence** — feeling capable and effective</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Autonomy** — experiencing choice and creative agency</span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Relatedness** — feeling connected to others</span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a>For each of 229 sessions across 35 participants, Claude (Anthropic)</span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>reviewed the mentor's free-text notes and assigned BPN scores on a 1–9</span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>scale, along with representative quotes and sentiment classification</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>(positive / challenge).</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a>This pipeline has important limitations disclosed throughout the</span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>dashboard:</span>
 <span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a>This pipeline has important limitations disclosed throughout the</span>
-<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>dashboard:</span>
-<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Scores reflect AI interpretation of qualitative notes, not self-report</span>
-<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>  from participants</span>
-<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The scoring stage introduces subjectivity that cannot be fully</span>
-<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>  eliminated</span>
-<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Results should be read as structured summaries, not clinical</span>
-<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>  measurements</span>
-<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>The goal was not to eliminate uncertainty, but to make patterns</span>
-<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>accessible for programme reflection while being transparent about what</span>
-<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>the data can and cannot support.</span>
-<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a><span class="fu">## [3. What the analysis finds]{.smallcaps}</span></span>
-<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>Across 229 sessions, three patterns emerged:</span>
-<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a>**Competence is the programme's strongest signal.**\</span>
-<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a>Average Competence score: 6.2 / 9. Participants consistently report</span>
-<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a>feeling capable and effective — this is the clearest outcome the data</span>
-<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>supports.</span>
-<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a>**A consistent gap in Relatedness.**\</span>
-<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>Autonomy averaged 5.6 / 9; Relatedness averaged 5.4 / 9. The gap between</span>
-<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>capability and connection scores is the most structurally interesting</span>
-<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a>finding — the programme builds skill and confidence more reliably than</span>
-<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>peer connection, which is consistent with a one-to-one mentoring model</span>
-<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>and may represent a design opportunity.</span>
-<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a>**Session satisfaction is high, but alignment with BPN scores is</span>
-<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a>partial.**\</span>
-<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a>Average session rating: 8.7 / 10. Higher ratings do not consistently</span>
-<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a>predict higher BPN scores, suggesting participant satisfaction and</span>
-<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a>psychological need satisfaction are related but distinct.</span>
-<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a>**Trajectories over time are flat.**\</span>
-<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a>Across sessions 1–9 (where N ≥ 10), average BPN scores do not show a</span>
-<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a>consistent upward trend. This is an honest finding — the data does not</span>
-<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a>support claims of improvement over time at the aggregate level.</span>
-<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a><span class="fu">## [4. Dashboard structure: four questions]{.smallcaps}</span></span>
-<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a>The analysis is structured around four questions rather than four</span>
-<span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a>feature tabs — each one driving a deliberate design and content</span>
-<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a>decision.</span>
-<span id="cb3-161"><a href="#cb3-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-162"><a href="#cb3-162" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is happening?</span></span>
-<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/impact.png)</span></span>
-<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a>Establishes the overall pattern using BPN scores, session ratings, and a</span>
-<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a>hero quote drawn directly from session notes. The goal is immediate</span>
-<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a>clarity: are sessions working, and where is the gap? A rating/BPN</span>
-<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a>alignment chart sits subordinate to the KPI cards — confirmatory, not</span>
-<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a>the lead story.</span>
-<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a><span class="fu">### Where is the gap?</span></span>
-<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/how_support_varies.png)</span></span>
-<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a>Compares support across the three psychological needs, highlighting the</span>
-<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a>consistent Relatedness gap. A horizontal bar chart with a midpoint</span>
-<span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a>reference line (5 — midpoint) enables direct comparison without</span>
-<span id="cb3-179"><a href="#cb3-179" aria-hidden="true" tabindex="-1"></a>requiring familiarity with the 1–9 scale.</span>
-<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a><span class="fu">### What do participants actually say?</span></span>
-<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/in_their_words.png)</span></span>
-<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a>Surfaces qualitative evidence to validate and contextualise the</span>
-<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a>quantitative findings. Quotes are organised by BPN domain and sentiment;</span>
-<span id="cb3-187"><a href="#cb3-187" aria-hidden="true" tabindex="-1"></a>the sentiment label is removed from the cards so the participant's voice</span>
-<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a>speaks without being pre-classified for the reader.</span>
-<span id="cb3-189"><a href="#cb3-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-190"><a href="#cb3-190" aria-hidden="true" tabindex="-1"></a><span class="fu">### Does it change over time?</span></span>
-<span id="cb3-191"><a href="#cb3-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-192"><a href="#cb3-192" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/over_time.png)</span></span>
-<span id="cb3-193"><a href="#cb3-193" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-194"><a href="#cb3-194" aria-hidden="true" tabindex="-1"></a>Examines BPN trajectories across sessions to assess whether support</span>
-<span id="cb3-195"><a href="#cb3-195" aria-hidden="true" tabindex="-1"></a>improves or remains variable. Individual lines at alpha 0.11 avoid</span>
-<span id="cb3-196"><a href="#cb3-196" aria-hidden="true" tabindex="-1"></a>overplotting; the average overlay is limited to sessions 1–9 where N ≥</span>
-<span id="cb3-197"><a href="#cb3-197" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>The finding is what the data shows — not what a programme narrative</span>
-<span id="cb3-198"><a href="#cb3-198" aria-hidden="true" tabindex="-1"></a>might prefer.</span>
-<span id="cb3-199"><a href="#cb3-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-200"><a href="#cb3-200" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-201"><a href="#cb3-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-202"><a href="#cb3-202" aria-hidden="true" tabindex="-1"></a><span class="fu">## [5. Key design decisions]{.smallcaps}</span></span>
-<span id="cb3-203"><a href="#cb3-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-204"><a href="#cb3-204" aria-hidden="true" tabindex="-1"></a>**Prioritised editorial structure over exploratory interaction**\</span>
-<span id="cb3-205"><a href="#cb3-205" aria-hidden="true" tabindex="-1"></a>A fixed narrative structure replaces open filters. This reduces</span>
-<span id="cb3-206"><a href="#cb3-206" aria-hidden="true" tabindex="-1"></a>cognitive load for non-technical users — commissioners and programme</span>
-<span id="cb3-207"><a href="#cb3-207" aria-hidden="true" tabindex="-1"></a>staff — and ensures findings are interpreted in context rather than</span>
-<span id="cb3-208"><a href="#cb3-208" aria-hidden="true" tabindex="-1"></a>explored in isolation.</span>
-<span id="cb3-209"><a href="#cb3-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-210"><a href="#cb3-210" aria-hidden="true" tabindex="-1"></a>**Integrated quantitative and qualitative evidence throughout**\</span>
-<span id="cb3-211"><a href="#cb3-211" aria-hidden="true" tabindex="-1"></a>Every section pairs BPN scores with participant quotes. This grounds the</span>
-<span id="cb3-212"><a href="#cb3-212" aria-hidden="true" tabindex="-1"></a>metrics in lived experience and builds credibility with audiences who</span>
-<span id="cb3-213"><a href="#cb3-213" aria-hidden="true" tabindex="-1"></a>are rightly skeptical of AI-derived numbers alone.</span>
-<span id="cb3-214"><a href="#cb3-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-215"><a href="#cb3-215" aria-hidden="true" tabindex="-1"></a>**Built a validation layer: ratings vs. BPN**\</span>
-<span id="cb3-216"><a href="#cb3-216" aria-hidden="true" tabindex="-1"></a>The rating/BPN alignment chart was included to surface the relationship</span>
-<span id="cb3-217"><a href="#cb3-217" aria-hidden="true" tabindex="-1"></a>— and its limits — between participant satisfaction and psychological</span>
-<span id="cb3-218"><a href="#cb3-218" aria-hidden="true" tabindex="-1"></a>need satisfaction. This reveals that a high average rating cannot stand</span>
-<span id="cb3-219"><a href="#cb3-219" aria-hidden="true" tabindex="-1"></a>as a proxy for wellbeing, supporting appropriate caution throughout.</span>
-<span id="cb3-220"><a href="#cb3-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-221"><a href="#cb3-221" aria-hidden="true" tabindex="-1"></a>**Constrained interaction to what directly supports interpretation**\</span>
-<span id="cb3-222"><a href="#cb3-222" aria-hidden="true" tabindex="-1"></a>Controls are limited to the Positive / Challenges toggle in *In Their</span>
-<span id="cb3-223"><a href="#cb3-223" aria-hidden="true" tabindex="-1"></a>Words* and the session threshold in *Over Time*. No segment filters, no</span>
-<span id="cb3-224"><a href="#cb3-224" aria-hidden="true" tabindex="-1"></a>demographic drilldowns. The simplicity is intentional — not a</span>
-<span id="cb3-225"><a href="#cb3-225" aria-hidden="true" tabindex="-1"></a>constraint.</span>
-<span id="cb3-226"><a href="#cb3-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-227"><a href="#cb3-227" aria-hidden="true" tabindex="-1"></a>**Reported flat trajectories as flat**\</span>
-<span id="cb3-228"><a href="#cb3-228" aria-hidden="true" tabindex="-1"></a>The *Over Time* analysis does not smooth or aggregate in a way that</span>
-<span id="cb3-229"><a href="#cb3-229" aria-hidden="true" tabindex="-1"></a>implies improvement. Honest findings are more useful for programme</span>
-<span id="cb3-230"><a href="#cb3-230" aria-hidden="true" tabindex="-1"></a>reflection than reassuring ones.</span>
-<span id="cb3-231"><a href="#cb3-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-232"><a href="#cb3-232" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-233"><a href="#cb3-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-234"><a href="#cb3-234" aria-hidden="true" tabindex="-1"></a><span class="fu">## [6. Out of scope — by design]{.smallcaps}</span></span>
-<span id="cb3-235"><a href="#cb3-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-236"><a href="#cb3-236" aria-hidden="true" tabindex="-1"></a>The following were intentionally excluded:</span>
-<span id="cb3-237"><a href="#cb3-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-238"><a href="#cb3-238" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Individual participant drilldowns</span>
-<span id="cb3-239"><a href="#cb3-239" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Demographic segmentation or filtering</span>
-<span id="cb3-240"><a href="#cb3-240" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Advanced statistical modelling or significance testing</span>
-<span id="cb3-241"><a href="#cb3-241" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Causal claims about programme impact</span>
-<span id="cb3-242"><a href="#cb3-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-243"><a href="#cb3-243" aria-hidden="true" tabindex="-1"></a>These elements were intentionally excluded to preserve clarity and</span>
-<span id="cb3-244"><a href="#cb3-244" aria-hidden="true" tabindex="-1"></a>maintain focus on decision-making rather than exploration. An interface</span>
-<span id="cb3-245"><a href="#cb3-245" aria-hidden="true" tabindex="-1"></a>built for commissioners needs to communicate — not demonstrate</span>
-<span id="cb3-246"><a href="#cb3-246" aria-hidden="true" tabindex="-1"></a>analytical range.</span>
-<span id="cb3-247"><a href="#cb3-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-248"><a href="#cb3-248" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-249"><a href="#cb3-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-250"><a href="#cb3-250" aria-hidden="true" tabindex="-1"></a><span class="fu">## [7. Technical lessons from the build]{.smallcaps}</span></span>
-<span id="cb3-251"><a href="#cb3-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-252"><a href="#cb3-252" aria-hidden="true" tabindex="-1"></a><span class="fu">### `updateActionButton(class = ...)` is unsupported in shiny.semantic</span></span>
-<span id="cb3-253"><a href="#cb3-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-254"><a href="#cb3-254" aria-hidden="true" tabindex="-1"></a>The Positive / Challenges toggle was initially built using</span>
-<span id="cb3-255"><a href="#cb3-255" aria-hidden="true" tabindex="-1"></a><span class="in">`updateActionButton()`</span> with a <span class="in">`class`</span> argument. This crashes silently in</span>
-<span id="cb3-256"><a href="#cb3-256" aria-hidden="true" tabindex="-1"></a>shiny.semantic. The fix: use <span class="in">`session$sendCustomMessage()`</span> with a</span>
-<span id="cb3-257"><a href="#cb3-257" aria-hidden="true" tabindex="-1"></a>JavaScript handler to update button classes directly.</span>
-<span id="cb3-258"><a href="#cb3-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-259"><a href="#cb3-259" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb3-260"><a href="#cb3-260" aria-hidden="true" tabindex="-1"></a><span class="co"># Broken in shiny.semantic</span></span>
-<span id="cb3-261"><a href="#cb3-261" aria-hidden="true" tabindex="-1"></a><span class="fu">updateActionButton</span>(session, <span class="st">"toggle_btn"</span>, <span class="at">class =</span> <span class="st">"ui green button"</span>)</span>
-<span id="cb3-262"><a href="#cb3-262" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-263"><a href="#cb3-263" aria-hidden="true" tabindex="-1"></a><span class="co"># Working alternative</span></span>
-<span id="cb3-264"><a href="#cb3-264" aria-hidden="true" tabindex="-1"></a>session<span class="sc">$</span><span class="fu">sendCustomMessage</span>(<span class="st">"updateButtonClass"</span>, <span class="fu">list</span>(</span>
-<span id="cb3-265"><a href="#cb3-265" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> session<span class="sc">$</span><span class="fu">ns</span>(<span class="st">"toggle_btn"</span>),</span>
-<span id="cb3-266"><a href="#cb3-266" aria-hidden="true" tabindex="-1"></a>  <span class="at">class =</span> <span class="st">"ui green button"</span></span>
-<span id="cb3-267"><a href="#cb3-267" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb3-268"><a href="#cb3-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-269"><a href="#cb3-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-270"><a href="#cb3-270" aria-hidden="true" tabindex="-1"></a><span class="fu">### `geom_line_interactive` tooltips fire per line, not per point</span></span>
-<span id="cb3-271"><a href="#cb3-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-272"><a href="#cb3-272" aria-hidden="true" tabindex="-1"></a><span class="in">`geom_line_interactive()`</span> from ggiraph fires tooltip events for the</span>
-<span id="cb3-273"><a href="#cb3-273" aria-hidden="true" tabindex="-1"></a>entire line on hover. The fix: overlay an invisible</span>
-<span id="cb3-274"><a href="#cb3-274" aria-hidden="true" tabindex="-1"></a><span class="in">`geom_point_interactive()`</span> layer to capture point-level interactions.</span>
-<span id="cb3-275"><a href="#cb3-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-276"><a href="#cb3-276" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb3-277"><a href="#cb3-277" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_point_interactive</span>(</span>
-<span id="cb3-278"><a href="#cb3-278" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">tooltip =</span> tooltip_text, <span class="at">data_id =</span> participant_id),</span>
-<span id="cb3-279"><a href="#cb3-279" aria-hidden="true" tabindex="-1"></a>  <span class="at">size =</span> <span class="dv">3</span>, <span class="at">alpha =</span> <span class="dv">0</span></span>
-<span id="cb3-280"><a href="#cb3-280" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb3-281"><a href="#cb3-281" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-282"><a href="#cb3-282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-283"><a href="#cb3-283" aria-hidden="true" tabindex="-1"></a><span class="fu">### CSS tabs and Shiny lazy evaluation</span></span>
-<span id="cb3-284"><a href="#cb3-284" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-285"><a href="#cb3-285" aria-hidden="true" tabindex="-1"></a>shiny.semantic's CSS-based tab switching does not notify Shiny when tabs</span>
-<span id="cb3-286"><a href="#cb3-286" aria-hidden="true" tabindex="-1"></a>become visible.</span>
-<span id="cb3-287"><a href="#cb3-287" aria-hidden="true" tabindex="-1"></a><span class="in">`outputOptions(output, "output_name", suspendWhenHidden = FALSE)`</span> on all</span>
-<span id="cb3-288"><a href="#cb3-288" aria-hidden="true" tabindex="-1"></a>outputs is now a standard first step in any shiny.semantic project.</span>
-<span id="cb3-289"><a href="#cb3-289" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-290"><a href="#cb3-290" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-291"><a href="#cb3-291" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-292"><a href="#cb3-292" aria-hidden="true" tabindex="-1"></a><span class="fu">## [8. Outcome and reflection]{.smallcaps}</span></span>
-<span id="cb3-293"><a href="#cb3-293" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-294"><a href="#cb3-294" aria-hidden="true" tabindex="-1"></a>**Outcome**</span>
-<span id="cb3-295"><a href="#cb3-295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-296"><a href="#cb3-296" aria-hidden="true" tabindex="-1"></a>The final design provides a clear, integrated view of programme</span>
-<span id="cb3-297"><a href="#cb3-297" aria-hidden="true" tabindex="-1"></a>performance. The integration of AI-derived metrics with participant</span>
-<span id="cb3-298"><a href="#cb3-298" aria-hidden="true" tabindex="-1"></a>voice delivers both analytical structure and contextual grounding —</span>
-<span id="cb3-299"><a href="#cb3-299" aria-hidden="true" tabindex="-1"></a>enabling stakeholders to identify strengths (Competence), understand</span>
-<span id="cb3-300"><a href="#cb3-300" aria-hidden="true" tabindex="-1"></a>gaps (Relatedness), and interpret findings with appropriate caution,</span>
-<span id="cb3-301"><a href="#cb3-301" aria-hidden="true" tabindex="-1"></a>without requiring familiarity with SDT or the scoring pipeline. The</span>
-<span id="cb3-302"><a href="#cb3-302" aria-hidden="true" tabindex="-1"></a>result is a focused, narrative-driven interface that enables fast,</span>
-<span id="cb3-303"><a href="#cb3-303" aria-hidden="true" tabindex="-1"></a>confident interpretation of complex, AI-derived data.</span>
-<span id="cb3-304"><a href="#cb3-304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-305"><a href="#cb3-305" aria-hidden="true" tabindex="-1"></a>**Reflection**</span>
-<span id="cb3-306"><a href="#cb3-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-307"><a href="#cb3-307" aria-hidden="true" tabindex="-1"></a>The central trade-off was between analytical honesty and accessibility.</span>
-<span id="cb3-308"><a href="#cb3-308" aria-hidden="true" tabindex="-1"></a>Flat trajectories and partial rating/BPN alignment are not the findings</span>
-<span id="cb3-309"><a href="#cb3-309" aria-hidden="true" tabindex="-1"></a>a programme narrative would choose — but they are more useful than</span>
-<span id="cb3-310"><a href="#cb3-310" aria-hidden="true" tabindex="-1"></a>reassuring simplifications. The final approach demonstrates that</span>
-<span id="cb3-311"><a href="#cb3-311" aria-hidden="true" tabindex="-1"></a>complex, AI-derived insights can be communicated effectively through a</span>
-<span id="cb3-312"><a href="#cb3-312" aria-hidden="true" tabindex="-1"></a>constrained, narrative-driven interface — provided the analyst is</span>
-<span id="cb3-313"><a href="#cb3-313" aria-hidden="true" tabindex="-1"></a>willing to let the data speak rather than manage its reception.</span>
-<span id="cb3-314"><a href="#cb3-314" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-315"><a href="#cb3-315" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-316"><a href="#cb3-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-317"><a href="#cb3-317" aria-hidden="true" tabindex="-1"></a><span class="fu">## [Appendix: Methodology &amp; Build Notes]{.smallcaps}</span></span>
-<span id="cb3-318"><a href="#cb3-318" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-319"><a href="#cb3-319" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data</span></span>
-<span id="cb3-320"><a href="#cb3-320" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-321"><a href="#cb3-321" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>229 sessions, 35 participants</span>
-<span id="cb3-322"><a href="#cb3-322" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Session range: 1–24, median 5, mean 6.5</span>
-<span id="cb3-323"><a href="#cb3-323" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>BPN averages: Competence 6.16, Autonomy 5.64, Relatedness 5.37</span>
-<span id="cb3-324"><a href="#cb3-324" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Session rating: 8.7 / 10 average (153 / 229 sessions with ratings)</span>
-<span id="cb3-325"><a href="#cb3-325" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Relatedness challenge quotes sparse (37 / 229 sessions)</span>
-<span id="cb3-326"><a href="#cb3-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-327"><a href="#cb3-327" aria-hidden="true" tabindex="-1"></a><span class="fu">### Technical Stack</span></span>
-<span id="cb3-328"><a href="#cb3-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-329"><a href="#cb3-329" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Language:** R (4.3+)</span>
-<span id="cb3-330"><a href="#cb3-330" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Framework:** Shiny (modular architecture)</span>
-<span id="cb3-331"><a href="#cb3-331" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**UI:** shiny.semantic (Appsilon)</span>
-<span id="cb3-332"><a href="#cb3-332" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Visualization:** ggplot2, ggiraph</span>
-<span id="cb3-333"><a href="#cb3-333" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Tables:** reactable</span>
-<span id="cb3-334"><a href="#cb3-334" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Deployment:** shinyapps.io</span>
-<span id="cb3-335"><a href="#cb3-335" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-336"><a href="#cb3-336" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-337"><a href="#cb3-337" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-338"><a href="#cb3-338" aria-hidden="true" tabindex="-1"></a><span class="fu">## Purpose, Scope, and Disclaimer</span></span>
-<span id="cb3-339"><a href="#cb3-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-340"><a href="#cb3-340" aria-hidden="true" tabindex="-1"></a>This project was completed as a **pro bono volunteer contribution**</span>
-<span id="cb3-341"><a href="#cb3-341" aria-hidden="true" tabindex="-1"></a>through the Data ChangeMakers volunteer programme. It is not affiliated</span>
-<span id="cb3-342"><a href="#cb3-342" aria-hidden="true" tabindex="-1"></a>with or endorsed by Noise Solution in an official capacity.</span>
-<span id="cb3-343"><a href="#cb3-343" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-344"><a href="#cb3-344" aria-hidden="true" tabindex="-1"></a>All session data was provided by Noise Solution for the purpose of this</span>
-<span id="cb3-345"><a href="#cb3-345" aria-hidden="true" tabindex="-1"></a>analysis. No personally identifiable information is included in this</span>
-<span id="cb3-346"><a href="#cb3-346" aria-hidden="true" tabindex="-1"></a>repository or the live application.</span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Scores reflect AI interpretation of qualitative notes, not self-report</span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a>  from participants</span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The scoring stage introduces subjectivity that cannot be fully</span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>  eliminated</span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Results should be read as structured summaries, not clinical</span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>  measurements</span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>The goal was not to eliminate uncertainty, but to make patterns</span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>accessible for programme reflection while being transparent about what</span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>the data can and cannot support.</span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a><span class="fu">## [3. What the analysis finds]{.smallcaps}</span></span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>Across 229 sessions, three patterns emerged:</span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>**Competence is the programme's strongest signal.**\</span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>Average Competence score: 6.2 / 9. Participants consistently report</span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a>feeling capable and effective — this is the clearest outcome the data</span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a>supports.</span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a>**A consistent gap in Relatedness.**\</span>
+<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>Autonomy averaged 5.6 / 9; Relatedness averaged 5.4 / 9. The gap between</span>
+<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a>capability and connection scores is the most structurally interesting</span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a>finding — the programme builds skill and confidence more reliably than</span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>peer connection, which is consistent with a one-to-one mentoring model</span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>and may represent a design opportunity.</span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>**Session satisfaction is high, but alignment with BPN scores is</span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>partial.**\</span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a>Average session rating: 8.7 / 10. Higher ratings do not consistently</span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a>predict higher BPN scores, suggesting participant satisfaction and</span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a>psychological need satisfaction are related but distinct.</span>
+<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a>**Trajectories over time are flat.**\</span>
+<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a>Across sessions 1–9 (where N ≥ 10), average BPN scores do not show a</span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a>consistent upward trend. This is an honest finding — the data does not</span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a>support claims of improvement over time at the aggregate level.</span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a><span class="fu">## [4. Dashboard structure: four questions]{.smallcaps}</span></span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a>The analysis is structured around four questions rather than four</span>
+<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a>feature tabs — each one driving a deliberate design and content</span>
+<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a>decision.</span>
+<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is happening?</span></span>
+<span id="cb3-160"><a href="#cb3-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-161"><a href="#cb3-161" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/impact.png)</span></span>
+<span id="cb3-162"><a href="#cb3-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-163"><a href="#cb3-163" aria-hidden="true" tabindex="-1"></a>Establishes the overall pattern using BPN scores, session ratings, and a</span>
+<span id="cb3-164"><a href="#cb3-164" aria-hidden="true" tabindex="-1"></a>hero quote drawn directly from session notes. The goal is immediate</span>
+<span id="cb3-165"><a href="#cb3-165" aria-hidden="true" tabindex="-1"></a>clarity: are sessions working, and where is the gap? A rating/BPN</span>
+<span id="cb3-166"><a href="#cb3-166" aria-hidden="true" tabindex="-1"></a>alignment chart sits subordinate to the KPI cards — confirmatory, not</span>
+<span id="cb3-167"><a href="#cb3-167" aria-hidden="true" tabindex="-1"></a>the lead story.</span>
+<span id="cb3-168"><a href="#cb3-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-169"><a href="#cb3-169" aria-hidden="true" tabindex="-1"></a><span class="fu">### Where is the gap?</span></span>
+<span id="cb3-170"><a href="#cb3-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-171"><a href="#cb3-171" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/how_support_varies.png)</span></span>
+<span id="cb3-172"><a href="#cb3-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-173"><a href="#cb3-173" aria-hidden="true" tabindex="-1"></a>Compares support across the three psychological needs, highlighting the</span>
+<span id="cb3-174"><a href="#cb3-174" aria-hidden="true" tabindex="-1"></a>consistent Relatedness gap. A horizontal bar chart with a midpoint</span>
+<span id="cb3-175"><a href="#cb3-175" aria-hidden="true" tabindex="-1"></a>reference line (5 — midpoint) enables direct comparison without</span>
+<span id="cb3-176"><a href="#cb3-176" aria-hidden="true" tabindex="-1"></a>requiring familiarity with the 1–9 scale.</span>
+<span id="cb3-177"><a href="#cb3-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a><span class="fu">### What do participants actually say?</span></span>
+<span id="cb3-179"><a href="#cb3-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/in_their_words.png)</span></span>
+<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a>Surfaces qualitative evidence to validate and contextualise the</span>
+<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a>quantitative findings. Quotes are organised by BPN domain and sentiment;</span>
+<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a>the sentiment label is removed from the cards so the participant's voice</span>
+<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a>speaks without being pre-classified for the reader.</span>
+<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-187"><a href="#cb3-187" aria-hidden="true" tabindex="-1"></a><span class="fu">### Does it change over time?</span></span>
+<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-189"><a href="#cb3-189" aria-hidden="true" tabindex="-1"></a><span class="al">![](https://raw.githubusercontent.com/poncest/noise_solutions/main/screenshots/over_time.png)</span></span>
+<span id="cb3-190"><a href="#cb3-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-191"><a href="#cb3-191" aria-hidden="true" tabindex="-1"></a>Examines BPN trajectories across sessions to assess whether support</span>
+<span id="cb3-192"><a href="#cb3-192" aria-hidden="true" tabindex="-1"></a>improves or remains variable. Individual lines at alpha 0.11 avoid</span>
+<span id="cb3-193"><a href="#cb3-193" aria-hidden="true" tabindex="-1"></a>overplotting; the average overlay is limited to sessions 1–9 where N ≥</span>
+<span id="cb3-194"><a href="#cb3-194" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>The finding is what the data shows — not what a programme narrative</span>
+<span id="cb3-195"><a href="#cb3-195" aria-hidden="true" tabindex="-1"></a>might prefer.</span>
+<span id="cb3-196"><a href="#cb3-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-197"><a href="#cb3-197" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-198"><a href="#cb3-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-199"><a href="#cb3-199" aria-hidden="true" tabindex="-1"></a><span class="fu">## [5. Key design decisions]{.smallcaps}</span></span>
+<span id="cb3-200"><a href="#cb3-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-201"><a href="#cb3-201" aria-hidden="true" tabindex="-1"></a>**Prioritised editorial structure over exploratory interaction**\</span>
+<span id="cb3-202"><a href="#cb3-202" aria-hidden="true" tabindex="-1"></a>A fixed narrative structure replaces open filters. This reduces</span>
+<span id="cb3-203"><a href="#cb3-203" aria-hidden="true" tabindex="-1"></a>cognitive load for non-technical users — commissioners and programme</span>
+<span id="cb3-204"><a href="#cb3-204" aria-hidden="true" tabindex="-1"></a>staff — and ensures findings are interpreted in context rather than</span>
+<span id="cb3-205"><a href="#cb3-205" aria-hidden="true" tabindex="-1"></a>explored in isolation.</span>
+<span id="cb3-206"><a href="#cb3-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-207"><a href="#cb3-207" aria-hidden="true" tabindex="-1"></a>**Integrated quantitative and qualitative evidence throughout**\</span>
+<span id="cb3-208"><a href="#cb3-208" aria-hidden="true" tabindex="-1"></a>Every section pairs BPN scores with participant quotes. This grounds the</span>
+<span id="cb3-209"><a href="#cb3-209" aria-hidden="true" tabindex="-1"></a>metrics in lived experience and builds credibility with audiences who</span>
+<span id="cb3-210"><a href="#cb3-210" aria-hidden="true" tabindex="-1"></a>are rightly skeptical of AI-derived numbers alone.</span>
+<span id="cb3-211"><a href="#cb3-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-212"><a href="#cb3-212" aria-hidden="true" tabindex="-1"></a>**Built a validation layer: ratings vs. BPN**\</span>
+<span id="cb3-213"><a href="#cb3-213" aria-hidden="true" tabindex="-1"></a>The rating/BPN alignment chart was included to surface the relationship</span>
+<span id="cb3-214"><a href="#cb3-214" aria-hidden="true" tabindex="-1"></a>— and its limits — between participant satisfaction and psychological</span>
+<span id="cb3-215"><a href="#cb3-215" aria-hidden="true" tabindex="-1"></a>need satisfaction. This reveals that a high average rating cannot stand</span>
+<span id="cb3-216"><a href="#cb3-216" aria-hidden="true" tabindex="-1"></a>as a proxy for wellbeing, supporting appropriate caution throughout.</span>
+<span id="cb3-217"><a href="#cb3-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-218"><a href="#cb3-218" aria-hidden="true" tabindex="-1"></a>**Constrained interaction to what directly supports interpretation**\</span>
+<span id="cb3-219"><a href="#cb3-219" aria-hidden="true" tabindex="-1"></a>Controls are limited to the Positive / Challenges toggle in *In Their</span>
+<span id="cb3-220"><a href="#cb3-220" aria-hidden="true" tabindex="-1"></a>Words* and the session threshold in *Over Time*. No segment filters, no</span>
+<span id="cb3-221"><a href="#cb3-221" aria-hidden="true" tabindex="-1"></a>demographic drilldowns. The simplicity is intentional — not a</span>
+<span id="cb3-222"><a href="#cb3-222" aria-hidden="true" tabindex="-1"></a>constraint.</span>
+<span id="cb3-223"><a href="#cb3-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-224"><a href="#cb3-224" aria-hidden="true" tabindex="-1"></a>**Reported flat trajectories as flat**\</span>
+<span id="cb3-225"><a href="#cb3-225" aria-hidden="true" tabindex="-1"></a>The *Over Time* analysis does not smooth or aggregate in a way that</span>
+<span id="cb3-226"><a href="#cb3-226" aria-hidden="true" tabindex="-1"></a>implies improvement. Honest findings are more useful for programme</span>
+<span id="cb3-227"><a href="#cb3-227" aria-hidden="true" tabindex="-1"></a>reflection than reassuring ones.</span>
+<span id="cb3-228"><a href="#cb3-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-229"><a href="#cb3-229" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-230"><a href="#cb3-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-231"><a href="#cb3-231" aria-hidden="true" tabindex="-1"></a><span class="fu">## [6. Out of scope — by design]{.smallcaps}</span></span>
+<span id="cb3-232"><a href="#cb3-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-233"><a href="#cb3-233" aria-hidden="true" tabindex="-1"></a>The following were intentionally excluded:</span>
+<span id="cb3-234"><a href="#cb3-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-235"><a href="#cb3-235" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Individual participant drilldowns</span>
+<span id="cb3-236"><a href="#cb3-236" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Demographic segmentation or filtering</span>
+<span id="cb3-237"><a href="#cb3-237" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Advanced statistical modelling or significance testing</span>
+<span id="cb3-238"><a href="#cb3-238" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Causal claims about programme impact</span>
+<span id="cb3-239"><a href="#cb3-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-240"><a href="#cb3-240" aria-hidden="true" tabindex="-1"></a>These elements were intentionally excluded to preserve clarity and</span>
+<span id="cb3-241"><a href="#cb3-241" aria-hidden="true" tabindex="-1"></a>maintain focus on decision-making rather than exploration. An interface</span>
+<span id="cb3-242"><a href="#cb3-242" aria-hidden="true" tabindex="-1"></a>built for commissioners needs to communicate — not demonstrate</span>
+<span id="cb3-243"><a href="#cb3-243" aria-hidden="true" tabindex="-1"></a>analytical range.</span>
+<span id="cb3-244"><a href="#cb3-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-245"><a href="#cb3-245" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-246"><a href="#cb3-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-247"><a href="#cb3-247" aria-hidden="true" tabindex="-1"></a><span class="fu">## [7. Technical lessons from the build]{.smallcaps}</span></span>
+<span id="cb3-248"><a href="#cb3-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-249"><a href="#cb3-249" aria-hidden="true" tabindex="-1"></a><span class="fu">### `updateActionButton(class = ...)` is unsupported in shiny.semantic</span></span>
+<span id="cb3-250"><a href="#cb3-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-251"><a href="#cb3-251" aria-hidden="true" tabindex="-1"></a>The Positive / Challenges toggle was initially built using</span>
+<span id="cb3-252"><a href="#cb3-252" aria-hidden="true" tabindex="-1"></a><span class="in">`updateActionButton()`</span> with a <span class="in">`class`</span> argument. This crashes silently in</span>
+<span id="cb3-253"><a href="#cb3-253" aria-hidden="true" tabindex="-1"></a>shiny.semantic. The fix: use <span class="in">`session$sendCustomMessage()`</span> with a</span>
+<span id="cb3-254"><a href="#cb3-254" aria-hidden="true" tabindex="-1"></a>JavaScript handler to update button classes directly.</span>
+<span id="cb3-255"><a href="#cb3-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-256"><a href="#cb3-256" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb3-257"><a href="#cb3-257" aria-hidden="true" tabindex="-1"></a><span class="co"># Broken in shiny.semantic</span></span>
+<span id="cb3-258"><a href="#cb3-258" aria-hidden="true" tabindex="-1"></a><span class="fu">updateActionButton</span>(session, <span class="st">"toggle_btn"</span>, <span class="at">class =</span> <span class="st">"ui green button"</span>)</span>
+<span id="cb3-259"><a href="#cb3-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-260"><a href="#cb3-260" aria-hidden="true" tabindex="-1"></a><span class="co"># Working alternative</span></span>
+<span id="cb3-261"><a href="#cb3-261" aria-hidden="true" tabindex="-1"></a>session<span class="sc">$</span><span class="fu">sendCustomMessage</span>(<span class="st">"updateButtonClass"</span>, <span class="fu">list</span>(</span>
+<span id="cb3-262"><a href="#cb3-262" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> session<span class="sc">$</span><span class="fu">ns</span>(<span class="st">"toggle_btn"</span>),</span>
+<span id="cb3-263"><a href="#cb3-263" aria-hidden="true" tabindex="-1"></a>  <span class="at">class =</span> <span class="st">"ui green button"</span></span>
+<span id="cb3-264"><a href="#cb3-264" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb3-265"><a href="#cb3-265" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-266"><a href="#cb3-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-267"><a href="#cb3-267" aria-hidden="true" tabindex="-1"></a><span class="fu">### `geom_line_interactive` tooltips fire per line, not per point</span></span>
+<span id="cb3-268"><a href="#cb3-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-269"><a href="#cb3-269" aria-hidden="true" tabindex="-1"></a><span class="in">`geom_line_interactive()`</span> from ggiraph fires tooltip events for the</span>
+<span id="cb3-270"><a href="#cb3-270" aria-hidden="true" tabindex="-1"></a>entire line on hover. The fix: overlay an invisible</span>
+<span id="cb3-271"><a href="#cb3-271" aria-hidden="true" tabindex="-1"></a><span class="in">`geom_point_interactive()`</span> layer to capture point-level interactions.</span>
+<span id="cb3-272"><a href="#cb3-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-273"><a href="#cb3-273" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb3-274"><a href="#cb3-274" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_point_interactive</span>(</span>
+<span id="cb3-275"><a href="#cb3-275" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">tooltip =</span> tooltip_text, <span class="at">data_id =</span> participant_id),</span>
+<span id="cb3-276"><a href="#cb3-276" aria-hidden="true" tabindex="-1"></a>  <span class="at">size =</span> <span class="dv">3</span>, <span class="at">alpha =</span> <span class="dv">0</span></span>
+<span id="cb3-277"><a href="#cb3-277" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-278"><a href="#cb3-278" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-279"><a href="#cb3-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-280"><a href="#cb3-280" aria-hidden="true" tabindex="-1"></a><span class="fu">### CSS tabs and Shiny lazy evaluation</span></span>
+<span id="cb3-281"><a href="#cb3-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-282"><a href="#cb3-282" aria-hidden="true" tabindex="-1"></a>shiny.semantic's CSS-based tab switching does not notify Shiny when tabs</span>
+<span id="cb3-283"><a href="#cb3-283" aria-hidden="true" tabindex="-1"></a>become visible.</span>
+<span id="cb3-284"><a href="#cb3-284" aria-hidden="true" tabindex="-1"></a><span class="in">`outputOptions(output, "output_name", suspendWhenHidden = FALSE)`</span> on all</span>
+<span id="cb3-285"><a href="#cb3-285" aria-hidden="true" tabindex="-1"></a>outputs is now a standard first step in any shiny.semantic project.</span>
+<span id="cb3-286"><a href="#cb3-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-287"><a href="#cb3-287" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-288"><a href="#cb3-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-289"><a href="#cb3-289" aria-hidden="true" tabindex="-1"></a><span class="fu">## [8. Outcome and reflection]{.smallcaps}</span></span>
+<span id="cb3-290"><a href="#cb3-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-291"><a href="#cb3-291" aria-hidden="true" tabindex="-1"></a>**Outcome**</span>
+<span id="cb3-292"><a href="#cb3-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-293"><a href="#cb3-293" aria-hidden="true" tabindex="-1"></a>The final design provides a clear, integrated view of programme</span>
+<span id="cb3-294"><a href="#cb3-294" aria-hidden="true" tabindex="-1"></a>performance. The integration of AI-derived metrics with participant</span>
+<span id="cb3-295"><a href="#cb3-295" aria-hidden="true" tabindex="-1"></a>voice delivers both analytical structure and contextual grounding —</span>
+<span id="cb3-296"><a href="#cb3-296" aria-hidden="true" tabindex="-1"></a>enabling stakeholders to identify strengths (Competence), understand</span>
+<span id="cb3-297"><a href="#cb3-297" aria-hidden="true" tabindex="-1"></a>gaps (Relatedness), and interpret findings with appropriate caution,</span>
+<span id="cb3-298"><a href="#cb3-298" aria-hidden="true" tabindex="-1"></a>without requiring familiarity with SDT or the scoring pipeline. The</span>
+<span id="cb3-299"><a href="#cb3-299" aria-hidden="true" tabindex="-1"></a>result is a focused, narrative-driven interface that enables fast,</span>
+<span id="cb3-300"><a href="#cb3-300" aria-hidden="true" tabindex="-1"></a>confident interpretation of complex, AI-derived data.</span>
+<span id="cb3-301"><a href="#cb3-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-302"><a href="#cb3-302" aria-hidden="true" tabindex="-1"></a>**Reflection**</span>
+<span id="cb3-303"><a href="#cb3-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-304"><a href="#cb3-304" aria-hidden="true" tabindex="-1"></a>The central trade-off was between analytical honesty and accessibility.</span>
+<span id="cb3-305"><a href="#cb3-305" aria-hidden="true" tabindex="-1"></a>Flat trajectories and partial rating/BPN alignment are not the findings</span>
+<span id="cb3-306"><a href="#cb3-306" aria-hidden="true" tabindex="-1"></a>a programme narrative would choose — but they are more useful than</span>
+<span id="cb3-307"><a href="#cb3-307" aria-hidden="true" tabindex="-1"></a>reassuring simplifications. The final approach demonstrates that</span>
+<span id="cb3-308"><a href="#cb3-308" aria-hidden="true" tabindex="-1"></a>complex, AI-derived insights can be communicated effectively through a</span>
+<span id="cb3-309"><a href="#cb3-309" aria-hidden="true" tabindex="-1"></a>constrained, narrative-driven interface — provided the analyst is</span>
+<span id="cb3-310"><a href="#cb3-310" aria-hidden="true" tabindex="-1"></a>willing to let the data speak rather than manage its reception.</span>
+<span id="cb3-311"><a href="#cb3-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-312"><a href="#cb3-312" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-313"><a href="#cb3-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-314"><a href="#cb3-314" aria-hidden="true" tabindex="-1"></a><span class="fu">## [Appendix: Methodology &amp; Build Notes]{.smallcaps}</span></span>
+<span id="cb3-315"><a href="#cb3-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-316"><a href="#cb3-316" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data</span></span>
+<span id="cb3-317"><a href="#cb3-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-318"><a href="#cb3-318" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>229 sessions, 35 participants</span>
+<span id="cb3-319"><a href="#cb3-319" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Session range: 1–24, median 5, mean 6.5</span>
+<span id="cb3-320"><a href="#cb3-320" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>BPN averages: Competence 6.16, Autonomy 5.64, Relatedness 5.37</span>
+<span id="cb3-321"><a href="#cb3-321" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Session rating: 8.7 / 10 average (153 / 229 sessions with ratings)</span>
+<span id="cb3-322"><a href="#cb3-322" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Relatedness challenge quotes sparse (37 / 229 sessions)</span>
+<span id="cb3-323"><a href="#cb3-323" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-324"><a href="#cb3-324" aria-hidden="true" tabindex="-1"></a><span class="fu">### Technical Stack</span></span>
+<span id="cb3-325"><a href="#cb3-325" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-326"><a href="#cb3-326" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Language:** R (4.3+)</span>
+<span id="cb3-327"><a href="#cb3-327" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Framework:** Shiny (modular architecture)</span>
+<span id="cb3-328"><a href="#cb3-328" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**UI:** shiny.semantic (Appsilon)</span>
+<span id="cb3-329"><a href="#cb3-329" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Visualization:** ggplot2, ggiraph</span>
+<span id="cb3-330"><a href="#cb3-330" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Tables:** reactable</span>
+<span id="cb3-331"><a href="#cb3-331" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Deployment:** shinyapps.io</span>
+<span id="cb3-332"><a href="#cb3-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-333"><a href="#cb3-333" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-334"><a href="#cb3-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-335"><a href="#cb3-335" aria-hidden="true" tabindex="-1"></a><span class="fu">## Purpose, Scope, and Disclaimer</span></span>
+<span id="cb3-336"><a href="#cb3-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-337"><a href="#cb3-337" aria-hidden="true" tabindex="-1"></a>This project was completed as a **pro bono volunteer contribution**</span>
+<span id="cb3-338"><a href="#cb3-338" aria-hidden="true" tabindex="-1"></a>through the Data ChangeMakers volunteer programme. It is not affiliated</span>
+<span id="cb3-339"><a href="#cb3-339" aria-hidden="true" tabindex="-1"></a>with or endorsed by Noise Solution in an official capacity.</span>
+<span id="cb3-340"><a href="#cb3-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-341"><a href="#cb3-341" aria-hidden="true" tabindex="-1"></a>All session data was provided by Noise Solution for the purpose of this</span>
+<span id="cb3-342"><a href="#cb3-342" aria-hidden="true" tabindex="-1"></a>analysis. No personally identifiable information is included in this</span>
+<span id="cb3-343"><a href="#cb3-343" aria-hidden="true" tabindex="-1"></a>repository or the live application.</span>
+<span id="cb3-344"><a href="#cb3-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-345"><a href="#cb3-345" aria-hidden="true" tabindex="-1"></a>This work does not constitute clinical, diagnostic, or therapeutic</span>
+<span id="cb3-346"><a href="#cb3-346" aria-hidden="true" tabindex="-1"></a>guidance.</span>
 <span id="cb3-347"><a href="#cb3-347" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-348"><a href="#cb3-348" aria-hidden="true" tabindex="-1"></a>This work does not constitute clinical, diagnostic, or therapeutic</span>
-<span id="cb3-349"><a href="#cb3-349" aria-hidden="true" tabindex="-1"></a>guidance.</span>
-<span id="cb3-350"><a href="#cb3-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-351"><a href="#cb3-351" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb3-352"><a href="#cb3-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-353"><a href="#cb3-353" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
-<span id="cb3-354"><a href="#cb3-354" aria-hidden="true" tabindex="-1"></a>The most useful thing an analyst can do with small, qualitative datasets</span>
-<span id="cb3-355"><a href="#cb3-355" aria-hidden="true" tabindex="-1"></a>is not to find a way to claim significance — it is to surface patterns</span>
-<span id="cb3-356"><a href="#cb3-356" aria-hidden="true" tabindex="-1"></a>honestly and make them accessible to the people closest to the work.</span>
-<span id="cb3-357"><a href="#cb3-357" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-358"><a href="#cb3-358" aria-hidden="true" tabindex="-1"></a>In this case, that means reporting that Competence scores are strong,</span>
-<span id="cb3-359"><a href="#cb3-359" aria-hidden="true" tabindex="-1"></a>that Relatedness lags, and that trajectories over time are flat. Those</span>
-<span id="cb3-360"><a href="#cb3-360" aria-hidden="true" tabindex="-1"></a>findings may not tell the story a programme narrative would choose — but</span>
-<span id="cb3-361"><a href="#cb3-361" aria-hidden="true" tabindex="-1"></a>they give Noise Solution something more useful: a clear, structured</span>
-<span id="cb3-362"><a href="#cb3-362" aria-hidden="true" tabindex="-1"></a>starting point for reflection.</span>
-<span id="cb3-363"><a href="#cb3-363" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb3-348"><a href="#cb3-348" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb3-349"><a href="#cb3-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-350"><a href="#cb3-350" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb3-351"><a href="#cb3-351" aria-hidden="true" tabindex="-1"></a>The most useful thing an analyst can do with small, qualitative datasets</span>
+<span id="cb3-352"><a href="#cb3-352" aria-hidden="true" tabindex="-1"></a>is not to find a way to claim significance — it is to surface patterns</span>
+<span id="cb3-353"><a href="#cb3-353" aria-hidden="true" tabindex="-1"></a>honestly and make them accessible to the people closest to the work.</span>
+<span id="cb3-354"><a href="#cb3-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-355"><a href="#cb3-355" aria-hidden="true" tabindex="-1"></a>In this case, that means reporting that Competence scores are strong,</span>
+<span id="cb3-356"><a href="#cb3-356" aria-hidden="true" tabindex="-1"></a>that Relatedness lags, and that trajectories over time are flat. Those</span>
+<span id="cb3-357"><a href="#cb3-357" aria-hidden="true" tabindex="-1"></a>findings may not tell the story a programme narrative would choose — but</span>
+<span id="cb3-358"><a href="#cb3-358" aria-hidden="true" tabindex="-1"></a>they give Noise Solution something more useful: a clear, structured</span>
+<span id="cb3-359"><a href="#cb3-359" aria-hidden="true" tabindex="-1"></a>starting point for reflection.</span>
+<span id="cb3-360"><a href="#cb3-360" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">

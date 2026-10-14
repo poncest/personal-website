@@ -78,9 +78,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-6a50bd621f08fdc5c26e43d254df0a90.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-b87ee19d8a809327146b19256111b332.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-f2dc6265eba6a48fb14afb3306860409.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../../site_libs/bootstrap/bootstrap-b87ee19d8a809327146b19256111b332.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-df69d0d95e9e3a7970828b2f2d051a3d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-6b5ac32df590bf0251110ff5c1338830.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-df69d0d95e9e3a7970828b2f2d051a3d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/iconify-2.1.0/iconify-icon.min.js"></script><script id="quarto-search-options" type="application/json">{
@@ -116,6 +116,7 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
 </script><style>html{ scroll-behavior: smooth; }</style>
+<link rel="apple-touch-icon" href="../../../apple-touch-icon.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1510,543 +1511,540 @@ loaded via a namespace (and not attached):
 <span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co">    code-fold: true</span></span>
 <span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
 <span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">    code-summary: "Show code"</span></span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">    theme: </span></span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co">      light: [flatly, assets/styling/custom_styles.scss]</span></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="co">      dark: [darkly, assets/styling/custom_styles_dark.scss]</span></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="an">editor_options:</span><span class="co"> </span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">  chunk_output_type: inline</span></span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span><span class="co"> </span></span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="co">  freeze: true                                      </span></span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true                                       </span></span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a><span class="co">  error: false</span></span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="co">  message: false</span></span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a><span class="co">  eval: true</span></span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-links</span></span>
-<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="co"># CENTRALIZED LINK MANAGEMENT</span></span>
-<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a><span class="do">## Project-specific info </span></span>
-<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>current_year <span class="ot">&lt;-</span> <span class="dv">2025</span></span>
-<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>current_week <span class="ot">&lt;-</span> <span class="dv">33</span></span>
-<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>project_file <span class="ot">&lt;-</span> <span class="st">"mm_2025_33.qmd"</span></span>
-<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>project_image <span class="ot">&lt;-</span> <span class="st">"mm_2025_33.png"</span></span>
-<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a><span class="do">## Data Sources</span></span>
-<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>data_main <span class="ot">&lt;-</span> <span class="st">"https://data.world/makeovermonday/2025w33-access-to-electricity-of-population"</span></span>
-<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>data_secondary <span class="ot">&lt;-</span> <span class="st">"https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS?view=map"</span></span>
-<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a><span class="do">## Repository Links  </span></span>
-<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>repo_main <span class="ot">&lt;-</span> <span class="st">"https://github.com/poncest/personal-website/"</span></span>
-<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>repo_file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/"</span>, current_year, <span class="st">"/"</span>, project_file)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="an">editor_options:</span><span class="co"> </span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co">  chunk_output_type: inline</span></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span><span class="co"> </span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co">  freeze: true                                      </span></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true                                       </span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="co">  error: false</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="co">  message: false</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="co">  warning: false</span></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a><span class="co">  eval: true</span></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup-links</span></span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a><span class="co"># CENTRALIZED LINK MANAGEMENT</span></span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a><span class="do">## Project-specific info </span></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>current_year <span class="ot">&lt;-</span> <span class="dv">2025</span></span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>current_week <span class="ot">&lt;-</span> <span class="dv">33</span></span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>project_file <span class="ot">&lt;-</span> <span class="st">"mm_2025_33.qmd"</span></span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>project_image <span class="ot">&lt;-</span> <span class="st">"mm_2025_33.png"</span></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a><span class="do">## Data Sources</span></span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>data_main <span class="ot">&lt;-</span> <span class="st">"https://data.world/makeovermonday/2025w33-access-to-electricity-of-population"</span></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>data_secondary <span class="ot">&lt;-</span> <span class="st">"https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS?view=map"</span></span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a><span class="do">## Repository Links  </span></span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>repo_main <span class="ot">&lt;-</span> <span class="st">"https://github.com/poncest/personal-website/"</span></span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>repo_file <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"https://github.com/poncest/personal-website/blob/master/data_visualizations/MakeoverMonday/"</span>, current_year, <span class="st">"/"</span>, project_file)</span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a><span class="do">## External Resources/Images</span></span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>chart_original <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_33/original_chart.png"</span></span>
 <span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a><span class="do">## External Resources/Images</span></span>
-<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>chart_original <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_33/original_chart.png"</span></span>
-<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a><span class="do">## Organization/Platform Links</span></span>
-<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>org_primary <span class="ot">&lt;-</span> <span class="st">"https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS?view=map"</span></span>
-<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>org_secondary <span class="ot">&lt;-</span> <span class="st">"https://data.worldbank.org/"</span></span>
-<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function to create markdown links</span></span>
-<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>create_link <span class="ot">&lt;-</span> <span class="cf">function</span>(text, url) {</span>
-<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">"["</span>, text, <span class="st">"]("</span>, url, <span class="st">")"</span>)</span>
-<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function for citation-style links</span></span>
-<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>create_citation_link <span class="ot">&lt;-</span> <span class="cf">function</span>(text, url, <span class="at">title =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(title)) {</span>
-<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">"["</span>, text, <span class="st">"]("</span>, url, <span class="st">")"</span>)</span>
-<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">"["</span>, text, <span class="st">"]("</span>, url, <span class="st">' "'</span>, title, <span class="st">'")'</span>)</span>
-<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a><span class="fu">### Original</span></span>
-<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>The original visualization **Access to Electricity** comes from <span class="in">`r create_link("World Bank Group", data_secondary)`</span></span>
-<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- ![Original visualization](`r chart_original`) --&gt;</span></span>
-<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a><span class="al">![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_33/original_chart.png)</span></span>
-<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a><span class="fu">### Makeover</span></span>
-<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a><span class="al">![Two-panel chart showing global convergence in electricity access from 2000 to 2023. Top panel: The scatter plot reveals that countries with the lowest access (\&lt;25%) achieved the greatest improvements (50-70+ percentage points), while countries starting near universal access showed minimal change. Bottom panel: The line chart shows the progress of five cohorts over time, with very low starters (red line) rising from \~15% to 50% access, demonstrating a catch-up effect. Data shows evidence of global convergence as access gaps narrow.](mm_2025_33.png)</span>{#fig-1}</span>
-<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a><span class="fu">### &lt;mark&gt; **Steps to Create this Graphic** &lt;/mark&gt;</span></span>
-<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 1. Load Packages &amp; Setup</span></span>
-<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load</span></span>
-<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false      </span></span>
-<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: "hide"     </span></span>
-<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a><span class="do">## 1. LOAD PACKAGES &amp; SETUP ----</span></span>
-<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
-<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
-<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>  pacman<span class="sc">::</span><span class="fu">p_load</span>(</span>
-<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a>    tidyverse,  <span class="co"># Easily Install and Load the 'Tidyverse'</span></span>
-<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a>    ggtext,     <span class="co"># Improved Text Rendering Support for 'ggplot2'</span></span>
-<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a>    showtext,   <span class="co"># Using Fonts More Easily in R Graphs</span></span>
-<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a>    scales,     <span class="co"># Scale Functions for Visualization</span></span>
-<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a>    glue,       <span class="co"># Interpreted String Literals</span></span>
-<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a>    patchwork   <span class="co"># The Composer of Plots</span></span>
-<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a><span class="do">### |- figure size ----</span></span>
-<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a>camcorder<span class="sc">::</span><span class="fu">gg_record</span>(</span>
-<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a>    <span class="at">dir    =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"temp_plots"</span>),</span>
-<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a>    <span class="at">device =</span> <span class="st">"png"</span>,</span>
-<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a>    <span class="at">width  =</span>  <span class="dv">10</span>,</span>
-<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span>  <span class="dv">12</span>,</span>
-<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a>    <span class="at">units  =</span> <span class="st">"in"</span>,</span>
-<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a>    <span class="at">dpi    =</span> <span class="dv">320</span></span>
-<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a><span class="co"># Source utility functions</span></span>
-<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/utils/fonts.R"</span>)))</span>
-<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/utils/social_icons.R"</span>))</span>
-<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/utils/image_utils.R"</span>))</span>
-<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/themes/base_theme.R"</span>))</span>
-<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 2. Read in the Data</span></span>
-<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: read</span></span>
-<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
-<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a><span class="co">#| </span></span>
-<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a>access_electricity_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
-<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a>  here<span class="sc">::</span><span class="fu">here</span>(<span class="st">'data/MakeoverMonday/2025/Access to Electricity.csv'</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>()</span>
-<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 3. Examine the Data</span></span>
-<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: examine</span></span>
-<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
-<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: 'hide'</span></span>
-<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(access_electricity_raw)</span>
-<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(access_electricity_raw)</span>
-<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 4. Tidy Data</span></span>
-<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tidy</span></span>
-<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>access_electricity_tidy <span class="ot">&lt;-</span> access_electricity_raw <span class="sc">|&gt;</span></span>
-<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Remove completely empty year columns (1960-1989, 2024)</span></span>
-<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(x1960<span class="sc">:</span>x1989, x2024)) <span class="sc">|&gt;</span></span>
-<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"x"</span>),</span>
-<span id="cb9-189"><a href="#cb9-189" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"year"</span>,</span>
-<span id="cb9-190"><a href="#cb9-190" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"access_rate"</span>,</span>
-<span id="cb9-191"><a href="#cb9-191" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_prefix =</span> <span class="st">"x"</span> <span class="co"># Remove the "x" prefix</span></span>
-<span id="cb9-192"><a href="#cb9-192" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-193"><a href="#cb9-193" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">as.numeric</span>(year)) <span class="sc">|&gt;</span></span>
-<span id="cb9-194"><a href="#cb9-194" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(access_rate)) <span class="sc">|&gt;</span></span>
-<span id="cb9-195"><a href="#cb9-195" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
-<span id="cb9-196"><a href="#cb9-196" aria-hidden="true" tabindex="-1"></a>    <span class="at">country =</span> country_name,</span>
-<span id="cb9-197"><a href="#cb9-197" aria-hidden="true" tabindex="-1"></a>    <span class="at">code =</span> country_code,</span>
-<span id="cb9-198"><a href="#cb9-198" aria-hidden="true" tabindex="-1"></a>    <span class="at">indicator =</span> indicator_name,</span>
-<span id="cb9-199"><a href="#cb9-199" aria-hidden="true" tabindex="-1"></a>    <span class="at">indicator_id =</span> indicator_code</span>
-<span id="cb9-200"><a href="#cb9-200" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-201"><a href="#cb9-201" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(country, year)</span>
-<span id="cb9-202"><a href="#cb9-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-203"><a href="#cb9-203" aria-hidden="true" tabindex="-1"></a><span class="co"># convergence analysis data</span></span>
-<span id="cb9-204"><a href="#cb9-204" aria-hidden="true" tabindex="-1"></a>convergence_data <span class="ot">&lt;-</span> access_electricity_tidy <span class="sc">|&gt;</span></span>
-<span id="cb9-205"><a href="#cb9-205" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">2000</span>, <span class="dv">2023</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb9-206"><a href="#cb9-206" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">|&gt;</span></span>
-<span id="cb9-207"><a href="#cb9-207" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>() <span class="sc">==</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-208"><a href="#cb9-208" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb9-209"><a href="#cb9-209" aria-hidden="true" tabindex="-1"></a>    <span class="at">access_2000 =</span> access_rate[year <span class="sc">==</span> <span class="dv">2000</span>],</span>
-<span id="cb9-210"><a href="#cb9-210" aria-hidden="true" tabindex="-1"></a>    <span class="at">access_2023 =</span> access_rate[year <span class="sc">==</span> <span class="dv">2023</span>],</span>
-<span id="cb9-211"><a href="#cb9-211" aria-hidden="true" tabindex="-1"></a>    <span class="at">improvement =</span> access_2023 <span class="sc">-</span> access_2000,</span>
-<span id="cb9-212"><a href="#cb9-212" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb9-213"><a href="#cb9-213" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-214"><a href="#cb9-214" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(access_2000), <span class="sc">!</span><span class="fu">is.na</span>(access_2023)) <span class="sc">|&gt;</span></span>
-<span id="cb9-215"><a href="#cb9-215" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-216"><a href="#cb9-216" aria-hidden="true" tabindex="-1"></a>    <span class="at">cohort =</span> <span class="fu">case_when</span>(</span>
-<span id="cb9-217"><a href="#cb9-217" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">"Very Low Start (&lt;25%)"</span>,</span>
-<span id="cb9-218"><a href="#cb9-218" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">"Low Start (25-50%)"</span>,</span>
-<span id="cb9-219"><a href="#cb9-219" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">75</span> <span class="sc">~</span> <span class="st">"Medium Start (50-75%)"</span>,</span>
-<span id="cb9-220"><a href="#cb9-220" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">95</span> <span class="sc">~</span> <span class="st">"High Start (75-95%)"</span>,</span>
-<span id="cb9-221"><a href="#cb9-221" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Universal Start (≥95%)"</span></span>
-<span id="cb9-222"><a href="#cb9-222" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-223"><a href="#cb9-223" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-224"><a href="#cb9-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-225"><a href="#cb9-225" aria-hidden="true" tabindex="-1"></a><span class="co"># Countries with dramatic improvements (&gt;= 50 percentage points)</span></span>
-<span id="cb9-226"><a href="#cb9-226" aria-hidden="true" tabindex="-1"></a><span class="co"># from Very Low Start only</span></span>
-<span id="cb9-227"><a href="#cb9-227" aria-hidden="true" tabindex="-1"></a>top_improvers <span class="ot">&lt;-</span> convergence_data <span class="sc">|&gt;</span></span>
-<span id="cb9-228"><a href="#cb9-228" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cohort <span class="sc">==</span> <span class="st">"Very Low Start (&lt;25%)"</span>, improvement <span class="sc">&gt;=</span> <span class="dv">50</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-229"><a href="#cb9-229" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(improvement))</span>
-<span id="cb9-230"><a href="#cb9-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-231"><a href="#cb9-231" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the logical </span></span>
-<span id="cb9-232"><a href="#cb9-232" aria-hidden="true" tabindex="-1"></a>cohort_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-233"><a href="#cb9-233" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Very Low Start (&lt;25%)"</span>,</span>
-<span id="cb9-234"><a href="#cb9-234" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Low Start (25-50%)"</span>,</span>
-<span id="cb9-235"><a href="#cb9-235" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Medium Start (50-75%)"</span>,</span>
-<span id="cb9-236"><a href="#cb9-236" aria-hidden="true" tabindex="-1"></a>  <span class="st">"High Start (75-95%)"</span>,</span>
-<span id="cb9-237"><a href="#cb9-237" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Universal Start (≥95%)"</span></span>
-<span id="cb9-238"><a href="#cb9-238" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-239"><a href="#cb9-239" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-240"><a href="#cb9-240" aria-hidden="true" tabindex="-1"></a><span class="co"># cohort analysis data</span></span>
-<span id="cb9-241"><a href="#cb9-241" aria-hidden="true" tabindex="-1"></a>cohort_analysis <span class="ot">&lt;-</span> access_electricity_tidy <span class="sc">|&gt;</span></span>
-<span id="cb9-242"><a href="#cb9-242" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2000</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-243"><a href="#cb9-243" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-244"><a href="#cb9-244" aria-hidden="true" tabindex="-1"></a>    <span class="at">starting_cohort =</span> <span class="fu">case_when</span>(</span>
-<span id="cb9-245"><a href="#cb9-245" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">"Very Low Start (&lt;25%)"</span>,</span>
-<span id="cb9-246"><a href="#cb9-246" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">"Low Start (25-50%)"</span>,</span>
-<span id="cb9-247"><a href="#cb9-247" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">75</span> <span class="sc">~</span> <span class="st">"Medium Start (50-75%)"</span>,</span>
-<span id="cb9-248"><a href="#cb9-248" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">95</span> <span class="sc">~</span> <span class="st">"High Start (75-95%)"</span>,</span>
-<span id="cb9-249"><a href="#cb9-249" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Universal Start (≥95%)"</span></span>
-<span id="cb9-250"><a href="#cb9-250" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-251"><a href="#cb9-251" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Order factor levels for meaningful legend ordering (low to high)</span></span>
-<span id="cb9-252"><a href="#cb9-252" aria-hidden="true" tabindex="-1"></a>    <span class="at">starting_cohort =</span> <span class="fu">factor</span>(starting_cohort, <span class="at">levels =</span> cohort_levels)</span>
-<span id="cb9-253"><a href="#cb9-253" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-254"><a href="#cb9-254" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(country, starting_cohort) <span class="sc">|&gt;</span></span>
-<span id="cb9-255"><a href="#cb9-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(access_electricity_tidy, <span class="at">by =</span> <span class="st">"country"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-256"><a href="#cb9-256" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;=</span> <span class="dv">2000</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-257"><a href="#cb9-257" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(starting_cohort, year) <span class="sc">|&gt;</span></span>
-<span id="cb9-258"><a href="#cb9-258" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb9-259"><a href="#cb9-259" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_access =</span> <span class="fu">median</span>(access_rate, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb9-260"><a href="#cb9-260" aria-hidden="true" tabindex="-1"></a>    <span class="at">q25 =</span> <span class="fu">as.numeric</span>(<span class="fu">quantile</span>(access_rate, <span class="fl">0.25</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),  </span>
-<span id="cb9-261"><a href="#cb9-261" aria-hidden="true" tabindex="-1"></a>    <span class="at">q75 =</span> <span class="fu">as.numeric</span>(<span class="fu">quantile</span>(access_rate, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), </span>
-<span id="cb9-262"><a href="#cb9-262" aria-hidden="true" tabindex="-1"></a>    <span class="at">countries =</span> <span class="fu">n</span>(),</span>
-<span id="cb9-263"><a href="#cb9-263" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb9-264"><a href="#cb9-264" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb9-265"><a href="#cb9-265" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(countries <span class="sc">&gt;=</span> <span class="dv">3</span>)</span>
-<span id="cb9-266"><a href="#cb9-266" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-267"><a href="#cb9-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-268"><a href="#cb9-268" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 5. Visualization Parameters</span></span>
-<span id="cb9-269"><a href="#cb9-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-272"><a href="#cb9-272" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-273"><a href="#cb9-273" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: params</span></span>
-<span id="cb9-274"><a href="#cb9-274" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
-<span id="cb9-275"><a href="#cb9-275" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-276"><a href="#cb9-276" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-277"><a href="#cb9-277" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  plot aesthetics ----</span></span>
-<span id="cb9-278"><a href="#cb9-278" aria-hidden="true" tabindex="-1"></a><span class="co"># Get base colors with custom palette</span></span>
-<span id="cb9-279"><a href="#cb9-279" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">&lt;-</span> <span class="fu">get_theme_colors</span>(<span class="at">palette =</span> <span class="fu">list</span>(</span>
-<span id="cb9-280"><a href="#cb9-280" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Very Low Start (&lt;25%)"</span> <span class="ot">=</span> <span class="st">"#8B0000"</span>,    </span>
-<span id="cb9-281"><a href="#cb9-281" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Low Start (25-50%)"</span> <span class="ot">=</span> <span class="st">"#FF8C00"</span>,       </span>
-<span id="cb9-282"><a href="#cb9-282" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Medium Start (50-75%)"</span> <span class="ot">=</span> <span class="st">"#006400"</span>,   </span>
-<span id="cb9-283"><a href="#cb9-283" aria-hidden="true" tabindex="-1"></a>  <span class="st">"High Start (75-95%)"</span> <span class="ot">=</span> <span class="st">"#1E90FF"</span>,      </span>
-<span id="cb9-284"><a href="#cb9-284" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Universal Start (≥95%)"</span> <span class="ot">=</span> <span class="st">"#4B0082"</span>    </span>
-<span id="cb9-285"><a href="#cb9-285" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a><span class="do">## Organization/Platform Links</span></span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>org_primary <span class="ot">&lt;-</span> <span class="st">"https://data.worldbank.org/indicator/EG.ELC.ACCS.ZS?view=map"</span></span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>org_secondary <span class="ot">&lt;-</span> <span class="st">"https://data.worldbank.org/"</span></span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function to create markdown links</span></span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>create_link <span class="ot">&lt;-</span> <span class="cf">function</span>(text, url) {</span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste0</span>(<span class="st">"["</span>, text, <span class="st">"]("</span>, url, <span class="st">")"</span>)</span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function for citation-style links</span></span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>create_citation_link <span class="ot">&lt;-</span> <span class="cf">function</span>(text, url, <span class="at">title =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.null</span>(title)) {</span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">"["</span>, text, <span class="st">"]("</span>, url, <span class="st">")"</span>)</span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>    <span class="fu">paste0</span>(<span class="st">"["</span>, text, <span class="st">"]("</span>, url, <span class="st">' "'</span>, title, <span class="st">'")'</span>)</span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a><span class="fu">### Original</span></span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a>The original visualization **Access to Electricity** comes from <span class="in">`r create_link("World Bank Group", data_secondary)`</span></span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!-- ![Original visualization](`r chart_original`) --&gt;</span></span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a><span class="al">![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2025/Week_33/original_chart.png)</span></span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a><span class="fu">### Makeover</span></span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a><span class="al">![Two-panel chart showing global convergence in electricity access from 2000 to 2023. Top panel: The scatter plot reveals that countries with the lowest access (\&lt;25%) achieved the greatest improvements (50-70+ percentage points), while countries starting near universal access showed minimal change. Bottom panel: The line chart shows the progress of five cohorts over time, with very low starters (red line) rising from \~15% to 50% access, demonstrating a catch-up effect. Data shows evidence of global convergence as access gaps narrow.](mm_2025_33.png)</span>{#fig-1}</span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a><span class="fu">### &lt;mark&gt; **Steps to Create this Graphic** &lt;/mark&gt;</span></span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 1. Load Packages &amp; Setup</span></span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: load</span></span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false      </span></span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: "hide"     </span></span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a><span class="do">## 1. LOAD PACKAGES &amp; SETUP ----</span></span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>({</span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"pacman"</span>)) <span class="fu">install.packages</span>(<span class="st">"pacman"</span>)</span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a>  pacman<span class="sc">::</span><span class="fu">p_load</span>(</span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a>    tidyverse,  <span class="co"># Easily Install and Load the 'Tidyverse'</span></span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a>    ggtext,     <span class="co"># Improved Text Rendering Support for 'ggplot2'</span></span>
+<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>    showtext,   <span class="co"># Using Fonts More Easily in R Graphs</span></span>
+<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a>    scales,     <span class="co"># Scale Functions for Visualization</span></span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a>    glue,       <span class="co"># Interpreted String Literals</span></span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a>    patchwork   <span class="co"># The Composer of Plots</span></span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a><span class="do">### |- figure size ----</span></span>
+<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>camcorder<span class="sc">::</span><span class="fu">gg_record</span>(</span>
+<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a>    <span class="at">dir    =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"temp_plots"</span>),</span>
+<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a>    <span class="at">device =</span> <span class="st">"png"</span>,</span>
+<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a>    <span class="at">width  =</span>  <span class="dv">10</span>,</span>
+<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span>  <span class="dv">12</span>,</span>
+<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a>    <span class="at">units  =</span> <span class="st">"in"</span>,</span>
+<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a>    <span class="at">dpi    =</span> <span class="dv">320</span></span>
+<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a><span class="co"># Source utility functions</span></span>
+<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/utils/fonts.R"</span>)))</span>
+<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/utils/social_icons.R"</span>))</span>
+<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/utils/image_utils.R"</span>))</span>
+<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"R/themes/base_theme.R"</span>))</span>
+<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 2. Read in the Data</span></span>
+<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: read</span></span>
+<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
+<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a><span class="co">#| </span></span>
+<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a>access_electricity_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>  here<span class="sc">::</span><span class="fu">here</span>(<span class="st">'data/MakeoverMonday/2025/Access to Electricity.csv'</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>()</span>
+<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 3. Examine the Data</span></span>
+<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: examine</span></span>
+<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
+<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: 'hide'</span></span>
+<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(access_electricity_raw)</span>
+<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a>skimr<span class="sc">::</span><span class="fu">skim</span>(access_electricity_raw)</span>
+<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 4. Tidy Data</span></span>
+<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tidy</span></span>
+<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>access_electricity_tidy <span class="ot">&lt;-</span> access_electricity_raw <span class="sc">|&gt;</span></span>
+<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Remove completely empty year columns (1960-1989, 2024)</span></span>
+<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(x1960<span class="sc">:</span>x1989, x2024)) <span class="sc">|&gt;</span></span>
+<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"x"</span>),</span>
+<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"year"</span>,</span>
+<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"access_rate"</span>,</span>
+<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_prefix =</span> <span class="st">"x"</span> <span class="co"># Remove the "x" prefix</span></span>
+<span id="cb9-189"><a href="#cb9-189" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-190"><a href="#cb9-190" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">as.numeric</span>(year)) <span class="sc">|&gt;</span></span>
+<span id="cb9-191"><a href="#cb9-191" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(access_rate)) <span class="sc">|&gt;</span></span>
+<span id="cb9-192"><a href="#cb9-192" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb9-193"><a href="#cb9-193" aria-hidden="true" tabindex="-1"></a>    <span class="at">country =</span> country_name,</span>
+<span id="cb9-194"><a href="#cb9-194" aria-hidden="true" tabindex="-1"></a>    <span class="at">code =</span> country_code,</span>
+<span id="cb9-195"><a href="#cb9-195" aria-hidden="true" tabindex="-1"></a>    <span class="at">indicator =</span> indicator_name,</span>
+<span id="cb9-196"><a href="#cb9-196" aria-hidden="true" tabindex="-1"></a>    <span class="at">indicator_id =</span> indicator_code</span>
+<span id="cb9-197"><a href="#cb9-197" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-198"><a href="#cb9-198" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(country, year)</span>
+<span id="cb9-199"><a href="#cb9-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-200"><a href="#cb9-200" aria-hidden="true" tabindex="-1"></a><span class="co"># convergence analysis data</span></span>
+<span id="cb9-201"><a href="#cb9-201" aria-hidden="true" tabindex="-1"></a>convergence_data <span class="ot">&lt;-</span> access_electricity_tidy <span class="sc">|&gt;</span></span>
+<span id="cb9-202"><a href="#cb9-202" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">2000</span>, <span class="dv">2023</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-203"><a href="#cb9-203" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">|&gt;</span></span>
+<span id="cb9-204"><a href="#cb9-204" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>() <span class="sc">==</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-205"><a href="#cb9-205" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb9-206"><a href="#cb9-206" aria-hidden="true" tabindex="-1"></a>    <span class="at">access_2000 =</span> access_rate[year <span class="sc">==</span> <span class="dv">2000</span>],</span>
+<span id="cb9-207"><a href="#cb9-207" aria-hidden="true" tabindex="-1"></a>    <span class="at">access_2023 =</span> access_rate[year <span class="sc">==</span> <span class="dv">2023</span>],</span>
+<span id="cb9-208"><a href="#cb9-208" aria-hidden="true" tabindex="-1"></a>    <span class="at">improvement =</span> access_2023 <span class="sc">-</span> access_2000,</span>
+<span id="cb9-209"><a href="#cb9-209" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb9-210"><a href="#cb9-210" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-211"><a href="#cb9-211" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(access_2000), <span class="sc">!</span><span class="fu">is.na</span>(access_2023)) <span class="sc">|&gt;</span></span>
+<span id="cb9-212"><a href="#cb9-212" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-213"><a href="#cb9-213" aria-hidden="true" tabindex="-1"></a>    <span class="at">cohort =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-214"><a href="#cb9-214" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">"Very Low Start (&lt;25%)"</span>,</span>
+<span id="cb9-215"><a href="#cb9-215" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">"Low Start (25-50%)"</span>,</span>
+<span id="cb9-216"><a href="#cb9-216" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">75</span> <span class="sc">~</span> <span class="st">"Medium Start (50-75%)"</span>,</span>
+<span id="cb9-217"><a href="#cb9-217" aria-hidden="true" tabindex="-1"></a>      access_2000 <span class="sc">&lt;</span> <span class="dv">95</span> <span class="sc">~</span> <span class="st">"High Start (75-95%)"</span>,</span>
+<span id="cb9-218"><a href="#cb9-218" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Universal Start (≥95%)"</span></span>
+<span id="cb9-219"><a href="#cb9-219" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-220"><a href="#cb9-220" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-221"><a href="#cb9-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-222"><a href="#cb9-222" aria-hidden="true" tabindex="-1"></a><span class="co"># Countries with dramatic improvements (&gt;= 50 percentage points)</span></span>
+<span id="cb9-223"><a href="#cb9-223" aria-hidden="true" tabindex="-1"></a><span class="co"># from Very Low Start only</span></span>
+<span id="cb9-224"><a href="#cb9-224" aria-hidden="true" tabindex="-1"></a>top_improvers <span class="ot">&lt;-</span> convergence_data <span class="sc">|&gt;</span></span>
+<span id="cb9-225"><a href="#cb9-225" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cohort <span class="sc">==</span> <span class="st">"Very Low Start (&lt;25%)"</span>, improvement <span class="sc">&gt;=</span> <span class="dv">50</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-226"><a href="#cb9-226" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(improvement))</span>
+<span id="cb9-227"><a href="#cb9-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-228"><a href="#cb9-228" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the logical </span></span>
+<span id="cb9-229"><a href="#cb9-229" aria-hidden="true" tabindex="-1"></a>cohort_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-230"><a href="#cb9-230" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Very Low Start (&lt;25%)"</span>,</span>
+<span id="cb9-231"><a href="#cb9-231" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Low Start (25-50%)"</span>,</span>
+<span id="cb9-232"><a href="#cb9-232" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Medium Start (50-75%)"</span>,</span>
+<span id="cb9-233"><a href="#cb9-233" aria-hidden="true" tabindex="-1"></a>  <span class="st">"High Start (75-95%)"</span>,</span>
+<span id="cb9-234"><a href="#cb9-234" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Universal Start (≥95%)"</span></span>
+<span id="cb9-235"><a href="#cb9-235" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-236"><a href="#cb9-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-237"><a href="#cb9-237" aria-hidden="true" tabindex="-1"></a><span class="co"># cohort analysis data</span></span>
+<span id="cb9-238"><a href="#cb9-238" aria-hidden="true" tabindex="-1"></a>cohort_analysis <span class="ot">&lt;-</span> access_electricity_tidy <span class="sc">|&gt;</span></span>
+<span id="cb9-239"><a href="#cb9-239" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2000</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-240"><a href="#cb9-240" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-241"><a href="#cb9-241" aria-hidden="true" tabindex="-1"></a>    <span class="at">starting_cohort =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-242"><a href="#cb9-242" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">25</span> <span class="sc">~</span> <span class="st">"Very Low Start (&lt;25%)"</span>,</span>
+<span id="cb9-243"><a href="#cb9-243" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">"Low Start (25-50%)"</span>,</span>
+<span id="cb9-244"><a href="#cb9-244" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">75</span> <span class="sc">~</span> <span class="st">"Medium Start (50-75%)"</span>,</span>
+<span id="cb9-245"><a href="#cb9-245" aria-hidden="true" tabindex="-1"></a>      access_rate <span class="sc">&lt;</span> <span class="dv">95</span> <span class="sc">~</span> <span class="st">"High Start (75-95%)"</span>,</span>
+<span id="cb9-246"><a href="#cb9-246" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Universal Start (≥95%)"</span></span>
+<span id="cb9-247"><a href="#cb9-247" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-248"><a href="#cb9-248" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Order factor levels for meaningful legend ordering (low to high)</span></span>
+<span id="cb9-249"><a href="#cb9-249" aria-hidden="true" tabindex="-1"></a>    <span class="at">starting_cohort =</span> <span class="fu">factor</span>(starting_cohort, <span class="at">levels =</span> cohort_levels)</span>
+<span id="cb9-250"><a href="#cb9-250" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-251"><a href="#cb9-251" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(country, starting_cohort) <span class="sc">|&gt;</span></span>
+<span id="cb9-252"><a href="#cb9-252" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(access_electricity_tidy, <span class="at">by =</span> <span class="st">"country"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-253"><a href="#cb9-253" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;=</span> <span class="dv">2000</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-254"><a href="#cb9-254" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(starting_cohort, year) <span class="sc">|&gt;</span></span>
+<span id="cb9-255"><a href="#cb9-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb9-256"><a href="#cb9-256" aria-hidden="true" tabindex="-1"></a>    <span class="at">median_access =</span> <span class="fu">median</span>(access_rate, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb9-257"><a href="#cb9-257" aria-hidden="true" tabindex="-1"></a>    <span class="at">q25 =</span> <span class="fu">as.numeric</span>(<span class="fu">quantile</span>(access_rate, <span class="fl">0.25</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),  </span>
+<span id="cb9-258"><a href="#cb9-258" aria-hidden="true" tabindex="-1"></a>    <span class="at">q75 =</span> <span class="fu">as.numeric</span>(<span class="fu">quantile</span>(access_rate, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), </span>
+<span id="cb9-259"><a href="#cb9-259" aria-hidden="true" tabindex="-1"></a>    <span class="at">countries =</span> <span class="fu">n</span>(),</span>
+<span id="cb9-260"><a href="#cb9-260" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb9-261"><a href="#cb9-261" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb9-262"><a href="#cb9-262" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(countries <span class="sc">&gt;=</span> <span class="dv">3</span>)</span>
+<span id="cb9-263"><a href="#cb9-263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-264"><a href="#cb9-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-265"><a href="#cb9-265" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 5. Visualization Parameters</span></span>
+<span id="cb9-266"><a href="#cb9-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-269"><a href="#cb9-269" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-270"><a href="#cb9-270" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: params</span></span>
+<span id="cb9-271"><a href="#cb9-271" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
+<span id="cb9-272"><a href="#cb9-272" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-273"><a href="#cb9-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-274"><a href="#cb9-274" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  plot aesthetics ----</span></span>
+<span id="cb9-275"><a href="#cb9-275" aria-hidden="true" tabindex="-1"></a><span class="co"># Get base colors with custom palette</span></span>
+<span id="cb9-276"><a href="#cb9-276" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">&lt;-</span> <span class="fu">get_theme_colors</span>(<span class="at">palette =</span> <span class="fu">list</span>(</span>
+<span id="cb9-277"><a href="#cb9-277" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Very Low Start (&lt;25%)"</span> <span class="ot">=</span> <span class="st">"#8B0000"</span>,    </span>
+<span id="cb9-278"><a href="#cb9-278" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Low Start (25-50%)"</span> <span class="ot">=</span> <span class="st">"#FF8C00"</span>,       </span>
+<span id="cb9-279"><a href="#cb9-279" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Medium Start (50-75%)"</span> <span class="ot">=</span> <span class="st">"#006400"</span>,   </span>
+<span id="cb9-280"><a href="#cb9-280" aria-hidden="true" tabindex="-1"></a>  <span class="st">"High Start (75-95%)"</span> <span class="ot">=</span> <span class="st">"#1E90FF"</span>,      </span>
+<span id="cb9-281"><a href="#cb9-281" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Universal Start (≥95%)"</span> <span class="ot">=</span> <span class="st">"#4B0082"</span>    </span>
+<span id="cb9-282"><a href="#cb9-282" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb9-283"><a href="#cb9-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-284"><a href="#cb9-284" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  titles and caption ----</span></span>
+<span id="cb9-285"><a href="#cb9-285" aria-hidden="true" tabindex="-1"></a>title_text <span class="ot">&lt;-</span> <span class="fu">str_glue</span>(<span class="st">"Global convergence in electricity access, 2000-2023"</span>)</span>
 <span id="cb9-286"><a href="#cb9-286" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-287"><a href="#cb9-287" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  titles and caption ----</span></span>
-<span id="cb9-288"><a href="#cb9-288" aria-hidden="true" tabindex="-1"></a>title_text <span class="ot">&lt;-</span> <span class="fu">str_glue</span>(<span class="st">"Global convergence in electricity access, 2000-2023"</span>)</span>
-<span id="cb9-289"><a href="#cb9-289" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-290"><a href="#cb9-290" aria-hidden="true" tabindex="-1"></a>subtitle_text <span class="ot">&lt;-</span> <span class="fu">str_glue</span>(</span>
-<span id="cb9-291"><a href="#cb9-291" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Evidence shows countries starting with less electricity access are improving faster"</span></span>
-<span id="cb9-292"><a href="#cb9-292" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a><span class="co"># Create caption</span></span>
-<span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a>caption_text <span class="ot">&lt;-</span> <span class="fu">create_mm_caption</span>(</span>
-<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a>  <span class="at">mm_year =</span> current_year,</span>
-<span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a>  <span class="at">mm_week =</span> current_week,</span>
-<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>  <span class="at">source_text =</span> <span class="fu">paste0</span>(<span class="st">"World Bank Group"</span>)</span>
-<span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  fonts ----</span></span>
-<span id="cb9-302"><a href="#cb9-302" aria-hidden="true" tabindex="-1"></a><span class="fu">setup_fonts</span>()</span>
-<span id="cb9-303"><a href="#cb9-303" aria-hidden="true" tabindex="-1"></a>fonts <span class="ot">&lt;-</span> <span class="fu">get_font_families</span>()</span>
-<span id="cb9-304"><a href="#cb9-304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-305"><a href="#cb9-305" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  plot theme ----</span></span>
+<span id="cb9-287"><a href="#cb9-287" aria-hidden="true" tabindex="-1"></a>subtitle_text <span class="ot">&lt;-</span> <span class="fu">str_glue</span>(</span>
+<span id="cb9-288"><a href="#cb9-288" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Evidence shows countries starting with less electricity access are improving faster"</span></span>
+<span id="cb9-289"><a href="#cb9-289" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-290"><a href="#cb9-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-291"><a href="#cb9-291" aria-hidden="true" tabindex="-1"></a><span class="co"># Create caption</span></span>
+<span id="cb9-292"><a href="#cb9-292" aria-hidden="true" tabindex="-1"></a>caption_text <span class="ot">&lt;-</span> <span class="fu">create_mm_caption</span>(</span>
+<span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a>  <span class="at">mm_year =</span> current_year,</span>
+<span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a>  <span class="at">mm_week =</span> current_week,</span>
+<span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a>  <span class="at">source_text =</span> <span class="fu">paste0</span>(<span class="st">"World Bank Group"</span>)</span>
+<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  fonts ----</span></span>
+<span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a><span class="fu">setup_fonts</span>()</span>
+<span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a>fonts <span class="ot">&lt;-</span> <span class="fu">get_font_families</span>()</span>
+<span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-302"><a href="#cb9-302" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  plot theme ----</span></span>
+<span id="cb9-303"><a href="#cb9-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-304"><a href="#cb9-304" aria-hidden="true" tabindex="-1"></a><span class="co"># Start with base theme</span></span>
+<span id="cb9-305"><a href="#cb9-305" aria-hidden="true" tabindex="-1"></a>base_theme <span class="ot">&lt;-</span> <span class="fu">create_base_theme</span>(colors)</span>
 <span id="cb9-306"><a href="#cb9-306" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-307"><a href="#cb9-307" aria-hidden="true" tabindex="-1"></a><span class="co"># Start with base theme</span></span>
-<span id="cb9-308"><a href="#cb9-308" aria-hidden="true" tabindex="-1"></a>base_theme <span class="ot">&lt;-</span> <span class="fu">create_base_theme</span>(colors)</span>
-<span id="cb9-309"><a href="#cb9-309" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-310"><a href="#cb9-310" aria-hidden="true" tabindex="-1"></a><span class="co"># Add weekly-specific theme elements</span></span>
-<span id="cb9-311"><a href="#cb9-311" aria-hidden="true" tabindex="-1"></a>weekly_theme <span class="ot">&lt;-</span> <span class="fu">extend_weekly_theme</span>(</span>
-<span id="cb9-312"><a href="#cb9-312" aria-hidden="true" tabindex="-1"></a>  base_theme,</span>
-<span id="cb9-313"><a href="#cb9-313" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb9-314"><a href="#cb9-314" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-315"><a href="#cb9-315" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.4</span>), <span class="at">family =</span> fonts<span class="sc">$</span>title, <span class="at">face =</span> <span class="st">"bold"</span>,</span>
-<span id="cb9-316"><a href="#cb9-316" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> colors<span class="sc">$</span>title, <span class="at">lineheight =</span> <span class="fl">1.1</span>, <span class="at">hjust =</span> <span class="dv">0</span>,</span>
-<span id="cb9-317"><a href="#cb9-317" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">10</span>)</span>
-<span id="cb9-318"><a href="#cb9-318" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-319"><a href="#cb9-319" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-320"><a href="#cb9-320" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.9</span>), <span class="at">family =</span> fonts<span class="sc">$</span>subtitle, <span class="at">face =</span> <span class="st">"italic"</span>,</span>
-<span id="cb9-321"><a href="#cb9-321" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>subtitle, <span class="fl">0.9</span>), <span class="at">lineheight =</span> <span class="fl">1.1</span>,</span>
-<span id="cb9-322"><a href="#cb9-322" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">0</span>, <span class="at">b =</span> <span class="dv">20</span>)</span>
-<span id="cb9-323"><a href="#cb9-323" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-324"><a href="#cb9-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-325"><a href="#cb9-325" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Legend formatting</span></span>
-<span id="cb9-326"><a href="#cb9-326" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span>,</span>
-<span id="cb9-327"><a href="#cb9-327" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">"top"</span>,</span>
-<span id="cb9-328"><a href="#cb9-328" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">l =</span> <span class="dv">12</span>, <span class="at">b =</span> <span class="dv">5</span>),</span>
-<span id="cb9-329"><a href="#cb9-329" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.8</span>, <span class="st">"cm"</span>),</span>
-<span id="cb9-330"><a href="#cb9-330" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.box.margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">10</span>),</span>
-<span id="cb9-331"><a href="#cb9-331" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb9-332"><a href="#cb9-332" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-333"><a href="#cb9-333" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Axis formatting</span></span>
-<span id="cb9-334"><a href="#cb9-334" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb9-335"><a href="#cb9-335" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.x =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"gray"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>),</span>
-<span id="cb9-336"><a href="#cb9-336" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>),</span>
-<span id="cb9-337"><a href="#cb9-337" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-338"><a href="#cb9-338" aria-hidden="true" tabindex="-1"></a>      <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>),</span>
-<span id="cb9-339"><a href="#cb9-339" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)</span>
-<span id="cb9-340"><a href="#cb9-340" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-341"><a href="#cb9-341" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-342"><a href="#cb9-342" aria-hidden="true" tabindex="-1"></a>      <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>),</span>
-<span id="cb9-343"><a href="#cb9-343" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">10</span>)</span>
-<span id="cb9-344"><a href="#cb9-344" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-345"><a href="#cb9-345" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-346"><a href="#cb9-346" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>), <span class="at">family =</span> fonts<span class="sc">$</span>subtitle,</span>
-<span id="cb9-347"><a href="#cb9-347" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> colors<span class="sc">$</span>text</span>
-<span id="cb9-348"><a href="#cb9-348" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-349"><a href="#cb9-349" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-350"><a href="#cb9-350" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>), <span class="at">family =</span> fonts<span class="sc">$</span>subtitle,</span>
-<span id="cb9-351"><a href="#cb9-351" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> colors<span class="sc">$</span>text</span>
-<span id="cb9-352"><a href="#cb9-352" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-353"><a href="#cb9-353" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-354"><a href="#cb9-354" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Grid lines</span></span>
-<span id="cb9-355"><a href="#cb9-355" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"#ecf0f1"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>),</span>
-<span id="cb9-356"><a href="#cb9-356" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"#ecf0f1"</span>, <span class="at">linewidth =</span> <span class="fl">0.4</span>),</span>
-<span id="cb9-357"><a href="#cb9-357" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-358"><a href="#cb9-358" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Margin</span></span>
-<span id="cb9-359"><a href="#cb9-359" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">20</span>)</span>
-<span id="cb9-360"><a href="#cb9-360" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-361"><a href="#cb9-361" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-362"><a href="#cb9-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-363"><a href="#cb9-363" aria-hidden="true" tabindex="-1"></a><span class="co"># Set theme</span></span>
-<span id="cb9-364"><a href="#cb9-364" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(weekly_theme)</span>
-<span id="cb9-365"><a href="#cb9-365" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-366"><a href="#cb9-366" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-367"><a href="#cb9-367" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 6. Plot</span></span>
-<span id="cb9-368"><a href="#cb9-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-371"><a href="#cb9-371" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plot</span></span>
-<span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-374"><a href="#cb9-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a><span class="do">### |- P1  scatter plot----</span></span>
-<span id="cb9-376"><a href="#cb9-376" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(convergence_data, <span class="fu">aes</span>(<span class="at">x =</span> access_2000, <span class="at">y =</span> improvement)) <span class="sc">+</span></span>
-<span id="cb9-377"><a href="#cb9-377" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Geoms</span></span>
-<span id="cb9-378"><a href="#cb9-378" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
-<span id="cb9-379"><a href="#cb9-379" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> <span class="dv">25</span>,</span>
-<span id="cb9-380"><a href="#cb9-380" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
-<span id="cb9-381"><a href="#cb9-381" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#E8516F"</span>,</span>
-<span id="cb9-382"><a href="#cb9-382" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.6</span>,</span>
-<span id="cb9-383"><a href="#cb9-383" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.5</span></span>
-<span id="cb9-384"><a href="#cb9-384" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-385"><a href="#cb9-385" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb9-386"><a href="#cb9-386" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> cohort),</span>
-<span id="cb9-387"><a href="#cb9-387" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">2.8</span>,</span>
-<span id="cb9-388"><a href="#cb9-388" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
-<span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a>    <span class="at">stroke =</span> <span class="dv">0</span></span>
-<span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-391"><a href="#cb9-391" aria-hidden="true" tabindex="-1"></a>  ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(</span>
-<span id="cb9-392"><a href="#cb9-392" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> top_improvers,</span>
-<span id="cb9-393"><a href="#cb9-393" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> country),</span>
-<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="fl">1.3</span>,</span>
-<span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="fl">0.5</span>,</span>
-<span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">3</span>,</span>
-<span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="st">"sans"</span>,</span>
-<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>text, <span class="fl">0.9</span>),</span>
-<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>    <span class="at">fontface =</span> <span class="st">"bold"</span>,</span>
-<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a>    <span class="at">show.legend =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a>    <span class="at">box.padding =</span> <span class="fl">0.5</span>,        </span>
-<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a>    <span class="at">point.padding =</span> <span class="fl">0.3</span>,      </span>
-<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a>    <span class="at">segment.color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>text, <span class="fl">0.6</span>),  </span>
-<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a>    <span class="at">segment.size =</span> <span class="fl">0.3</span>,       </span>
-<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="cn">Inf</span>,      </span>
-<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a>    <span class="at">min.segment.length =</span> <span class="fl">0.1</span>, </span>
-<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">42</span>                </span>
-<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Scales</span></span>
-<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
-<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">percent_format</span>(<span class="at">scale =</span> <span class="dv">1</span>),</span>
-<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Access Rate in 2000"</span>,</span>
-<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>),</span>
-<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">100</span>),</span>
-<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
-<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Improvement (percentage points)"</span>,</span>
-<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">100</span>, <span class="dv">20</span>),</span>
-<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">100</span>),</span>
-<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
-<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> colors<span class="sc">$</span>palette,</span>
-<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Starting Level</span><span class="sc">\n</span><span class="st">(2000)"</span></span>
-<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Labs</span></span>
-<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Convergence in electricity access"</span>,</span>
-<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Lower starting access rates correlate with greater improvements (2000-2023)"</span></span>
-<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Theme</span></span>
-<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
-<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a><span class="do">### |- P2  line chart----</span></span>
-<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cohort_analysis, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> median_access, <span class="at">color =</span> starting_cohort)) <span class="sc">+</span></span>
-<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Geoms</span></span>
-<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
-<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">ymin =</span> q25, <span class="at">ymax =</span> q75, <span class="at">fill =</span> starting_cohort),</span>
-<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.15</span>,</span>
-<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="cn">NA</span></span>
-<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
-<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">1.2</span>,</span>
-<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.9</span></span>
-<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(</span>
-<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>    <span class="at">yintercept =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">75</span>, <span class="dv">90</span>),</span>
-<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dotted"</span>,</span>
-<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#bdc3c7"</span>,</span>
-<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span>,</span>
-<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.4</span></span>
-<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Scales</span></span>
-<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
-<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Year"</span>,</span>
-<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">2000</span>, <span class="dv">2025</span>, <span class="dv">5</span>),</span>
-<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.02</span>))</span>
-<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">percent_format</span>(<span class="at">scale =</span> <span class="dv">1</span>),</span>
-<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Median Access Rate"</span>,</span>
-<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">25</span>),</span>
-<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.02</span>))</span>
-<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">unlist</span>(colors<span class="sc">$</span>palette),</span>
-<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Starting Level</span><span class="sc">\n</span><span class="st">(2000)"</span></span>
-<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> colors<span class="sc">$</span>palette,</span>
-<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Starting Level</span><span class="sc">\n</span><span class="st">(2000)"</span></span>
-<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Labs</span></span>
-<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Progress by starting access level"</span>,</span>
-<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Median access rates over time, grouped by 2000 baseline levels"</span></span>
-<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Theme</span></span>
-<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span>,</span>
-<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">"top"</span></span>
-<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(</span>
-<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">guide_legend</span>(</span>
-<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>      <span class="at">title.position =</span> <span class="st">"top"</span>,</span>
-<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>      <span class="at">title.hjust =</span> <span class="fl">0.5</span>,</span>
-<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>      <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">linewidth =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="dv">1</span>)</span>
-<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"none"</span></span>
-<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  combined plot ----</span></span>
-<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>combined_plots <span class="ot">&lt;-</span> p1 <span class="sc">/</span> p2 <span class="sc">+</span></span>
-<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>)) </span>
-<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a>combined_plots <span class="ot">&lt;-</span> combined_plots <span class="sc">+</span></span>
-<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
-<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> title_text,</span>
-<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> subtitle_text,</span>
-<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> caption_text,</span>
-<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>    <span class="at">theme =</span> <span class="fu">theme</span>(</span>
-<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(</span>
-<span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.7</span>),</span>
-<span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> fonts<span class="sc">$</span>title,</span>
-<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>        <span class="at">face =</span> <span class="st">"bold"</span>,</span>
-<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> colors<span class="sc">$</span>title,</span>
-<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>        <span class="at">lineheight =</span> <span class="fl">1.1</span>,</span>
-<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a>        <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">5</span>)</span>
-<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a>      ),</span>
-<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>(</span>
-<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.95</span>),</span>
-<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> fonts<span class="sc">$</span>subtitle,</span>
-<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>subtitle, <span class="fl">0.9</span>),</span>
-<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>        <span class="at">lineheight =</span> <span class="fl">0.9</span>,</span>
-<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>        <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">0</span>)</span>
-<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a>      ),</span>
-<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.caption =</span> <span class="fu">element_markdown</span>(</span>
-<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.65</span>),</span>
-<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> fonts<span class="sc">$</span>caption,</span>
-<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> colors<span class="sc">$</span>caption,</span>
-<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a>        <span class="at">hjust =</span> <span class="fl">0.5</span>,</span>
-<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a>        <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)</span>
-<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-532"><a href="#cb9-532" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 7. Save</span></span>
-<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save</span></span>
-<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  plot image ----  </span></span>
-<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot_patchwork</span>(</span>
-<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> combined_plots, </span>
-<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"makeovermonday"</span>, </span>
-<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a>  <span class="at">year =</span> current_year,</span>
-<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a>  <span class="at">week =</span> current_week,</span>
-<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">10</span>, </span>
-<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">12</span></span>
-<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 8. Session Info</span></span>
+<span id="cb9-307"><a href="#cb9-307" aria-hidden="true" tabindex="-1"></a><span class="co"># Add weekly-specific theme elements</span></span>
+<span id="cb9-308"><a href="#cb9-308" aria-hidden="true" tabindex="-1"></a>weekly_theme <span class="ot">&lt;-</span> <span class="fu">extend_weekly_theme</span>(</span>
+<span id="cb9-309"><a href="#cb9-309" aria-hidden="true" tabindex="-1"></a>  base_theme,</span>
+<span id="cb9-310"><a href="#cb9-310" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb9-311"><a href="#cb9-311" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-312"><a href="#cb9-312" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.4</span>), <span class="at">family =</span> fonts<span class="sc">$</span>title, <span class="at">face =</span> <span class="st">"bold"</span>,</span>
+<span id="cb9-313"><a href="#cb9-313" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> colors<span class="sc">$</span>title, <span class="at">lineheight =</span> <span class="fl">1.1</span>, <span class="at">hjust =</span> <span class="dv">0</span>,</span>
+<span id="cb9-314"><a href="#cb9-314" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">10</span>)</span>
+<span id="cb9-315"><a href="#cb9-315" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-316"><a href="#cb9-316" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-317"><a href="#cb9-317" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.9</span>), <span class="at">family =</span> fonts<span class="sc">$</span>subtitle, <span class="at">face =</span> <span class="st">"italic"</span>,</span>
+<span id="cb9-318"><a href="#cb9-318" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>subtitle, <span class="fl">0.9</span>), <span class="at">lineheight =</span> <span class="fl">1.1</span>,</span>
+<span id="cb9-319"><a href="#cb9-319" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">0</span>, <span class="at">b =</span> <span class="dv">20</span>)</span>
+<span id="cb9-320"><a href="#cb9-320" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-321"><a href="#cb9-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-322"><a href="#cb9-322" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Legend formatting</span></span>
+<span id="cb9-323"><a href="#cb9-323" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span>,</span>
+<span id="cb9-324"><a href="#cb9-324" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">"top"</span>,</span>
+<span id="cb9-325"><a href="#cb9-325" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">l =</span> <span class="dv">12</span>, <span class="at">b =</span> <span class="dv">5</span>),</span>
+<span id="cb9-326"><a href="#cb9-326" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.8</span>, <span class="st">"cm"</span>),</span>
+<span id="cb9-327"><a href="#cb9-327" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.box.margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">10</span>),</span>
+<span id="cb9-328"><a href="#cb9-328" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb9-329"><a href="#cb9-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-330"><a href="#cb9-330" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Axis formatting</span></span>
+<span id="cb9-331"><a href="#cb9-331" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-332"><a href="#cb9-332" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.x =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"gray"</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>),</span>
+<span id="cb9-333"><a href="#cb9-333" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks.length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>),</span>
+<span id="cb9-334"><a href="#cb9-334" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-335"><a href="#cb9-335" aria-hidden="true" tabindex="-1"></a>      <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>),</span>
+<span id="cb9-336"><a href="#cb9-336" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)</span>
+<span id="cb9-337"><a href="#cb9-337" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-338"><a href="#cb9-338" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-339"><a href="#cb9-339" aria-hidden="true" tabindex="-1"></a>      <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>),</span>
+<span id="cb9-340"><a href="#cb9-340" aria-hidden="true" tabindex="-1"></a>      <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r =</span> <span class="dv">10</span>)</span>
+<span id="cb9-341"><a href="#cb9-341" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-342"><a href="#cb9-342" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-343"><a href="#cb9-343" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>), <span class="at">family =</span> fonts<span class="sc">$</span>subtitle,</span>
+<span id="cb9-344"><a href="#cb9-344" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> colors<span class="sc">$</span>text</span>
+<span id="cb9-345"><a href="#cb9-345" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-346"><a href="#cb9-346" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-347"><a href="#cb9-347" aria-hidden="true" tabindex="-1"></a>      <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.85</span>), <span class="at">family =</span> fonts<span class="sc">$</span>subtitle,</span>
+<span id="cb9-348"><a href="#cb9-348" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> colors<span class="sc">$</span>text</span>
+<span id="cb9-349"><a href="#cb9-349" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-350"><a href="#cb9-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-351"><a href="#cb9-351" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Grid lines</span></span>
+<span id="cb9-352"><a href="#cb9-352" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"#ecf0f1"</span>, <span class="at">linewidth =</span> <span class="fl">0.2</span>),</span>
+<span id="cb9-353"><a href="#cb9-353" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"#ecf0f1"</span>, <span class="at">linewidth =</span> <span class="fl">0.4</span>),</span>
+<span id="cb9-354"><a href="#cb9-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-355"><a href="#cb9-355" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Margin</span></span>
+<span id="cb9-356"><a href="#cb9-356" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">20</span>)</span>
+<span id="cb9-357"><a href="#cb9-357" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-358"><a href="#cb9-358" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-359"><a href="#cb9-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-360"><a href="#cb9-360" aria-hidden="true" tabindex="-1"></a><span class="co"># Set theme</span></span>
+<span id="cb9-361"><a href="#cb9-361" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(weekly_theme)</span>
+<span id="cb9-362"><a href="#cb9-362" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-363"><a href="#cb9-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-364"><a href="#cb9-364" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 6. Plot</span></span>
+<span id="cb9-365"><a href="#cb9-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-368"><a href="#cb9-368" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-369"><a href="#cb9-369" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plot</span></span>
+<span id="cb9-370"><a href="#cb9-370" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-371"><a href="#cb9-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a><span class="do">### |- P1  scatter plot----</span></span>
+<span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(convergence_data, <span class="fu">aes</span>(<span class="at">x =</span> access_2000, <span class="at">y =</span> improvement)) <span class="sc">+</span></span>
+<span id="cb9-374"><a href="#cb9-374" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Geoms</span></span>
+<span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb9-376"><a href="#cb9-376" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> <span class="dv">25</span>,</span>
+<span id="cb9-377"><a href="#cb9-377" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
+<span id="cb9-378"><a href="#cb9-378" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#E8516F"</span>,</span>
+<span id="cb9-379"><a href="#cb9-379" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.6</span>,</span>
+<span id="cb9-380"><a href="#cb9-380" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.5</span></span>
+<span id="cb9-381"><a href="#cb9-381" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-382"><a href="#cb9-382" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb9-383"><a href="#cb9-383" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> cohort),</span>
+<span id="cb9-384"><a href="#cb9-384" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">2.8</span>,</span>
+<span id="cb9-385"><a href="#cb9-385" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.85</span>,</span>
+<span id="cb9-386"><a href="#cb9-386" aria-hidden="true" tabindex="-1"></a>    <span class="at">stroke =</span> <span class="dv">0</span></span>
+<span id="cb9-387"><a href="#cb9-387" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-388"><a href="#cb9-388" aria-hidden="true" tabindex="-1"></a>  ggrepel<span class="sc">::</span><span class="fu">geom_text_repel</span>(</span>
+<span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> top_improvers,</span>
+<span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> country),</span>
+<span id="cb9-391"><a href="#cb9-391" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="fl">1.3</span>,</span>
+<span id="cb9-392"><a href="#cb9-392" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="fl">0.5</span>,</span>
+<span id="cb9-393"><a href="#cb9-393" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">3</span>,</span>
+<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="st">"sans"</span>,</span>
+<span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>text, <span class="fl">0.9</span>),</span>
+<span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a>    <span class="at">fontface =</span> <span class="st">"bold"</span>,</span>
+<span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a>    <span class="at">show.legend =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a>    <span class="at">box.padding =</span> <span class="fl">0.5</span>,        </span>
+<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>    <span class="at">point.padding =</span> <span class="fl">0.3</span>,      </span>
+<span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a>    <span class="at">segment.color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>text, <span class="fl">0.6</span>),  </span>
+<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a>    <span class="at">segment.size =</span> <span class="fl">0.3</span>,       </span>
+<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a>    <span class="at">max.overlaps =</span> <span class="cn">Inf</span>,      </span>
+<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a>    <span class="at">min.segment.length =</span> <span class="fl">0.1</span>, </span>
+<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">42</span>                </span>
+<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Scales</span></span>
+<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">percent_format</span>(<span class="at">scale =</span> <span class="dv">1</span>),</span>
+<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Access Rate in 2000"</span>,</span>
+<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">20</span>),</span>
+<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">100</span>),</span>
+<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
+<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Improvement (percentage points)"</span>,</span>
+<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">100</span>, <span class="dv">20</span>),</span>
+<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">30</span>, <span class="dv">100</span>),</span>
+<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>))</span>
+<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> colors<span class="sc">$</span>palette,</span>
+<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Starting Level</span><span class="sc">\n</span><span class="st">(2000)"</span></span>
+<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Labs</span></span>
+<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Convergence in electricity access"</span>,</span>
+<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Lower starting access rates correlate with greater improvements (2000-2023)"</span></span>
+<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Theme</span></span>
+<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
+<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a><span class="do">### |- P2  line chart----</span></span>
+<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cohort_analysis, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> median_access, <span class="at">color =</span> starting_cohort)) <span class="sc">+</span></span>
+<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Geoms</span></span>
+<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(</span>
+<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">ymin =</span> q25, <span class="at">ymax =</span> q75, <span class="at">fill =</span> starting_cohort),</span>
+<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.15</span>,</span>
+<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="cn">NA</span></span>
+<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
+<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">1.2</span>,</span>
+<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.9</span></span>
+<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(</span>
+<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a>    <span class="at">yintercept =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">75</span>, <span class="dv">90</span>),</span>
+<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dotted"</span>,</span>
+<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#bdc3c7"</span>,</span>
+<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span>,</span>
+<span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.4</span></span>
+<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Scales</span></span>
+<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Year"</span>,</span>
+<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">2000</span>, <span class="dv">2025</span>, <span class="dv">5</span>),</span>
+<span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.02</span>))</span>
+<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">percent_format</span>(<span class="at">scale =</span> <span class="dv">1</span>),</span>
+<span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Median Access Rate"</span>,</span>
+<span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="dv">25</span>),</span>
+<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.02</span>))</span>
+<span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">unlist</span>(colors<span class="sc">$</span>palette),</span>
+<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Starting Level</span><span class="sc">\n</span><span class="st">(2000)"</span></span>
+<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> colors<span class="sc">$</span>palette,</span>
+<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Starting Level</span><span class="sc">\n</span><span class="st">(2000)"</span></span>
+<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Labs</span></span>
+<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Progress by starting access level"</span>,</span>
+<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Median access rates over time, grouped by 2000 baseline levels"</span></span>
+<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Theme</span></span>
+<span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span>,</span>
+<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">"top"</span></span>
+<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(</span>
+<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">guide_legend</span>(</span>
+<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>      <span class="at">title.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a>      <span class="at">title.hjust =</span> <span class="fl">0.5</span>,</span>
+<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>      <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">linewidth =</span> <span class="dv">2</span>, <span class="at">alpha =</span> <span class="dv">1</span>)</span>
+<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"none"</span></span>
+<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  combined plot ----</span></span>
+<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>combined_plots <span class="ot">&lt;-</span> p1 <span class="sc">/</span> p2 <span class="sc">+</span></span>
+<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">heights =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>)) </span>
+<span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>combined_plots <span class="ot">&lt;-</span> combined_plots <span class="sc">+</span></span>
+<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
+<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> title_text,</span>
+<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> subtitle_text,</span>
+<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> caption_text,</span>
+<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>    <span class="at">theme =</span> <span class="fu">theme</span>(</span>
+<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(</span>
+<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.7</span>),</span>
+<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> fonts<span class="sc">$</span>title,</span>
+<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>        <span class="at">face =</span> <span class="st">"bold"</span>,</span>
+<span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> colors<span class="sc">$</span>title,</span>
+<span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a>        <span class="at">lineheight =</span> <span class="fl">1.1</span>,</span>
+<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a>        <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">5</span>)</span>
+<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>(</span>
+<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.95</span>),</span>
+<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> fonts<span class="sc">$</span>subtitle,</span>
+<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="fu">alpha</span>(colors<span class="sc">$</span>subtitle, <span class="fl">0.9</span>),</span>
+<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a>        <span class="at">lineheight =</span> <span class="fl">0.9</span>,</span>
+<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>        <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">0</span>)</span>
+<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.caption =</span> <span class="fu">element_markdown</span>(</span>
+<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>        <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">0.65</span>),</span>
+<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> fonts<span class="sc">$</span>caption,</span>
+<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> colors<span class="sc">$</span>caption,</span>
+<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a>        <span class="at">hjust =</span> <span class="fl">0.5</span>,</span>
+<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a>        <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>)</span>
+<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 7. Save</span></span>
+<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-533"><a href="#cb9-533" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-534"><a href="#cb9-534" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save</span></span>
+<span id="cb9-535"><a href="#cb9-535" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-536"><a href="#cb9-536" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-537"><a href="#cb9-537" aria-hidden="true" tabindex="-1"></a><span class="do">### |-  plot image ----  </span></span>
+<span id="cb9-538"><a href="#cb9-538" aria-hidden="true" tabindex="-1"></a><span class="fu">save_plot_patchwork</span>(</span>
+<span id="cb9-539"><a href="#cb9-539" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> combined_plots, </span>
+<span id="cb9-540"><a href="#cb9-540" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"makeovermonday"</span>, </span>
+<span id="cb9-541"><a href="#cb9-541" aria-hidden="true" tabindex="-1"></a>  <span class="at">year =</span> current_year,</span>
+<span id="cb9-542"><a href="#cb9-542" aria-hidden="true" tabindex="-1"></a>  <span class="at">week =</span> current_week,</span>
+<span id="cb9-543"><a href="#cb9-543" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">10</span>, </span>
+<span id="cb9-544"><a href="#cb9-544" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">12</span></span>
+<span id="cb9-545"><a href="#cb9-545" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-546"><a href="#cb9-546" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-547"><a href="#cb9-547" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-548"><a href="#cb9-548" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 8. Session Info</span></span>
+<span id="cb9-549"><a href="#cb9-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-550"><a href="#cb9-550" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb9-551"><a href="#cb9-551" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for Session Info</span></span>
 <span id="cb9-552"><a href="#cb9-552" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for Session Info</span></span>
-<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo = FALSE}</span></span>
-<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
-<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 9. GitHub Repository</span></span>
+<span id="cb9-553"><a href="#cb9-553" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo = FALSE}</span></span>
+<span id="cb9-554"><a href="#cb9-554" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb9-555"><a href="#cb9-555" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-556"><a href="#cb9-556" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-557"><a href="#cb9-557" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb9-558"><a href="#cb9-558" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-559"><a href="#cb9-559" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-560"><a href="#cb9-560" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-561"><a href="#cb9-561" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 9. GitHub Repository</span></span>
+<span id="cb9-562"><a href="#cb9-562" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-563"><a href="#cb9-563" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb9-564"><a href="#cb9-564" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for GitHub Repo</span></span>
 <span id="cb9-565"><a href="#cb9-565" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for GitHub Repo</span></span>
-<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a>The complete code for this analysis is available in <span class="in">`r create_link(project_file, repo_file)`</span>.</span>
+<span id="cb9-566"><a href="#cb9-566" aria-hidden="true" tabindex="-1"></a>The complete code for this analysis is available in <span class="in">`r create_link(project_file, repo_file)`</span>.</span>
+<span id="cb9-567"><a href="#cb9-567" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-568"><a href="#cb9-568" aria-hidden="true" tabindex="-1"></a>For the full repository, <span class="in">`r create_link("click here", repo_main)`</span>.</span>
+<span id="cb9-569"><a href="#cb9-569" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb9-570"><a href="#cb9-570" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a>For the full repository, <span class="in">`r create_link("click here", repo_main)`</span>.</span>
-<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 10. References</span></span>
+<span id="cb9-571"><a href="#cb9-571" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 10. References</span></span>
+<span id="cb9-572"><a href="#cb9-572" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-573"><a href="#cb9-573" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb9-574"><a href="#cb9-574" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for References</span></span>
 <span id="cb9-575"><a href="#cb9-575" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for References</span></span>
-<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Data:</span>
-<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Makeover Monday <span class="in">`r current_year`</span> Week <span class="in">`r current_week`</span>: <span class="in">`r create_link("Access to Electricity", data_main)`</span></span>
-<span id="cb9-582"><a href="#cb9-582" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-583"><a href="#cb9-583" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Article</span>
-<span id="cb9-584"><a href="#cb9-584" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-585"><a href="#cb9-585" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`r create_link("Access to electricity", data_secondary)`</span></span>
-<span id="cb9-586"><a href="#cb9-586" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-576"><a href="#cb9-576" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Data:</span>
+<span id="cb9-577"><a href="#cb9-577" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-578"><a href="#cb9-578" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Makeover Monday <span class="in">`r current_year`</span> Week <span class="in">`r current_week`</span>: <span class="in">`r create_link("Access to Electricity", data_main)`</span></span>
+<span id="cb9-579"><a href="#cb9-579" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-580"><a href="#cb9-580" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Article</span>
+<span id="cb9-581"><a href="#cb9-581" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-582"><a href="#cb9-582" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`r create_link("Access to electricity", data_secondary)`</span></span>
+<span id="cb9-583"><a href="#cb9-583" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
