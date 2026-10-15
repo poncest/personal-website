@@ -150,6 +150,18 @@ format:
           document.querySelectorAll("h5.listing-title, h5.quarto-listing-category-title").forEach(function (h) {
             h.setAttribute("aria-level", "2");
           });
+          // Post headings: most posts start at ### under the title (h1), with
+          // no h2. If the content (appendix aside) has no h2, read h3-h6 one
+          // level up. Headings that already have aria-level are left alone.
+          (function () {
+            var main = document.querySelector("main");
+            if (!main) return;
+            var hs = Array.prototype.filter.call(main.querySelectorAll("h2,h3,h4,h5,h6"), function (h) {
+              return !h.closest("#quarto-appendix") && !h.hasAttribute("aria-level");
+            });
+            if (hs.some(function (h) { return h.tagName === "H2"; })) return;
+            hs.forEach(function (h) { h.setAttribute("aria-level", String(+h.tagName[1] - 1)); });
+          })();
           </script>
     # Resource optimization
     smooth-scroll: true
