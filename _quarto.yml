@@ -139,6 +139,11 @@ format:
               if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); }
             });
           });
+          // The "cite as" entry is a single item with role="listitem" but no
+          // list around it; drop the role.
+          document.querySelectorAll(".quarto-appendix-citeas[role='listitem']").forEach(function (el) {
+            el.removeAttribute("role");
+          });
           </script>
     # Resource optimization
     smooth-scroll: true
