@@ -144,6 +144,12 @@ format:
           document.querySelectorAll(".quarto-appendix-citeas[role='listitem']").forEach(function (el) {
             el.removeAttribute("role");
           });
+          // Listing headings: Quarto writes card titles and the sidebar
+          // "Categories" title as h5 right under the page h1; expose them as
+          // level 2 (tag and styling unchanged).
+          document.querySelectorAll("h5.listing-title, h5.quarto-listing-category-title").forEach(function (h) {
+            h.setAttribute("aria-level", "2");
+          });
           </script>
     # Resource optimization
     smooth-scroll: true
