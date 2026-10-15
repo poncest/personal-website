@@ -78,9 +78,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-6a50bd621f08fdc5c26e43d254df0a90.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-b065954843c9b22fa8ced795138e581a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-8eb22138603607250389a751e10e8249.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-b065954843c9b22fa8ced795138e581a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-82ddc1a61fbdca658950f445e9e7bcb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-efad1095cfc99db29e26ab62b15fc29c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-82ddc1a61fbdca658950f445e9e7bcb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script src="../../site_libs/quarto-contrib/iconify-2.1.0/iconify-icon.min.js"></script><script id="quarto-search-options" type="application/json">{
@@ -318,7 +318,7 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../assets/img/sp_monogram-512.png" alt="" class="navbar-logo light-content"><img src="../../assets/img/sp_monogram_dark-512.png" alt="" class="navbar-logo dark-content"></a>
+    <img src="../../assets/img/sp_monogram-512.png" alt="Steven Ponce home page" class="navbar-logo light-content"><img src="../../assets/img/sp_monogram_dark-512.png" alt="Steven Ponce home page" class="navbar-logo dark-content"></a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Steven Ponce</span>
     </a>
@@ -1977,6 +1977,49 @@ document.querySelectorAll("img.thumbnail-image:not([alt])").forEach(function (im
 // Footer copyright: keep the end year current (HTML fallback: 2026).
 document.querySelectorAll(".footer-year").forEach(function (el) {
   el.textContent = new Date().getFullYear();
+});
+// Collapsible callout headers are clickable divs with aria-expanded:
+// give them a button role, keyboard access (Enter/Space), and let the
+// visible title name them instead of the generic "Toggle callout".
+document.querySelectorAll(".callout-header[data-bs-toggle='collapse']").forEach(function (el) {
+  el.setAttribute("role", "button");
+  el.removeAttribute("aria-label");
+  if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+  el.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); }
+  });
+});
+// The "cite as" entry is a single item with role="listitem" but no
+// list around it; drop the role.
+document.querySelectorAll(".quarto-appendix-citeas[role='listitem']").forEach(function (el) {
+  el.removeAttribute("role");
+});
+// Listing headings: Quarto writes card titles and the sidebar
+// "Categories" title as h5 right under the page h1; expose them as
+// level 2 (tag and styling unchanged).
+document.querySelectorAll("h5.listing-title, h5.quarto-listing-category-title").forEach(function (h) {
+  h.setAttribute("aria-level", "2");
+});
+// Post headings: most posts start at ### under the title (h1), with
+// no h2. If the content (appendix aside) has no h2, read h3-h6 one
+// level up. Headings that already have aria-level are left alone.
+(function () {
+  var main = document.querySelector("main");
+  if (!main) return;
+  var hs = Array.prototype.filter.call(main.querySelectorAll("h2,h3,h4,h5,h6"), function (h) {
+    return !h.closest("#quarto-appendix") && !h.hasAttribute("aria-level");
+  });
+  if (hs.some(function (h) { return h.tagName === "H2"; })) return;
+  hs.forEach(function (h) { h.setAttribute("aria-level", String(+h.tagName[1] - 1)); });
+})();
+// Post charts: if the figure image has no alt (no fig-alt in the post),
+// use its caption as the alt text, minus the "Figure 1:" prefix.
+document.querySelectorAll("img.figure-img:not([alt])").forEach(function (img) {
+  var fig = img.closest("figure");
+  var cap = fig && fig.querySelector("figcaption");
+  if (!cap) return;
+  var text = cap.textContent.replace(/^\s*Figure\s*\d+\s*[:.]\s*/i, "").trim();
+  if (text) img.setAttribute("alt", text);
 });
 </script>
 
