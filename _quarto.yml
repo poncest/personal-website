@@ -162,6 +162,15 @@ format:
             if (hs.some(function (h) { return h.tagName === "H2"; })) return;
             hs.forEach(function (h) { h.setAttribute("aria-level", String(+h.tagName[1] - 1)); });
           })();
+          // Post charts: if the figure image has no alt (no fig-alt in the post),
+          // use its caption as the alt text, minus the "Figure 1:" prefix.
+          document.querySelectorAll("img.figure-img:not([alt])").forEach(function (img) {
+            var fig = img.closest("figure");
+            var cap = fig && fig.querySelector("figcaption");
+            if (!cap) return;
+            var text = cap.textContent.replace(/^\s*Figure\s*\d+\s*[:.]\s*/i, "").trim();
+            if (text) img.setAttribute("alt", text);
+          });
           </script>
     # Resource optimization
     smooth-scroll: true
