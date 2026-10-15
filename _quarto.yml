@@ -128,6 +128,17 @@ format:
           document.querySelectorAll(".footer-year").forEach(function (el) {
             el.textContent = new Date().getFullYear();
           });
+          // Collapsible callout headers are clickable divs with aria-expanded:
+          // give them a button role, keyboard access (Enter/Space), and let the
+          // visible title name them instead of the generic "Toggle callout".
+          document.querySelectorAll(".callout-header[data-bs-toggle='collapse']").forEach(function (el) {
+            el.setAttribute("role", "button");
+            el.removeAttribute("aria-label");
+            if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "0");
+            el.addEventListener("keydown", function (e) {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); }
+            });
+          });
           </script>
     # Resource optimization
     smooth-scroll: true
