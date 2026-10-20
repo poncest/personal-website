@@ -77,7 +77,10 @@ dashboard using completed oncology treatment trials. The target variable
 is registry-defined duration (Start Date → Completion Date), which may
 include extended follow-up and should not be interpreted as a direct
 proxy for last-patient–last-visit (LPLV); predictors are limited to
-information available in the registry at study start.
+registry fields (phase, sponsor type, enrollment, sites, countries, and
+registration-to-start lag). Several of these are final reported values
+rather than what was known at study start, which, if anything, flatters
+the model.
 
 The emphasis is on aligning validation strategy with intended use,
 rather than maximizing retrospective fit.
@@ -114,15 +117,24 @@ dropped sharply:
 
 This result reflects two structural realities:
 
-1.  **Temporal drift**: Median trial duration decreased substantially
-    across eras, meaning relationships learned from earlier trials do
-    not generalize cleanly to later ones.
+1.  **Temporal drift**: Median trial duration fell from about 82 months
+    (trials started 2015 or earlier) to about 53 months (2016–2018), so
+    relationships learned from earlier trials do not generalize cleanly
+    to later ones. The model systematically overestimates the later
+    trials: the median error is about −19 months, and 78% of test trials
+    finished sooner than predicted.
 2.  **Registry feature limitations**: Key drivers of duration—protocol
     complexity, endpoint strategy, enrollment velocity, and operational
     execution—are largely absent from ClinicalTrials.gov.
 
 Under these conditions, low prospective R² is not a modeling failure; it
 is the most honest estimate the data can provide.
+
+The result is also robust to how the cohort was defined. The oncology
+cohort comes from a keyword-based registry query, and about 8% of
+modeled trials list no cancer term in their conditions field. Refitting
+without them moves test R² from 0.043 to 0.047 and leaves the
+conclusions unchanged.
 
 ------------------------------------------------------------------------
 
@@ -187,7 +199,9 @@ appropriate caveats about prospective use limitations.
 
 **Duration Forecaster** Interactive scenario sandbox for exploring how
 trial characteristics relate to predicted duration—positioned as
-educational, not operational.
+educational, not operational. Each estimate comes with the range that
+similar 2016–2018 test trials actually landed in, which makes the
+model's uncertainty and its tendency to overestimate visible.
 ![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png)
 
 **Feature Explorer** Visualizes Elastic Net coefficients and feature
@@ -209,8 +223,8 @@ duration, with error breakdown by phase and sponsor type.
 
 1.  **Data acquisition** – ClinicalTrials.gov API (oncology
     interventional trials)
-2.  **Cohort filtering** – Treatment purpose, Phase 2–3, completed
-    studies
+2.  **Cohort filtering** – Treatment purpose, Phase 1/2 through Phase 3,
+    completed studies
 3.  **Feature engineering** – Log transforms, ratios, categorical
     encoding
 4.  **Validation design** – Time-based split aligned to prospective use
@@ -223,8 +237,11 @@ duration, with error breakdown by phase and sponsor type.
 -   **Target:** Log-transformed duration (months)
 -   **Cross-validation:** 10-fold CV within training data only
 -   **Baseline comparisons:** Linear regression, Random Forest, XGBoost
--   **Selection criterion:** Stability, interpretability, and behavior
-    under time-based validation
+-   **Selection criterion:** Best cross-validated RMSE within the
+    training data, with a preference for interpretability; the
+    2016–2018 test set was used once, for final evaluation only
+-   **Robustness check:** Refit excluding trials with no oncology term
+    in their conditions field (test R² 0.043 → 0.047)
 
 ### [Technical stack]{.smallcaps}
 
@@ -256,3 +273,8 @@ decision-makers from false confidence**.
 In trial analytics, recognizing the limits of available data is as
 important as extracting signal from it.
 :::
+
+*Updated October 2026: added the over-prediction finding, the cohort
+robustness check, and the forecaster's likely range; corrected the phase
+range and model-selection description. The model and its headline
+results are unchanged.*
