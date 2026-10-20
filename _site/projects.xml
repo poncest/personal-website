@@ -12850,7 +12850,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <h2 class="anchored" data-anchor-id="what-question-this-analysis-tests"><span class="smallcaps">2. What question this analysis tests</span></h2>
 <p>The core question is intentionally narrow:</p>
 <p><strong>Can ClinicalTrials.gov registry features support prospective forecasting of oncology trial duration?</strong></p>
-<p>To answer this, I built an end-to-end modeling pipeline and Shiny dashboard using completed oncology treatment trials. The target variable is registry-defined duration (Start Date → Completion Date), which may include extended follow-up and should not be interpreted as a direct proxy for last-patient–last-visit (LPLV); predictors are limited to information available in the registry at study start.</p>
+<p>To answer this, I built an end-to-end modeling pipeline and Shiny dashboard using completed oncology treatment trials. The target variable is registry-defined duration (Start Date → Completion Date), which may include extended follow-up and should not be interpreted as a direct proxy for last-patient–last-visit (LPLV); predictors are limited to registry fields (phase, sponsor type, enrollment, sites, countries, and registration-to-start lag). Several of these are final reported values rather than what was known at study start, which, if anything, flatters the model.</p>
 <p>The emphasis is on aligning validation strategy with intended use, rather than maximizing retrospective fit.</p>
 <hr>
 </section>
@@ -12892,10 +12892,11 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 </table>
 <p>This result reflects two structural realities:</p>
 <ol type="1">
-<li><strong>Temporal drift</strong>: Median trial duration decreased substantially across eras, meaning relationships learned from earlier trials do not generalize cleanly to later ones.</li>
+<li><strong>Temporal drift</strong>: Median trial duration fell from about 82 months (trials started 2015 or earlier) to about 53 months (2016–2018), so relationships learned from earlier trials do not generalize cleanly to later ones. The model systematically overestimates the later trials: the median error is about −19 months, and 78% of test trials finished sooner than predicted.</li>
 <li><strong>Registry feature limitations</strong>: Key drivers of duration—protocol complexity, endpoint strategy, enrollment velocity, and operational execution—are largely absent from ClinicalTrials.gov.</li>
 </ol>
 <p>Under these conditions, low prospective R² is not a modeling failure; it is the most honest estimate the data can provide.</p>
+<p>The result is also robust to how the cohort was defined. The oncology cohort comes from a keyword-based registry query, and about 8% of modeled trials list no cancer term in their conditions field. Refitting without them moves test R² from 0.043 to 0.047 and leaves the conclusions unchanged.</p>
 <hr>
 </section>
 <section id="why-this-matters-in-pharma-analytics" class="level2">
@@ -12941,7 +12942,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <p>The dashboard is structured to make validation behavior visible and to discourage overinterpretation of point predictions.</p>
 </blockquote>
 <p><strong>Executive Brief</strong> Surfaces key metrics (R², MAE, sample size) with appropriate caveats about prospective use limitations. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/executive_brief.png" class="img-fluid"></p>
-<p><strong>Duration Forecaster</strong> Interactive scenario sandbox for exploring how trial characteristics relate to predicted duration—positioned as educational, not operational. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png" class="img-fluid"></p>
+<p><strong>Duration Forecaster</strong> Interactive scenario sandbox for exploring how trial characteristics relate to predicted duration—positioned as educational, not operational. Each estimate comes with the range that similar 2016–2018 test trials actually landed in, which makes the model’s uncertainty and its tendency to overestimate visible. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png" class="img-fluid"></p>
 <p><strong>Feature Explorer</strong> Visualizes Elastic Net coefficients and feature distributions to understand which registry variables the model weighted. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/explorer.png" class="img-fluid"></p>
 <p><strong>Model Performance</strong> Diagnostic plots comparing actual vs.&nbsp;predicted duration, with error breakdown by phase and sponsor type. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/performance.png" class="img-fluid"></p>
 <p><strong>Methods &amp; Data</strong> Documents the data pipeline, inclusion criteria, and validation methodology—including the key lesson on why time-based validation matters. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/methods.png" class="img-fluid"></p>
@@ -12953,7 +12954,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <h3 class="anchored" data-anchor-id="analytical-pipeline"><span class="smallcaps">Analytical Pipeline</span></h3>
 <ol type="1">
 <li><strong>Data acquisition</strong> – ClinicalTrials.gov API (oncology interventional trials)</li>
-<li><strong>Cohort filtering</strong> – Treatment purpose, Phase 2–3, completed studies</li>
+<li><strong>Cohort filtering</strong> – Treatment purpose, Phase 1/2 through Phase 3, completed studies</li>
 <li><strong>Feature engineering</strong> – Log transforms, ratios, categorical encoding</li>
 <li><strong>Validation design</strong> – Time-based split aligned to prospective use</li>
 <li><strong>Modeling</strong> – Elastic Net regression via tidymodels</li>
@@ -12967,7 +12968,8 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <li><strong>Target:</strong> Log-transformed duration (months)</li>
 <li><strong>Cross-validation:</strong> 10-fold CV within training data only</li>
 <li><strong>Baseline comparisons:</strong> Linear regression, Random Forest, XGBoost</li>
-<li><strong>Selection criterion:</strong> Stability, interpretability, and behavior under time-based validation</li>
+<li><strong>Selection criterion:</strong> Best cross-validated RMSE within the training data, with a preference for interpretability; the 2016–2018 test set was used once, for final evaluation only</li>
+<li><strong>Robustness check:</strong> Refit excluding trials with no oncology term in their conditions field (test R² 0.043 → 0.047)</li>
 </ul>
 </section>
 <section id="technical-stack" class="level3">
@@ -13008,6 +13010,7 @@ Note
 <p>In trial analytics, recognizing the limits of available data is as important as extracting signal from it.</p>
 </div>
 </div>
+<p><em>Updated October 2026: added the over-prediction finding, the cohort robustness check, and the forecaster’s likely range; corrected the phase range and model-selection description. The model and its headline results are unchanged.</em></p>
 
 
 <!-- -->
