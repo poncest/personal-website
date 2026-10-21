@@ -47,6 +47,19 @@ Forecaster](https://0l6jpd-steven-ponce.shinyapps.io/launch_curve_forecaster/)
 💻 **Source code:**\
 [GitHub repository](https://github.com/poncest/launch-curve-forecaster)
 
+::: callout-warning
+## Data correction (October 2026)
+
+All 60 revenue values behind the analog curves were re-sourced from the
+companies' own annual reports and full-year results releases, and 35
+changed. The original dataset had Tecentriq in Swiss francs labeled as
+US dollars, an Imbruvica series that mixed two definitions, and several
+values that did not match the filings (Calquence 2019, for example, was
+$164M reported vs $372M stored). Every value now carries a source link
+and verification status in the repository, and the dashboard figures
+are recomputed from the corrected data.
+:::
+
 ------------------------------------------------------------------------
 
 > *The core challenge in launch planning isn't predicting success—it's
@@ -114,8 +127,10 @@ subjective—and post-hoc adjustments can undermine credibility.
 This framework applies a **governance-first methodology**:
 
 1.  **Define inclusion criteria before examining outcomes** —
-    Therapeutic area, Year-5 revenue threshold, and data availability
-    requirements are specified upfront.
+    Therapeutic area, launch window, and data availability
+    requirements are specified upfront. Filters that look at outcomes
+    (a minimum Year-5 revenue, excluding the top analog) are offered
+    only as sensitivity checks.
 2.  **Lock the analog list in writing** — No modifications after seeing
     revenue performance.
 3.  **Document rationale for every inclusion/exclusion** — Creates an
@@ -206,13 +221,16 @@ creating potential upward bias in Year-5 revenue estimates. Products
 without similar expansion potential may underperform these benchmarks.
 
 **Era effects**\
-Launch dynamics differ between earlier (2013–2015) and more recent
-oncology approvals. The analog set includes both eras, which may
-introduce heterogeneity.
+The analog set covers FDA approvals from 2013 to 2017 only. Launches
+after 2018 face different conditions (pricing pressure, value-based
+contracting, more crowded classes), which this set does not represent.
 
-**Worldwide revenue**\
-SEC filings report worldwide product revenue. Geographic mix differences
-between analogs and forecasted products are not adjusted.
+**Worldwide revenue and launch-year alignment**\
+Values are company-reported worldwide product sales; geographic mix
+differences are not adjusted. Year 0 is the calendar year of first FDA
+approval, so it covers anywhere from 10 days (Opdivo) to about 11
+months (Ibrance) on market, and Years 1–5 can be offset by up to about
+11 months across analogs.
 
 These assumptions are documented in the Methods & Data tab and surfaced
 in the dashboard interface to prevent over-interpretation.
@@ -271,8 +289,8 @@ recognize: "Speed vs. readiness" and "Alignment vs. credibility risk."
 An interactive configuration view that allows users to:
 
 -   Select therapeutic focus (solid tumors, hematology, or both)
--   Set minimum Year-5 revenue thresholds
--   Test sensitivity by excluding the top-performing analog
+-   Run sensitivity checks: exclude the top-performing analog, or
+    analogs below a Year-5 revenue level
 -   Configure launch delay scenarios (0–4 quarters)
 
 The Selection Rationale panel updates dynamically, showing live
@@ -303,8 +321,8 @@ distribution across analogs, not any single curve.
 A transparency-focused section documenting:
 
 -   Framework overview and workflow diagram
--   Data sources (FDA approvals, SEC EDGAR filings, published
-    literature)
+-   Data sources (FDA approvals, company-reported revenue) and the
+    status of every value
 -   Inclusion and exclusion criteria
 -   Key assumptions with explicit discussion
 -   "What This Framework Does NOT Do" section
@@ -315,7 +333,7 @@ A transparency-focused section documenting:
 ## [8. The analog set]{.smallcaps}
 
 The framework includes 10 established oncology launches with
-product-level revenue disclosed in SEC filings:
+product-level revenue reported by their owners:
 
 **Solid tumors (6):**\
 Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq
@@ -393,10 +411,12 @@ conversations** about what forecasts can and cannot support.
 ### Data Sources
 
 -   **FDA Drug Approvals:** Approval dates (T=0), initial indications
--   **SEC EDGAR Filings:** Annual product-level revenue from 10-K and
-    20-F reports
--   **Published Literature:** Launch curve patterns and benchmarks from
-    peer-reviewed sources
+-   **Company-reported revenue:** Full-year worldwide product sales from
+    annual reports and results releases (SEC 10-K and 8-K filings;
+    AstraZeneca and Roche results announcements), with a source link
+    for every value
+-   **Federal Reserve:** Annual average CHF/USD rates to convert Roche's
+    Tecentriq sales
 
 ### Technical Stack
 
@@ -427,7 +447,7 @@ It is **not intended for real-world commercial decision-making** and is
 not affiliated with any pharmaceutical company. Product names are used
 for analytical illustration only.
 
-All data are derived from publicly available sources including SEC
+All data are derived from publicly available sources including company
 filings and FDA databases. No proprietary or confidential information is
 included.
 
@@ -451,6 +471,7 @@ valuable than false confidence about what we do.
 :::
 
 *Updated October 2026: revenue figures relabeled as Year-5 revenue
-rather than peak; corrected the data-source and revenue-alignment
-descriptions; expanded the technical lesson on tab rendering. The data
-and calculations are unchanged.*
+rather than peak; all 60 revenue values re-sourced from company filings
+(35 changed; see the correction note at the top); corrected the
+data-source, era-effects, launch-year alignment and outcome-filter
+descriptions; expanded the technical lesson on tab rendering.*
