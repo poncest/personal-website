@@ -114,7 +114,7 @@ subjective—and post-hoc adjustments can undermine credibility.
 This framework applies a **governance-first methodology**:
 
 1.  **Define inclusion criteria before examining outcomes** —
-    Therapeutic area, peak revenue threshold, and data availability
+    Therapeutic area, Year-5 revenue threshold, and data availability
     requirements are specified upfront.
 2.  **Lock the analog list in writing** — No modifications after seeing
     revenue performance.
@@ -150,7 +150,8 @@ Revenue at Risk (Year 1) = delay_quarters × (median Year 1 revenue / 4)
 
 Year 1 is used because it is the period most sensitive to launch timing
 assumptions and the least confounded by later competitive or lifecycle
-effects.
+effects. The Executive Brief shows the median Year-1 revenue next to the
+result, so the input behind the estimate is visible.
 
 This is explicitly labeled as a **Year 1 average-quarter
 approximation**—a simplification that provides directional magnitude
@@ -169,13 +170,19 @@ These represent **observed variation across analogs**, not statistical
 confidence intervals. The distinction matters: they quantify historical
 heterogeneity, not forecasting uncertainty.
 
+Revenue figures describe **Year-5 revenue**, not a lifetime peak. Every
+analog is observed from its approval year through the fifth full year
+after launch, and all ten were still growing at Year 5. Labeling that
+value "peak" would understate products like Keytruda, whose revenue kept
+climbing well beyond the observation window.
+
 ### Selection Statistics
 
 Dynamic statistics update as criteria change:
 
 -   Solid tumor vs. hematology count
 -   Approval year range
--   Median peak revenue
+-   Median Year-5 revenue
 -   Number of analogs meeting criteria
 
 This transparency helps users understand what's driving the scenario
@@ -195,7 +202,7 @@ modeled.
 
 **Label expansion bias**\
 Some analogs experienced significant post-launch indication expansions,
-creating potential upward bias in peak revenue estimates. Products
+creating potential upward bias in Year-5 revenue estimates. Products
 without similar expansion potential may underperform these benchmarks.
 
 **Era effects**\
@@ -203,8 +210,8 @@ Launch dynamics differ between earlier (2013–2015) and more recent
 oncology approvals. The analog set includes both eras, which may
 introduce heterogeneity.
 
-**US-weighted revenue**\
-SEC filing data may include global revenue. Geographic mix differences
+**Worldwide revenue**\
+SEC filings report worldwide product revenue. Geographic mix differences
 between analogs and forecasted products are not adjusted.
 
 These assumptions are documented in the Methods & Data tab and surfaced
@@ -247,7 +254,8 @@ The application is organized into four complementary views:
 
 An executive-facing summary that surfaces:
 
--   Key metrics (analog count, peak revenue range, revenue at risk)
+-   Key metrics (analog count, Year-5 revenue range, revenue at risk,
+    median Year-1 revenue)
 -   Launch trajectory scenarios with P25/P50/P75 bands
 -   Two explicit decision trade-offs: launch timing and forecast
     commitment
@@ -263,7 +271,7 @@ recognize: "Speed vs. readiness" and "Alignment vs. credibility risk."
 An interactive configuration view that allows users to:
 
 -   Select therapeutic focus (solid tumors, hematology, or both)
--   Set minimum peak revenue thresholds
+-   Set minimum Year-5 revenue thresholds
 -   Test sensitivity by excluding the top-performing analog
 -   Configure launch delay scenarios (0–4 quarters)
 
@@ -279,13 +287,14 @@ A detailed view for examining individual analog characteristics:
 
 -   Side-by-side comparison of two selected analogs
 -   Launch curve visualization showing trajectory differences
--   Characteristics table (company, indication, approval date, peak
+-   Characteristics table (company, indication, approval date, Year-5
     revenue)
 -   Launch context factors that may have influenced trajectory
 
-This tab includes guardrails against over-interpretation—users must
-click "View Details" to load data, creating a deliberate interaction
-that discourages casual browsing.
+This tab includes guardrails against over-interpretation: it opens on
+a single default analog, comparisons are an explicit choice, and an
+interpretation note reminds users that the framework's value lies in the
+distribution across analogs, not any single curve.
 
 ### Methods & Data
 
@@ -318,9 +327,9 @@ The 6/4 split reflects real-world prevalence rather than forced
 symmetry. Adding weaker products to achieve balance would introduce more
 noise than signal.
 
-Approval years range from 2013–2017, providing sufficient follow-up to
-observe peak revenue while remaining recent enough to reflect modern
-launch dynamics.
+Approval years range from 2013–2017, providing five full years of
+disclosed revenue for every analog while remaining recent enough to
+reflect modern launch dynamics.
 
 ------------------------------------------------------------------------
 
@@ -339,12 +348,21 @@ visible—but CSS-based tabs don't notify Shiny of visibility changes.
 ### The Solution
 
 Adding `outputOptions(output, "output_name", suspendWhenHidden = FALSE)`
-to all outputs forces Shiny to render regardless of perceived
-visibility. This pattern isn't documented in standard Shiny guides but
-is essential for CSS-based tab frameworks.
+forces Shiny to render regardless of perceived visibility. This pattern
+isn't documented in standard Shiny guides but is essential for CSS-based
+tab frameworks.
 
-This discovery—after several hours of debugging—became the most valuable
-technical lesson from the project.
+The catch is that it has to cover **every** output that depends on
+shared state. A later review found six small text outputs (the range
+line and both decision cards) without it. After a selection change, the
+headline number updated while the range beside it stayed stale. The
+complete fix pairs `suspendWhenHidden = FALSE` on all dependent outputs
+with a `shown` event triggered on each tab switch, and verifies the
+result by changing a selection and checking that every number moves
+together.
+
+This discovery became the most valuable technical lesson from the
+project.
 
 ------------------------------------------------------------------------
 
@@ -375,8 +393,8 @@ conversations** about what forecasts can and cannot support.
 ### Data Sources
 
 -   **FDA Drug Approvals:** Approval dates (T=0), initial indications
--   **SEC EDGAR Filings:** Product-level revenue from 10-K and 10-Q
-    reports
+-   **SEC EDGAR Filings:** Annual product-level revenue from 10-K and
+    20-F reports
 -   **Published Literature:** Launch curve patterns and benchmarks from
     peer-reviewed sources
 
@@ -386,12 +404,13 @@ conversations** about what forecasts can and cannot support.
 -   **Framework:** Shiny (modular architecture)
 -   **UI:** shiny.semantic (Appsilon)
 -   **Visualization:** ggplot2, ggiraph
--   **Tables:** reactable, reactablefmtr
+-   **Tables:** reactable
 -   **Deployment:** shinyapps.io
 
 ### Key Design Choices
 
--   Revenue normalized to launch quarter (T=0) for comparability
+-   Annual revenue aligned to approval year (Year 0 = partial launch
+    year; Year 1 = first full year) for comparability
 -   Percentiles calculated across analog set (not confidence intervals)
 -   Revenue scaled to millions USD for readability
 -   All data from public sources to ensure reproducibility
@@ -430,3 +449,8 @@ resource commitments.
 In launch planning, clarity about what we don't know is often more
 valuable than false confidence about what we do.
 :::
+
+*Updated October 2026: revenue figures relabeled as Year-5 revenue
+rather than peak; corrected the data-source and revenue-alignment
+descriptions; expanded the technical lesson on tab rendering. The data
+and calculations are unchanged.*
