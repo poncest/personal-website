@@ -12840,8 +12840,21 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <a href="https://github.com/poncest/clinical-trial-forecaster">GitHub repository</a></p>
 <hr>
 <blockquote class="blockquote">
-<p><em>My model showed R² = 0.84. Then I validated it properly. The result dropped to 0.04—and that finding became the point.</em></p>
+<p><em>On a random split, registry fields explained about a quarter of the variation in trial duration. Tested on later trials, they explained almost none—and that finding became the point.</em></p>
 </blockquote>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Correction (October 2026)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Earlier versions of this post reported a random-split R² of <strong>0.84</strong> and a time-based R² of <strong>0.04</strong>, and attributed the gap to temporal drift. Both figures were wrong. A date-parsing bug (<code>lubridate::ymd()</code> read month-only registry dates such as “2005-08” as 2020-05-08) mis-dated 609 trials, dropped 975 others, and produced the spurious 0.84. A follow-up check also found 74 Phase 2/3 trials counted twice. The data have been rebuilt and the models retrained; the numbers below are the corrected ones. The conclusion—registry data cannot forecast trial duration—still holds. The size of the random-split result does not.</p>
+</div>
+</div>
 <hr>
 <section id="framing-the-problem" class="level2">
 <h2 class="anchored" data-anchor-id="framing-the-problem"><span class="smallcaps">1. Framing the problem</span></h2>
@@ -12861,18 +12874,23 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <h2 class="anchored" data-anchor-id="when-random-validation-appears-convincing"><span class="smallcaps">3. When random validation appears convincing</span></h2>
 <p>Using a conventional random train/test split, the model appeared to perform well:</p>
 <ul>
-<li>R² ≈ 0.84<br>
+<li>R² ≈ 0.24 (mean of five random splits)<br>
 </li>
-<li>Median absolute error ≈ 7 months</li>
+<li>Median absolute error ≈ 21 months</li>
 </ul>
-<p>At face value, this resembles performance often reported in exploratory analytics. However, random splits implicitly allow information from later-era trials to influence predictions for earlier-era trials. For a forward-looking use case, this validation strategy is inappropriate.</p>
+<p>That is modest, but it suggests registry fields carry some signal. However, random splits mix trials from the same years into training and test sets, so era-specific patterns are shared between them. The split measures how well the model describes history, not how well it forecasts new trials. For a forward-looking use case, this validation strategy is inappropriate.</p>
 <p>At this stage, the model was answering the wrong question.</p>
 <hr>
 </section>
 <section id="what-changes-under-time-based-validation" class="level2">
 <h2 class="anchored" data-anchor-id="what-changes-under-time-based-validation"><span class="smallcaps">4. What changes under time-based validation</span></h2>
-<p>When the validation strategy was changed to reflect prospective use—training on earlier trials and testing on later trials—performance dropped sharply:</p>
+<p>When the validation strategy was changed to reflect prospective use—training on trials started by 2015 (n = 2,079) and testing on trials started 2016–2018 (n = 378)—almost all of that signal disappeared. The trials, features, recipe and tuning grid are the same in every row; only the split, or the test trials it is scored on, changes:</p>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 56%">
+<col style="width: 13%">
+<col style="width: 30%">
+</colgroup>
 <thead>
 <tr class="header">
 <th>Validation Approach</th>
@@ -12883,29 +12901,36 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <tbody>
 <tr class="odd">
 <td>Random split</td>
-<td>0.84</td>
-<td>7 months</td>
+<td>0.24</td>
+<td>21 months</td>
 </tr>
 <tr class="even">
+<td>Random split, test trials ≤ 112 months</td>
+<td>0.13</td>
+<td>18 months</td>
+</tr>
+<tr class="odd">
 <td><strong>Time-based split</strong></td>
-<td><strong>0.04</strong></td>
-<td><strong>21 months</strong></td>
+<td><strong>0.03</strong></td>
+<td><strong>15 months</strong></td>
 </tr>
 </tbody>
 </table>
-<p>This result reflects two structural realities:</p>
+<p>R² here is 1 − SSE/SST on log duration. The middle row scores the random split only on trials that fit the same window as the time-based test set (explained below). The squared correlation between predicted and actual is 0.24, 0.16 and 0.11 for the three rows.</p>
+<p>Three things explain the result:</p>
 <ol type="1">
-<li><strong>Temporal drift</strong>: Median trial duration fell from about 82 months (trials started 2015 or earlier) to about 53 months (2016–2018), so relationships learned from earlier trials do not generalize cleanly to later ones. The model systematically overestimates the later trials: the median error is about −19 months, and 78% of test trials finished sooner than predicted.</li>
-<li><strong>Registry feature limitations</strong>: Key drivers of duration—protocol complexity, endpoint strategy, enrollment velocity, and operational execution—are largely absent from ClinicalTrials.gov.</li>
+<li><strong>Registry feature limitations</strong>: Key drivers of duration—protocol complexity, endpoint strategy, enrollment velocity, and operational execution—are largely absent from ClinicalTrials.gov. What signal the registry fields do carry is weak and partly specific to the era the model was trained on.</li>
+<li><strong>Right-truncation of the test window</strong>: Only completed trials are included, so a trial started in 2016–2018 had to finish by the January 2026 data pull (the longest ran 112 months), while earlier trials could run up to 15 years. Long trials are missing, so the test set runs shorter (on average about 13% shorter than predicted) and slightly narrower than the training data, and both lower R². Scoring the random split on the same window cuts its R² from 0.24 to 0.13: roughly half of the gap (40–80% across five splits, and probably more, since the check uses one 112-month cap) is the window, and the rest is the cost of predicting later trials.</li>
+<li><strong>Later trials look shorter, partly by construction</strong>: median duration is 64 months for trials started by 2015 and 52 months for 2016–2018, but among the earlier trials no longer than 112 months the median is 56. Most of the apparent shortening is the truncation above, not a change in practice. It also explains a puzzle in the table: errors in months get <em>smaller</em> as R² falls, because the missing long trials are the ones a model misses by the most months. Neither metric is immune to the window; the middle row is the fairer comparison.</li>
 </ol>
-<p>Under these conditions, low prospective R² is not a modeling failure; it is the most honest estimate the data can provide.</p>
-<p>The result is also robust to how the cohort was defined. The oncology cohort comes from a keyword-based registry query, and about 8% of modeled trials list no cancer term in their conditions field. Refitting without them moves test R² from 0.043 to 0.047 and leaves the conclusions unchanged.</p>
+<p>Under these conditions, low prospective R² is not a modeling failure. The time-based number is, if anything, a pessimistic estimate because of the truncated window, but even the most generous comparison leaves registry fields explaining a small fraction of the variation.</p>
+<p>The result is also robust to how the cohort was defined. The oncology cohort comes from a keyword-based registry query, and about 8% of modeled trials (203 of 2,457) list no cancer term in their conditions field. Refitting without them moves test R² from 0.030 to 0.018 and leaves the conclusions unchanged.</p>
 <hr>
 </section>
 <section id="why-this-matters-in-pharma-analytics" class="level2">
 <h2 class="anchored" data-anchor-id="why-this-matters-in-pharma-analytics"><span class="smallcaps">5. Why this matters in pharma analytics</span></h2>
 <p>In pharmaceutical decision-making, forecasts are used prospectively: to inform planning, resource allocation, and expectations. Validation strategies that mix past and future data can materially overstate confidence and lead to incorrect conclusions.</p>
-<p>This case study demonstrates that <strong>how a model is validated matters more than which algorithm is chosen</strong>. A model that performs well retrospectively but fails under time-based testing may still be useful diagnostically—but it should not be positioned as a forecasting tool.</p>
+<p>This case study demonstrates that <strong>how a model is validated matters more than which algorithm is chosen</strong>. All four algorithms tried were statistically tied in cross-validation. A model that describes history modestly but fails under time-based testing may still be useful diagnostically—but it should not be positioned as a forecasting tool.</p>
 <p>From an analytics governance perspective, this distinction is critical.</p>
 <hr>
 </section>
@@ -12914,7 +12939,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <p>This project demonstrates:</p>
 <ul>
 <li>How to design validation strategies that align with prospective use</li>
-<li>How temporal drift can invalidate apparently strong models</li>
+<li>How the choice of split changes the answer, and why right-truncation must be accounted for when comparing eras</li>
 <li>How registry-only features constrain forecasting power</li>
 </ul>
 <p>It explicitly does <strong>not</strong> claim:</p>
@@ -12945,7 +12970,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <p>The dashboard is structured to make validation behavior visible and to discourage overinterpretation of point predictions.</p>
 </blockquote>
 <p><strong>Executive Brief</strong> Surfaces key metrics (R², MAE, sample size) with appropriate caveats about prospective use limitations. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/executive_brief.png" class="img-fluid"></p>
-<p><strong>Duration Forecaster</strong> Interactive scenario sandbox for exploring how trial characteristics relate to predicted duration—positioned as educational, not operational. Each estimate comes with the range that similar 2016–2018 test trials actually landed in, which makes the model’s uncertainty and its tendency to overestimate visible. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png" class="img-fluid"></p>
+<p><strong>Duration Forecaster</strong> Interactive scenario sandbox for exploring how trial characteristics relate to predicted duration—positioned as educational, not operational. Each estimate comes with the range that 2016–2018 test trials actually landed in relative to their estimates (pooled across all test trials, with the upper end likely too low), which makes the model’s uncertainty visible. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png" class="img-fluid"></p>
 <p><strong>Feature Explorer</strong> Visualizes Elastic Net coefficients and feature distributions to understand which registry variables the model weighted. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/explorer.png" class="img-fluid"></p>
 <p><strong>Model Performance</strong> Diagnostic plots comparing actual vs.&nbsp;predicted duration, with error breakdown by phase and sponsor type. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/performance.png" class="img-fluid"></p>
 <p><strong>Methods &amp; Data</strong> Documents the data pipeline, inclusion criteria, and validation methodology—including the key lesson on why time-based validation matters. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/methods.png" class="img-fluid"></p>
@@ -12971,8 +12996,9 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <li><strong>Target:</strong> Log-transformed duration (months)</li>
 <li><strong>Cross-validation:</strong> 10-fold CV within training data only</li>
 <li><strong>Baseline comparisons:</strong> Linear regression, Random Forest, XGBoost</li>
-<li><strong>Selection criterion:</strong> Best cross-validated RMSE within the training data, with a preference for interpretability; the 2016–2018 test set was used once, for final evaluation only</li>
-<li><strong>Robustness check:</strong> Refit excluding trials with no oncology term in their conditions field (test R² 0.043 → 0.047)</li>
+<li><strong>Selection criterion:</strong> One-standard-error rule on cross-validated RMSE; all four models were within one standard error of the best, and Elastic Net was kept by a stated preference for a regularized linear model (at the small penalty chosen, it is nearly identical to linear regression). The 2016–2018 test set was not used for model selection</li>
+<li><strong>Random vs time-based comparison:</strong> Same cohort, recipe and grid; five random splits, each also scored on a truncation-matched subset, vs the time-based split</li>
+<li><strong>Robustness check:</strong> Refit excluding trials with no oncology term in their conditions field (test R² 0.030 → 0.018)</li>
 </ul>
 </section>
 <section id="technical-stack" class="level3">
@@ -13013,7 +13039,7 @@ Note
 <p>In trial analytics, recognizing the limits of available data is as important as extracting signal from it.</p>
 </div>
 </div>
-<p><em>Updated October 2026: added the over-prediction finding, the cohort robustness check, and the forecaster’s likely range; corrected the phase range and model-selection description. The model and its headline results are unchanged.</em></p>
+<p><em>Updated October 2026: corrected a date-parsing bug that invalidated the original headline numbers (see the correction note at the top); removed duplicate Phase 2/3 records; rebuilt the data, retrained the models, and replaced the temporal-drift explanation with the right-truncation analysis, including a truncation-matched random split. Also added the cohort robustness check, the random-vs-time-based comparison, and the forecaster’s likely range.</em></p>
 
 
 <!-- -->
