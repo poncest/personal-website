@@ -5979,6 +5979,19 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
   <link>https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-01-28.html</link>
   <description><![CDATA[ <p>🚀 <strong>Live app:</strong><br><a href="https://0l6jpd-steven-ponce.shinyapps.io/launch_curve_forecaster/">Oncology Launch Curve Forecaster</a></p>
 <p>💻 <strong>Source code:</strong><br><a href="https://github.com/poncest/launch-curve-forecaster">GitHub repository</a></p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Data correction (October 2026)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>All 60 revenue values behind the analog curves were re-checked against the companies’ own reports: 35 changed, and 55 are now verified against a primary source. The original dataset had Tecentriq in Swiss francs labeled as US dollars, an Imbruvica series that mixed two definitions, and several values that did not match the filings (Calquence 2019, for example, was $164M reported vs $372M stored). Each value now carries its source and verification status in the repository, and the dashboard figures are recomputed from the corrected data.</p>
+</div>
+</div>
 <hr>
 <blockquote class="blockquote">
 <p><em>The core challenge in launch planning isn’t predicting success—it’s quantifying how much uncertainty costs when timing shifts.</em></p>
@@ -6005,7 +6018,7 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <p>This framework applies a <strong>governance-first methodology</strong>:</p>
 <ol type="1">
 <li>
-<strong>Define inclusion criteria before examining outcomes</strong> — Therapeutic area, Year-5 revenue threshold, and data availability requirements are specified upfront.</li>
+<strong>Define inclusion criteria before examining outcomes</strong> — Therapeutic area, launch window, and data availability requirements are specified upfront. Filters that look at outcomes (a minimum Year-5 revenue, excluding the top analog) are offered only as sensitivity checks.</li>
 <li>
 <strong>Lock the analog list in writing</strong> — No modifications after seeing revenue performance.</li>
 <li>
@@ -6049,9 +6062,11 @@ Delayed demand is assumed to shift forward in time rather than being permanently
 <p><strong>Label expansion bias</strong><br>
 Some analogs experienced significant post-launch indication expansions, creating potential upward bias in Year-5 revenue estimates. Products without similar expansion potential may underperform these benchmarks.</p>
 <p><strong>Era effects</strong><br>
-Launch dynamics differ between earlier (2013–2015) and more recent oncology approvals. The analog set includes both eras, which may introduce heterogeneity.</p>
-<p><strong>Worldwide revenue</strong><br>
-SEC filings report worldwide product revenue. Geographic mix differences between analogs and forecasted products are not adjusted.</p>
+The analog set covers FDA approvals from 2013 to 2017 only. Launches after 2018 face different conditions (pricing pressure, value-based contracting, more crowded classes), which this set does not represent.</p>
+<p><strong>Selection bias</strong><br>
+The stated criteria would admit more launches than the ten included (Kisqali, Zejula and Ninlaro, for example). The ten are commercially prominent products, so the bands likely overstate a typical launch.</p>
+<p><strong>Worldwide revenue and launch-year alignment</strong><br>
+Values are company-reported worldwide product sales; geographic mix differences are not adjusted. Year 0 is the calendar year of first FDA approval, so it covers anywhere from 10 days (Opdivo) to about 11 months (Ibrance) on market, and Years 1–5 can be offset by up to about 11 months across analogs.</p>
 <p>These assumptions are documented in the Methods &amp; Data tab and surfaced in the dashboard interface to prevent over-interpretation.</p>
 <hr></section><section id="what-this-framework-doesand-does-notdo" class="level2"><h2 class="anchored" data-anchor-id="what-this-framework-doesand-does-notdo"><span class="smallcaps">6. What this framework does—and does not—do</span></h2>
 <section id="what-it-does" class="level3"><h3 class="anchored" data-anchor-id="what-it-does">What it does</h3>
@@ -6084,8 +6099,7 @@ SEC filings report worldwide product revenue. Geographic mix differences between
 <p>An interactive configuration view that allows users to:</p>
 <ul>
 <li>Select therapeutic focus (solid tumors, hematology, or both)</li>
-<li>Set minimum Year-5 revenue thresholds</li>
-<li>Test sensitivity by excluding the top-performing analog</li>
+<li>Run sensitivity checks: exclude the top-performing analog, or analogs below a Year-5 revenue level</li>
 <li>Configure launch delay scenarios (0–4 quarters)</li>
 </ul>
 <p>The Selection Rationale panel updates dynamically, showing live statistics and a governance note reminding users that criteria should be documented before examining outcomes.</p>
@@ -6104,14 +6118,14 @@ SEC filings report worldwide product revenue. Geographic mix differences between
 <p>A transparency-focused section documenting:</p>
 <ul>
 <li>Framework overview and workflow diagram</li>
-<li>Data sources (FDA approvals, SEC EDGAR filings, published literature)</li>
+<li>Data sources (FDA approvals, company-reported revenue) and the status of every value</li>
 <li>Inclusion and exclusion criteria</li>
 <li>Key assumptions with explicit discussion</li>
 <li>“What This Framework Does NOT Do” section</li>
 <li>Technical implementation details</li>
 </ul>
 <hr></section></section><section id="the-analog-set" class="level2"><h2 class="anchored" data-anchor-id="the-analog-set"><span class="smallcaps">8. The analog set</span></h2>
-<p>The framework includes 10 established oncology launches with product-level revenue disclosed in SEC filings:</p>
+<p>The framework includes 10 established oncology launches with product-level revenue reported by their owners:</p>
 <p><strong>Solid tumors (6):</strong><br>
 Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq</p>
 <p><strong>Hematology (4):</strong><br>
@@ -6152,9 +6166,9 @@ Imbruvica, Darzalex, Venclexta, Calquence</p>
 <li>
 <strong>FDA Drug Approvals:</strong> Approval dates (T=0), initial indications</li>
 <li>
-<strong>SEC EDGAR Filings:</strong> Annual product-level revenue from 10-K and 20-F reports</li>
+<strong>Company-reported revenue:</strong> Full-year worldwide product sales from annual reports and results releases (SEC 10-K and 8-K filings; AstraZeneca and Roche results announcements), with a source link for every value</li>
 <li>
-<strong>Published Literature:</strong> Launch curve patterns and benchmarks from peer-reviewed sources</li>
+<strong>Federal Reserve:</strong> Annual average CHF/USD rates to convert Roche’s Tecentriq sales</li>
 </ul></section><section id="technical-stack" class="level3"><h3 class="anchored" data-anchor-id="technical-stack">Technical Stack</h3>
 <ul>
 <li>
@@ -6179,7 +6193,7 @@ Imbruvica, Darzalex, Venclexta, Calquence</p>
 <hr></section></section><section id="purpose-scope-and-disclaimer" class="level2"><h2 class="anchored" data-anchor-id="purpose-scope-and-disclaimer">Purpose, Scope, and Disclaimer</h2>
 <p>This project is a <strong>portfolio case study</strong> intended to demonstrate analytical framing, governance, and decision-support design using publicly available data.</p>
 <p>It is <strong>not intended for real-world commercial decision-making</strong> and is not affiliated with any pharmaceutical company. Product names are used for analytical illustration only.</p>
-<p>All data are derived from publicly available sources including SEC filings and FDA databases. No proprietary or confidential information is included.</p>
+<p>All data are derived from publicly available sources including company filings and FDA databases. No proprietary or confidential information is included.</p>
 <p>This work does not constitute investment advice, commercial guidance, or strategic recommendations.</p>
 <hr></section><section id="closing-reflection" class="level2"><h2 class="anchored" data-anchor-id="closing-reflection">Closing Reflection</h2>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -6196,7 +6210,7 @@ Note
 <p>In launch planning, clarity about what we don’t know is often more valuable than false confidence about what we do.</p>
 </div>
 </div>
-<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; corrected the data-source and revenue-alignment descriptions; expanded the technical lesson on tab rendering. The data and calculations are unchanged.</em></p>
+<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; expanded the technical lesson on tab rendering.</em></p>
 
 
 <!-- -->
