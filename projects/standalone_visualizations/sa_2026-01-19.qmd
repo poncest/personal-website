@@ -95,7 +95,11 @@ proxy for last-patient–last-visit (LPLV); predictors are limited to
 registry fields (phase, sponsor type, enrollment, sites, countries, and
 registration-to-start lag). Several of these are final reported values
 rather than what was known at study start, which, if anything, flatters
-the model.
+the model. A check confirms how much: refitting with only what is known
+at study start (phase, sponsor, registration-to-start lag) drops R²
+from 0.24 to 0.10 on a random split and from 0.03 to −0.07 on later
+trials, worse than predicting the average. Most of the signal comes
+from inputs known only in hindsight.
 
 The emphasis is on aligning validation strategy with intended use,
 rather than maximizing retrospective fit.
@@ -330,5 +334,5 @@ the original headline numbers (see the correction note at the top);
 removed duplicate Phase 2/3 records; rebuilt the data, retrained the
 models, and replaced the temporal-drift explanation with the
 right-truncation analysis, including a truncation-matched random split. Also added the cohort
-robustness check, the random-vs-time-based comparison, and the
-forecaster's likely range.*
+robustness check, the random-vs-time-based comparison, the
+pre-start-features check, and the forecaster's likely range.*
