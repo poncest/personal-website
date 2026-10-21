@@ -6005,7 +6005,7 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <p>This framework applies a <strong>governance-first methodology</strong>:</p>
 <ol type="1">
 <li>
-<strong>Define inclusion criteria before examining outcomes</strong> — Therapeutic area, peak revenue threshold, and data availability requirements are specified upfront.</li>
+<strong>Define inclusion criteria before examining outcomes</strong> — Therapeutic area, Year-5 revenue threshold, and data availability requirements are specified upfront.</li>
 <li>
 <strong>Lock the analog list in writing</strong> — No modifications after seeing revenue performance.</li>
 <li>
@@ -6019,7 +6019,7 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <section id="revenue-at-risk-estimation" class="level3"><h3 class="anchored" data-anchor-id="revenue-at-risk-estimation">Revenue-at-Risk Estimation</h3>
 <p>The framework calculates Year 1 revenue at risk under configurable launch delay scenarios:</p>
 <pre><code>Revenue at Risk (Year 1) = delay_quarters × (median Year 1 revenue / 4)</code></pre>
-<p>Year 1 is used because it is the period most sensitive to launch timing assumptions and the least confounded by later competitive or lifecycle effects.</p>
+<p>Year 1 is used because it is the period most sensitive to launch timing assumptions and the least confounded by later competitive or lifecycle effects. The Executive Brief shows the median Year-1 revenue next to the result, so the input behind the estimate is visible.</p>
 <p>This is explicitly labeled as a <strong>Year 1 average-quarter approximation</strong>—a simplification that provides directional magnitude without implying DCF-level precision.</p>
 </section><section id="scenario-bands-from-analog-variation" class="level3"><h3 class="anchored" data-anchor-id="scenario-bands-from-analog-variation">Scenario Bands from Analog Variation</h3>
 <p>Percentile bands (P25/P50/P75) are derived from observed analog performance:</p>
@@ -6032,12 +6032,13 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <strong>P25 (Lower Range):</strong> Lower quartile performance</li>
 </ul>
 <p>These represent <strong>observed variation across analogs</strong>, not statistical confidence intervals. The distinction matters: they quantify historical heterogeneity, not forecasting uncertainty.</p>
+<p>Revenue figures describe <strong>Year-5 revenue</strong>, not a lifetime peak. Every analog is observed from its approval year through the fifth full year after launch, and all ten were still growing at Year 5. Labeling that value “peak” would understate products like Keytruda, whose revenue kept climbing well beyond the observation window.</p>
 </section><section id="selection-statistics" class="level3"><h3 class="anchored" data-anchor-id="selection-statistics">Selection Statistics</h3>
 <p>Dynamic statistics update as criteria change:</p>
 <ul>
 <li>Solid tumor vs.&nbsp;hematology count</li>
 <li>Approval year range</li>
-<li>Median peak revenue</li>
+<li>Median Year-5 revenue</li>
 <li>Number of analogs meeting criteria</li>
 </ul>
 <p>This transparency helps users understand what’s driving the scenario range.</p>
@@ -6046,11 +6047,11 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <p><strong>Demand deferral, not destruction</strong><br>
 Delayed demand is assumed to shift forward in time rather than being permanently lost. Competitive dynamics and access erosion are not modeled.</p>
 <p><strong>Label expansion bias</strong><br>
-Some analogs experienced significant post-launch indication expansions, creating potential upward bias in peak revenue estimates. Products without similar expansion potential may underperform these benchmarks.</p>
+Some analogs experienced significant post-launch indication expansions, creating potential upward bias in Year-5 revenue estimates. Products without similar expansion potential may underperform these benchmarks.</p>
 <p><strong>Era effects</strong><br>
 Launch dynamics differ between earlier (2013–2015) and more recent oncology approvals. The analog set includes both eras, which may introduce heterogeneity.</p>
-<p><strong>US-weighted revenue</strong><br>
-SEC filing data may include global revenue. Geographic mix differences between analogs and forecasted products are not adjusted.</p>
+<p><strong>Worldwide revenue</strong><br>
+SEC filings report worldwide product revenue. Geographic mix differences between analogs and forecasted products are not adjusted.</p>
 <p>These assumptions are documented in the Methods &amp; Data tab and surfaced in the dashboard interface to prevent over-interpretation.</p>
 <hr></section><section id="what-this-framework-doesand-does-notdo" class="level2"><h2 class="anchored" data-anchor-id="what-this-framework-doesand-does-notdo"><span class="smallcaps">6. What this framework does—and does not—do</span></h2>
 <section id="what-it-does" class="level3"><h3 class="anchored" data-anchor-id="what-it-does">What it does</h3>
@@ -6072,7 +6073,7 @@ SEC filing data may include global revenue. Geographic mix differences between a
 <p><img src="https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/executive_brief.png" class="img-fluid"></p>
 <p>An executive-facing summary that surfaces:</p>
 <ul>
-<li>Key metrics (analog count, peak revenue range, revenue at risk)</li>
+<li>Key metrics (analog count, Year-5 revenue range, revenue at risk, median Year-1 revenue)</li>
 <li>Launch trajectory scenarios with P25/P50/P75 bands</li>
 <li>Two explicit decision trade-offs: launch timing and forecast commitment</li>
 <li>Selected analog summary table</li>
@@ -6083,7 +6084,7 @@ SEC filing data may include global revenue. Geographic mix differences between a
 <p>An interactive configuration view that allows users to:</p>
 <ul>
 <li>Select therapeutic focus (solid tumors, hematology, or both)</li>
-<li>Set minimum peak revenue thresholds</li>
+<li>Set minimum Year-5 revenue thresholds</li>
 <li>Test sensitivity by excluding the top-performing analog</li>
 <li>Configure launch delay scenarios (0–4 quarters)</li>
 </ul>
@@ -6094,10 +6095,10 @@ SEC filing data may include global revenue. Geographic mix differences between a
 <ul>
 <li>Side-by-side comparison of two selected analogs</li>
 <li>Launch curve visualization showing trajectory differences</li>
-<li>Characteristics table (company, indication, approval date, peak revenue)</li>
+<li>Characteristics table (company, indication, approval date, Year-5 revenue)</li>
 <li>Launch context factors that may have influenced trajectory</li>
 </ul>
-<p>This tab includes guardrails against over-interpretation—users must click “View Details” to load data, creating a deliberate interaction that discourages casual browsing.</p>
+<p>This tab includes guardrails against over-interpretation: it opens on a single default analog, comparisons are an explicit choice, and an interpretation note reminds users that the framework’s value lies in the distribution across analogs, not any single curve.</p>
 </section><section id="methods-data" class="level3"><h3 class="anchored" data-anchor-id="methods-data">Methods &amp; Data</h3>
 <p><img src="https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/methods.png" class="img-fluid"></p>
 <p>A transparency-focused section documenting:</p>
@@ -6116,14 +6117,15 @@ Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq</p>
 <p><strong>Hematology (4):</strong><br>
 Imbruvica, Darzalex, Venclexta, Calquence</p>
 <p>The 6/4 split reflects real-world prevalence rather than forced symmetry. Adding weaker products to achieve balance would introduce more noise than signal.</p>
-<p>Approval years range from 2013–2017, providing sufficient follow-up to observe peak revenue while remaining recent enough to reflect modern launch dynamics.</p>
+<p>Approval years range from 2013–2017, providing five full years of disclosed revenue for every analog while remaining recent enough to reflect modern launch dynamics.</p>
 <hr></section><section id="technical-lessons-from-the-build" class="level2"><h2 class="anchored" data-anchor-id="technical-lessons-from-the-build"><span class="smallcaps">9. Technical lessons from the build</span></h2>
 <p>This project surfaced an important technical insight about Shiny development with CSS-based UI frameworks.</p>
 <section id="the-problem" class="level3"><h3 class="anchored" data-anchor-id="the-problem">The Problem</h3>
 <p>When using shiny.semantic (which relies on Semantic UI’s CSS-based tab switching), outputs don’t render automatically when users navigate to a tab. Shiny’s lazy evaluation assumes it knows when tabs become visible—but CSS-based tabs don’t notify Shiny of visibility changes.</p>
 </section><section id="the-solution" class="level3"><h3 class="anchored" data-anchor-id="the-solution">The Solution</h3>
-<p>Adding <code>outputOptions(output, "output_name", suspendWhenHidden = FALSE)</code> to all outputs forces Shiny to render regardless of perceived visibility. This pattern isn’t documented in standard Shiny guides but is essential for CSS-based tab frameworks.</p>
-<p>This discovery—after several hours of debugging—became the most valuable technical lesson from the project.</p>
+<p>Adding <code>outputOptions(output, "output_name", suspendWhenHidden = FALSE)</code> forces Shiny to render regardless of perceived visibility. This pattern isn’t documented in standard Shiny guides but is essential for CSS-based tab frameworks.</p>
+<p>The catch is that it has to cover <strong>every</strong> output that depends on shared state. A later review found six small text outputs (the range line and both decision cards) without it. After a selection change, the headline number updated while the range beside it stayed stale. The complete fix pairs <code>suspendWhenHidden = FALSE</code> on all dependent outputs with a <code>shown</code> event triggered on each tab switch, and verifies the result by changing a selection and checking that every number moves together.</p>
+<p>This discovery became the most valuable technical lesson from the project.</p>
 <hr></section></section><section id="why-this-framing-matters-for-commercial-analytics" class="level2"><h2 class="anchored" data-anchor-id="why-this-framing-matters-for-commercial-analytics"><span class="smallcaps">10. Why this framing matters for commercial analytics</span></h2>
 <p>In pharmaceutical commercial planning, forecasts are rarely wrong because of poor algorithms. They’re wrong because:</p>
 <ul>
@@ -6150,7 +6152,7 @@ Imbruvica, Darzalex, Venclexta, Calquence</p>
 <li>
 <strong>FDA Drug Approvals:</strong> Approval dates (T=0), initial indications</li>
 <li>
-<strong>SEC EDGAR Filings:</strong> Product-level revenue from 10-K and 10-Q reports</li>
+<strong>SEC EDGAR Filings:</strong> Annual product-level revenue from 10-K and 20-F reports</li>
 <li>
 <strong>Published Literature:</strong> Launch curve patterns and benchmarks from peer-reviewed sources</li>
 </ul></section><section id="technical-stack" class="level3"><h3 class="anchored" data-anchor-id="technical-stack">Technical Stack</h3>
@@ -6164,12 +6166,12 @@ Imbruvica, Darzalex, Venclexta, Calquence</p>
 <li>
 <strong>Visualization:</strong> ggplot2, ggiraph</li>
 <li>
-<strong>Tables:</strong> reactable, reactablefmtr</li>
+<strong>Tables:</strong> reactable</li>
 <li>
 <strong>Deployment:</strong> shinyapps.io</li>
 </ul></section><section id="key-design-choices" class="level3"><h3 class="anchored" data-anchor-id="key-design-choices">Key Design Choices</h3>
 <ul>
-<li>Revenue normalized to launch quarter (T=0) for comparability</li>
+<li>Annual revenue aligned to approval year (Year 0 = partial launch year; Year 1 = first full year) for comparability</li>
 <li>Percentiles calculated across analog set (not confidence intervals)</li>
 <li>Revenue scaled to millions USD for readability</li>
 <li>All data from public sources to ensure reproducibility</li>
@@ -6194,6 +6196,7 @@ Note
 <p>In launch planning, clarity about what we don’t know is often more valuable than false confidence about what we do.</p>
 </div>
 </div>
+<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; corrected the data-source and revenue-alignment descriptions; expanded the technical lesson on tab rendering. The data and calculations are unchanged.</em></p>
 
 
 <!-- -->
