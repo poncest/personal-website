@@ -95,11 +95,13 @@ proxy for last-patient–last-visit (LPLV); predictors are limited to
 registry fields (phase, sponsor type, enrollment, sites, countries, and
 registration-to-start lag). Several of these are final reported values
 rather than what was known at study start, which, if anything, flatters
-the model. A check confirms how much: refitting with only what is known
-at study start (phase, sponsor, registration-to-start lag) drops R²
-from 0.24 to 0.10 on a random split and from 0.03 to −0.07 on later
-trials, worse than predicting the average. Most of the signal comes
-from inputs known only in hindsight.
+the model. That includes registration-to-start lag: 55% of modeled trials were
+first registered after they started, so their lag was not known at
+study start either. A check shows how much this matters: refitting with
+phase and sponsor only, baseline characteristics nominally fixed at
+study start, drops R² from 0.24 to 0.09 on a random split and from 0.03
+to −0.09 on later trials, worse than predicting the average. Most of
+the signal comes from inputs known only in hindsight.
 
 The emphasis is on aligning validation strategy with intended use,
 rather than maximizing retrospective fit.
@@ -190,12 +192,12 @@ of the study, the medians are 58 and 60 months. Treating termination as
 a competing event, half of the trials have completed by 76 and 84
 months. Later trials are not shorter under any of the three.
 
-With features known at study start only, trained on 1990–2015 starts
-and tested on 2016–2018 starts, a Weibull survival model predicts a
-median of 73 months against an actual 73; the same features fitted to
-completed trials only predict 57. Ranking ability is equally weak for
-both (concordance 0.56). Handling censoring fixes a 16-month bias in
-the overall median, but matching a median is aggregate agreement, not
+With phase and sponsor only, trained on 1990–2015 starts and tested on
+2016–2018 starts, a Weibull survival model predicts a median of 76
+months against an actual 73; the same features fitted to completed
+trials only predict 60. Ranking ability is equally weak for both
+(concordance 0.57). Handling censoring removes most of a 13-month bias
+in the overall median, but matching a median is aggregate agreement, not
 individual calibration: these registry features do not say *which*
 trials will run long.
 
@@ -207,8 +209,8 @@ model, against 18.6 for predicting the training average, 19.8 for the
 phase median and 19.3 for phase-by-sponsor medians. The model wins by a
 few months, so the registry fields carry some signal. Much of that
 margin comes from final enrollment, sites and countries, which are
-known only in hindsight: with pre-start inputs alone, the model's median
-error (18.3 months) is about the same as the constant's.
+known only in hindsight: with phase and sponsor alone, the model's
+median error (18.3 months) is about the same as the constant's.
 
 ### What the time-based split is, and is not
 
@@ -389,4 +391,6 @@ pre-start-features check, a censoring-aware survival check on a full
 all-status pull, and the forecaster's likely range. Later in October:
 narrowed the conclusions to the features and models tested, added
 simple benchmarks, a check on how terminated trials are treated, and
-regression checks; relabeled the forecaster as a model sandbox.*
+regression checks; relabeled the forecaster as a model sandbox. After a
+second review: dropped registration lag from the reduced-feature and
+survival checks, since most trials were registered after they started.*
