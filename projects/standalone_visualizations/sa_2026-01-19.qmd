@@ -56,8 +56,8 @@ month-only registry dates such as "2005-08" as 2020-05-08) mis-dated 609
 trials, dropped 975 others, and produced the spurious 0.84. A follow-up
 check also found 74 Phase 2/3 trials counted twice. The data have been
 rebuilt and the models retrained; the numbers below are the corrected
-ones. The conclusion—registry data cannot forecast trial
-duration—still holds. The size of the random-split result does not.
+ones. The conclusion—the registry features and models tested here did not
+support reliable forecasts for later trials—still holds. The size of the random-split result does not.
 :::
 
 ------------------------------------------------------------------------
@@ -106,10 +106,10 @@ rather than maximizing retrospective fit.
 
 ------------------------------------------------------------------------
 
-## [3. When random validation appears convincing]{.smallcaps}
+## [3. What a random split shows]{.smallcaps}
 
-Using a conventional random train/test split, the model appeared to
-perform well:
+A conventional random train/test split shows a modest retrospective
+signal:
 
 -   R² ≈ 0.24 (mean of five random splits)\
 -   Median absolute error ≈ 21 months
@@ -127,7 +127,7 @@ At this stage, the model was answering the wrong question.
 
 ## [4. What changes under time-based validation]{.smallcaps}
 
-When the validation strategy was changed to reflect prospective
+When the validation strategy was changed to resemble the intended
 use—training on trials started by 2015 (n = 2,079) and testing on trials
 started 2016–2018 (n = 378)—almost all of that signal disappeared. The
 trials, features, recipe and tuning grid are the same in every row; only
@@ -157,15 +157,17 @@ Three things explain the result:
     trials could run up to 15 years. Long trials are missing, so the
     test set runs shorter (on average about 13% shorter than predicted)
     and slightly narrower than the training data, and both lower R². Scoring the
-    random split on the same window cuts its R² from 0.24 to 0.13:
-    roughly half of the gap (40–80% across five splits, and probably
-    more, since the check uses one 112-month cap) is the window, and
-    the rest is the cost of predicting later trials.
+    random split on the same window cuts its R² from 0.24 to 0.13. As
+    a sensitivity check, that suggests the window accounts for a large
+    part of the gap (40–80% across five splits). It illustrates the
+    window's effect rather than decomposing the gap: the comparisons
+    also differ in cohort, training data and follow-up, and one
+    112-month cap is not each trial's own follow-up limit.
 3.  **Later trials only look shorter**: among completed trials, median
     duration is 64 months for trials started by 2015 and 52 months for
     2016–2018, but among the earlier trials no longer than 112 months
-    the median is 56. A censoring-aware check (below) confirms the
-    shortening is the truncation, not a change in practice. It also explains a puzzle in the
+    the median is 56. A censoring-aware check (below) points to the
+    truncation rather than a change in practice. It also explains a puzzle in the
     table: errors in months get *smaller* as R² falls, because the
     missing long trials are the ones a model misses by the most months.
     Neither metric is immune to the window; the middle row is the
@@ -178,16 +180,48 @@ pulled every Phase 2/3 cancer treatment trial started 1990–2018, of any
 status, and let unfinished trials enter as censored observations
 (20,562 trials after exclusions). Counting the trials still running,
 the Kaplan–Meier median duration is 68 months for 1990–2015 starts and
-73 months for 2016–2018 starts. Later trials are not shorter at all.
+73 months for 2016–2018 starts. On this measure, later trials are not
+shorter.
+
+That check censors terminated trials at their stop date, which assumes
+termination says nothing about when a trial would have finished. Two
+alternatives give the same direction. Counting termination as the end
+of the study, the medians are 58 and 60 months. Treating termination as
+a competing event, half of the trials have completed by 76 and 84
+months. Later trials are not shorter under any of the three.
 
 With features known at study start only, trained on 1990–2015 starts
 and tested on 2016–2018 starts, a Weibull survival model predicts a
 median of 73 months against an actual 73; the same features fitted to
 completed trials only predict 57. Ranking ability is equally weak for
-both (concordance 0.56). Handling censoring fixes a 16-month bias, but
-registry fields still cannot say *which* trials will run long.
+both (concordance 0.56). Handling censoring fixes a 16-month bias in
+the overall median, but matching a median is aggregate agreement, not
+individual calibration: these registry features do not say *which*
+trials will run long.
 
-Under these conditions, low prospective R² is not a modeling failure.
+### Against simple benchmarks
+
+Does the model beat rules a planner could apply by hand? On the
+time-based split, the median absolute error is 15.2 months for the
+model, against 18.6 for predicting the training average, 19.8 for the
+phase median and 19.3 for phase-by-sponsor medians. The model wins by a
+few months, so the registry fields carry some signal. Much of that
+margin comes from final enrollment, sites and countries, which are
+known only in hindsight: with pre-start inputs alone, the model's median
+error (18.3 months) is about the same as the constant's.
+
+### What the time-based split is, and is not
+
+The time-based split measures whether patterns from earlier start-year
+cohorts carry over to later ones, using records retrieved in 2026. It is
+not a historical backtest: a model built in 2016 could not have known
+the eventual end dates of every trial started before then, and registry
+fields are updated after the fact. A stricter test would limit outcomes
+and predictors to what the registry showed at each forecast date, which
+needs archived snapshots I do not have.
+
+Under these conditions, a low R² on later trials is not a modeling
+failure.
 The time-based number is, if anything, a pessimistic estimate because
 of the truncated window, but even the most generous comparison leaves
 registry fields explaining a small fraction of the variation.
@@ -261,12 +295,12 @@ public registries.
 appropriate caveats about prospective use limitations.
 ![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/executive_brief.png)
 
-**Duration Forecaster** Interactive scenario sandbox for exploring how
-trial characteristics relate to predicted duration—positioned as
-educational, not operational. Each estimate comes with the range that
-2016–2018 test trials actually landed in relative to their estimates
-(pooled across all test trials, with the upper end likely too low),
-which makes the model's uncertainty visible.
+**Model Sandbox** Shows how the fitted model responds to trial
+characteristics, positioned as educational, not operational. Each
+estimate comes with the historical test-error range: how far 2016–2018
+test trials landed from their estimates, pooled across all test trials.
+Its coverage for a new trial has not been established, and the upper
+end is likely too low, but it makes the model's uncertainty visible.
 ![](https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png)
 
 **Feature Explorer** Visualizes Elastic Net coefficients and feature
@@ -292,7 +326,7 @@ duration, with error breakdown by phase and sponsor type.
     completed studies
 3.  **Feature engineering** – Log transforms, ratios, categorical
     encoding
-4.  **Validation design** – Time-based split aligned to prospective use
+4.  **Validation design** – Time-based split by start year (cross-cohort transfer; not a historical backtest)
 5.  **Modeling** – Elastic Net regression via tidymodels
 6.  **Diagnostics** – Error analysis and residual inspection
 
@@ -352,4 +386,7 @@ models, and replaced the temporal-drift explanation with the
 right-truncation analysis, including a truncation-matched random split. Also added the cohort
 robustness check, the random-vs-time-based comparison, the
 pre-start-features check, a censoring-aware survival check on a full
-all-status pull, and the forecaster's likely range.*
+all-status pull, and the forecaster's likely range. Later in October:
+narrowed the conclusions to the features and models tested, added
+simple benchmarks, a check on how terminated trials are treated, and
+regression checks; relabeled the forecaster as a model sandbox.*

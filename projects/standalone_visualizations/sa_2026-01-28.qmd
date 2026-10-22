@@ -48,9 +48,9 @@ Forecaster](https://0l6jpd-steven-ponce.shinyapps.io/launch_curve_forecaster/)
 [GitHub repository](https://github.com/poncest/launch-curve-forecaster)
 
 ::: callout-warning
-## Data correction (October 2026)
+## Data correction (October 2026, original ten analogs)
 
-All 60 revenue values behind the analog curves were re-checked against
+All 60 revenue values behind the original ten analog curves were re-checked against
 the companies' own reports: 35 changed, and 55 are now verified against
 a primary source. The original dataset had Tecentriq in Swiss francs labeled as
 US dollars, an Imbruvica series that mixed two definitions, and several
@@ -142,10 +142,16 @@ This framework applies a **governance-first methodology**:
     requirements are specified upfront. Filters that look at outcomes
     (a minimum Year-5 revenue, excluding the top analog) are offered
     only as sensitivity checks.
-2.  **Lock the analog list in writing** — No modifications after seeing
-    revenue performance.
-3.  **Document rationale for every inclusion/exclusion** — Creates an
-    audit trail for reviewers.
+2.  **Record the analog list** — The app does not enforce this, since
+    anyone can change a selection and see the results. Instead, the
+    Scenario Builder exports a dated **scenario record**: criteria,
+    included and excluded products with the reason for each exclusion,
+    whether an outcome-based filter was on, the data version, inputs,
+    results and a free-text rationale. That record is what gets filed
+    with the approval, which happens outside the app.
+3.  **Document rationale for every inclusion/exclusion** — Every one
+    of the 56 screened drugs has a recorded keep/drop reason, which
+    creates an audit trail for reviewers.
 4.  **Test sensitivity explicitly** — Option to exclude the
     top-performing analog tests whether conclusions depend on outliers.
 
@@ -165,23 +171,26 @@ boundaries).
 
 ## [4. What the framework quantifies]{.smallcaps}
 
-### Cost of a Launch Delay
+### Delay Exposure
 
 A delay usually does not move the patent or exclusivity end date. The
 months lost at launch are therefore lost at the *end* of exclusivity,
-when sales are near their peak, not simply shifted later. The framework
-shows that cost next to the smaller amount of first-year sales that is
-only deferred:
+not simply shifted later. The framework shows that exposure next to the
+smaller amount of first-year sales that is only deferred:
 
 ```         
-Lost if exclusivity end is fixed = delay_quarters / 4 × P50 Year-5 revenue
-Deferred first-year sales        = delay_quarters × (median Year-1 revenue / 4)
+Delay exposure (fixed exclusivity end) = delay_quarters / 4 × median Year-5 revenue
+Deferred first-year sales              = delay_quarters × (median Year-1 revenue / 4)
 ```
 
-The first figure is a lower bound for products still growing at Year 5,
-as most analogs were. For a two-quarter delay across all 30 analogs it is
-about $490M, against about $87M of first-year sales deferred. Share lost to earlier competitors is not
-modeled and would add to both.
+For a two-quarter delay across all 30 analogs, the exposure is about
+$490M, against about $87M of first-year sales deferred. The exposure
+figure assumes the Year-5 run rate applies to the final quarters of
+exclusivity, often ten or more years after launch. Sales then could be
+higher (continued growth) or lower (competition, label changes), so it
+is an exposure estimate, not a bound. A full comparison would value the
+delayed and on-time revenue paths over the same calendar horizon. Share
+lost to earlier competitors is not modeled.
 
 ### Product Mode: Analogs as Shapes
 
@@ -191,7 +200,7 @@ from the product's own forecast. The Scenario Builder therefore takes
 an optional expected Year-5 revenue. Each analog's curve is divided by
 its own Year-5 revenue, and the shapes are scaled to that figure. For an
 expected $1B at Year 5, the median shape implies about $129M in Year 1
-(P25–P75: $91M–$232M), and a two-quarter delay costs at least $500M at
+(P25–P75: $91M–$232M), and a two-quarter delay exposes about $500M at
 the end of exclusivity. Lartruvo, withdrawn before Year 5, has no
 defined shape and is left out of this mode.
 
@@ -204,13 +213,16 @@ without implying DCF-level precision.
 Percentile bands (P25/P50/P75) are derived from observed analog
 performance:
 
--   **P50 (Base Case):** Median analog trajectory
--   **P75 (Upper Range):** Upper quartile performance
--   **P25 (Lower Range):** Lower quartile performance
+-   **P50:** historical median of the selected analogs
+-   **P25 / P75:** historical interquartile range
 
 These represent **observed variation across analogs**, not statistical
-confidence intervals. The distinction matters: they quantify historical
-heterogeneity, not forecasting uncertainty.
+confidence intervals, and P50 is not a 50% probability for a new
+product. The distinction matters: they quantify historical
+heterogeneity, not forecasting uncertainty. The median curve also joins
+each year's median, which can come from different products, so it
+summarizes the set rather than tracing a launch that happened; the
+chart shows how many analogs sit behind each year (26 to 30).
 
 Revenue figures describe **Year-5 revenue**, not a lifetime peak. Every
 analog is observed for five years after approval, and most were still
@@ -255,8 +267,9 @@ contracting, more crowded classes), which this set does not represent.
 **Data availability**\
 Sixteen eligible drugs were dropped because their owner did not report
 their sales separately for every year, or because ownership changed in
-the first five years. These are mostly smaller launches, so the bands
-may still lean slightly high. Five launch years are also missing (for
+the first five years. They include small launches (Farydak, Odomzo)
+and large ones (Tafinlar + Mekinist, Zejula), so the direction and size
+of any remaining bias are unknown. Five launch years are also missing (for
 example Kadcyla's first two), so early-year percentiles rest on 26–29
 analogs.
 
@@ -267,7 +280,10 @@ not adjusted. Launch Year 1 is the 12 months after each drug's FDA
 approval date. Companies report by fiscal year, so each annual total is
 spread evenly over its days and split across the launch years it
 overlaps. Sales usually grow within a year, so early launch years are
-slightly overstated.
+slightly overstated. Worldwide sales are aligned to the US approval
+date, so a drug sold elsewhere first (Alecensa in Japan from 2014) has
+higher early launch years, and one launched outside the US later has
+lower ones.
 
 These assumptions are documented in the Methods & Data tab and surfaced
 in the dashboard interface to prevent over-interpretation.
@@ -309,11 +325,11 @@ The application is organized into four complementary views:
 
 An executive-facing summary that surfaces:
 
--   Key metrics (analog count, Year-5 revenue range, cost of delay,
-    median Year-1 revenue)
+-   Key metrics (analog count, historical median Year-5 revenue and
+    range, delay exposure, median Year-1 revenue)
 -   Launch trajectory scenarios with P25/P50/P75 bands
--   Two explicit decision trade-offs: launch timing and forecast
-    commitment
+-   Two explicit decision trade-offs: launch timing and the forecast
+    benchmark
 -   Selected analog summary table
 
 The decision boxes explicitly frame trade-offs in terms stakeholders
@@ -329,6 +345,7 @@ An interactive configuration view that allows users to:
 -   Run sensitivity checks: exclude the top-performing analog, or
     analogs below a Year-5 revenue level
 -   Configure launch delay scenarios (0–4 quarters)
+-   Download a dated scenario record for the approval file
 
 The Selection Rationale panel updates dynamically, showing live
 statistics and a governance note reminding users that criteria should be
@@ -522,4 +539,7 @@ delay that assumes a fixed exclusivity end date; added a product mode
 that scales analog launch shapes to an expected Year-5 revenue; expanded the technical
 lesson on tab rendering; expanded the analog set from 10 to 30 (every
 eligible 2013–2017 oncology launch) and aligned launch years to exact
-approval dates.*
+approval dates. After an external review: relabeled the delay cost as
+an exposure estimate rather than a lower bound, described percentiles as
+historical reference points, added a downloadable scenario record, and
+stated that the direction of the remaining selection bias is unknown.*
