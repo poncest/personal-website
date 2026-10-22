@@ -5985,11 +5985,11 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>Data correction (October 2026)
+<span class="screen-reader-only">Warning</span>Data correction (October 2026, original ten analogs)
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>All 60 revenue values behind the analog curves were re-checked against the companies’ own reports: 35 changed, and 55 are now verified against a primary source. The original dataset had Tecentriq in Swiss francs labeled as US dollars, an Imbruvica series that mixed two definitions, and several values that did not match the filings (Calquence 2019, for example, was $164M reported vs $372M stored). Each value now carries its source and verification status in the repository, and the dashboard figures are recomputed from the corrected data.</p>
+<p>All 60 revenue values behind the original ten analog curves were re-checked against the companies’ own reports: 35 changed, and 55 are now verified against a primary source. The original dataset had Tecentriq in Swiss francs labeled as US dollars, an Imbruvica series that mixed two definitions, and several values that did not match the filings (Calquence 2019, for example, was $164M reported vs $372M stored). Each value now carries its source and verification status in the repository, and the dashboard figures are recomputed from the corrected data.</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -6033,34 +6033,32 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <li>
 <strong>Define inclusion criteria before examining outcomes</strong> — Therapeutic area, launch window, and data availability requirements are specified upfront. Filters that look at outcomes (a minimum Year-5 revenue, excluding the top analog) are offered only as sensitivity checks.</li>
 <li>
-<strong>Lock the analog list in writing</strong> — No modifications after seeing revenue performance.</li>
+<strong>Record the analog list</strong> — The app does not enforce this, since anyone can change a selection and see the results. Instead, the Scenario Builder exports a dated <strong>scenario record</strong>: criteria, included and excluded products with the reason for each exclusion, whether an outcome-based filter was on, the data version, inputs, results and a free-text rationale. That record is what gets filed with the approval, which happens outside the app.</li>
 <li>
-<strong>Document rationale for every inclusion/exclusion</strong> — Creates an audit trail for reviewers.</li>
+<strong>Document rationale for every inclusion/exclusion</strong> — Every one of the 56 screened drugs has a recorded keep/drop reason, which creates an audit trail for reviewers.</li>
 <li>
 <strong>Test sensitivity explicitly</strong> — Option to exclude the top-performing analog tests whether conclusions depend on outliers.</li>
 </ol>
 <p>This approach addresses a common critique of analog analysis: that analysts cherry-pick comparators to support predetermined conclusions. By separating selection criteria from outcome examination, the framework survives skeptical review.</p>
 <p>This governance-first approach is operationalized in the app through four components: <strong>Executive Brief</strong> (scenario comparison and trade-off framing), <strong>Scenario Builder</strong> (criteria configuration and sensitivity testing), <strong>Analog Explorer</strong> (individual product examination with guardrails), and <strong>Methods &amp; Data</strong> (assumption documentation and scope boundaries).</p>
 <hr></section><section id="what-the-framework-quantifies" class="level2"><h2 class="anchored" data-anchor-id="what-the-framework-quantifies"><span class="smallcaps">4. What the framework quantifies</span></h2>
-<section id="cost-of-a-launch-delay" class="level3"><h3 class="anchored" data-anchor-id="cost-of-a-launch-delay">Cost of a Launch Delay</h3>
-<p>A delay usually does not move the patent or exclusivity end date. The months lost at launch are therefore lost at the <em>end</em> of exclusivity, when sales are near their peak, not simply shifted later. The framework shows that cost next to the smaller amount of first-year sales that is only deferred:</p>
-<pre><code>Lost if exclusivity end is fixed = delay_quarters / 4 × P50 Year-5 revenue
-Deferred first-year sales        = delay_quarters × (median Year-1 revenue / 4)</code></pre>
-<p>The first figure is a lower bound for products still growing at Year 5, as most analogs were. For a two-quarter delay across all 30 analogs it is about $490M, against about $87M of first-year sales deferred. Share lost to earlier competitors is not modeled and would add to both.</p>
+<section id="delay-exposure" class="level3"><h3 class="anchored" data-anchor-id="delay-exposure">Delay Exposure</h3>
+<p>A delay usually does not move the patent or exclusivity end date. The months lost at launch are therefore lost at the <em>end</em> of exclusivity, not simply shifted later. The framework shows that exposure next to the smaller amount of first-year sales that is only deferred:</p>
+<pre><code>Delay exposure (fixed exclusivity end) = delay_quarters / 4 × median Year-5 revenue
+Deferred first-year sales              = delay_quarters × (median Year-1 revenue / 4)</code></pre>
+<p>For a two-quarter delay across all 30 analogs, the exposure is about $490M, against about $87M of first-year sales deferred. The exposure figure assumes the Year-5 run rate applies to the final quarters of exclusivity, often ten or more years after launch. Sales then could be higher (continued growth) or lower (competition, label changes), so it is an exposure estimate, not a bound. A full comparison would value the delayed and on-time revenue paths over the same calendar horizon. Share lost to earlier competitors is not modeled.</p>
 </section><section id="product-mode-analogs-as-shapes" class="level3"><h3 class="anchored" data-anchor-id="product-mode-analogs-as-shapes">Product Mode: Analogs as Shapes</h3>
-<p>Even a complete analog set’s dollar figures say little about a specific product. In practice, analogs supply the <em>shape</em> of a launch, and the size comes from the product’s own forecast. The Scenario Builder therefore takes an optional expected Year-5 revenue. Each analog’s curve is divided by its own Year-5 revenue, and the shapes are scaled to that figure. For an expected $1B at Year 5, the median shape implies about $129M in Year 1 (P25–P75: $91M–$232M), and a two-quarter delay costs at least $500M at the end of exclusivity. Lartruvo, withdrawn before Year 5, has no defined shape and is left out of this mode.</p>
+<p>Even a complete analog set’s dollar figures say little about a specific product. In practice, analogs supply the <em>shape</em> of a launch, and the size comes from the product’s own forecast. The Scenario Builder therefore takes an optional expected Year-5 revenue. Each analog’s curve is divided by its own Year-5 revenue, and the shapes are scaled to that figure. For an expected $1B at Year 5, the median shape implies about $129M in Year 1 (P25–P75: $91M–$232M), and a two-quarter delay exposes about $500M at the end of exclusivity. Lartruvo, withdrawn before Year 5, has no defined shape and is left out of this mode.</p>
 <p>This is explicitly labeled as a <strong>Year 1 average-quarter approximation</strong>—a simplification that provides directional magnitude without implying DCF-level precision.</p>
 </section><section id="scenario-bands-from-analog-variation" class="level3"><h3 class="anchored" data-anchor-id="scenario-bands-from-analog-variation">Scenario Bands from Analog Variation</h3>
 <p>Percentile bands (P25/P50/P75) are derived from observed analog performance:</p>
 <ul>
 <li>
-<strong>P50 (Base Case):</strong> Median analog trajectory</li>
+<strong>P50:</strong> historical median of the selected analogs</li>
 <li>
-<strong>P75 (Upper Range):</strong> Upper quartile performance</li>
-<li>
-<strong>P25 (Lower Range):</strong> Lower quartile performance</li>
+<strong>P25 / P75:</strong> historical interquartile range</li>
 </ul>
-<p>These represent <strong>observed variation across analogs</strong>, not statistical confidence intervals. The distinction matters: they quantify historical heterogeneity, not forecasting uncertainty.</p>
+<p>These represent <strong>observed variation across analogs</strong>, not statistical confidence intervals, and P50 is not a 50% probability for a new product. The distinction matters: they quantify historical heterogeneity, not forecasting uncertainty. The median curve also joins each year’s median, which can come from different products, so it summarizes the set rather than tracing a launch that happened; the chart shows how many analogs sit behind each year (26 to 30).</p>
 <p>Revenue figures describe <strong>Year-5 revenue</strong>, not a lifetime peak. Every analog is observed for five years after approval, and most were still growing at Year 5. Labeling that value “peak” would understate products like Keytruda, whose revenue kept climbing well beyond the observation window.</p>
 </section><section id="selection-statistics" class="level3"><h3 class="anchored" data-anchor-id="selection-statistics">Selection Statistics</h3>
 <p>Dynamic statistics update as criteria change:</p>
@@ -6080,9 +6078,9 @@ Some analogs experienced significant post-launch indication expansions, creating
 <p><strong>Era effects</strong><br>
 The analog set covers FDA approvals from 2013 to 2017 only. Launches after 2018 face different conditions (pricing pressure, value-based contracting, more crowded classes), which this set does not represent.</p>
 <p><strong>Data availability</strong><br>
-Sixteen eligible drugs were dropped because their owner did not report their sales separately for every year, or because ownership changed in the first five years. These are mostly smaller launches, so the bands may still lean slightly high. Five launch years are also missing (for example Kadcyla’s first two), so early-year percentiles rest on 26–29 analogs.</p>
+Sixteen eligible drugs were dropped because their owner did not report their sales separately for every year, or because ownership changed in the first five years. They include small launches (Farydak, Odomzo) and large ones (Tafinlar + Mekinist, Zejula), so the direction and size of any remaining bias are unknown. Five launch years are also missing (for example Kadcyla’s first two), so early-year percentiles rest on 26–29 analogs.</p>
 <p><strong>Worldwide revenue and launch-year alignment</strong><br>
-Values are company-reported worldwide product sales, converted to US dollars at Federal Reserve average rates; geographic mix differences are not adjusted. Launch Year 1 is the 12 months after each drug’s FDA approval date. Companies report by fiscal year, so each annual total is spread evenly over its days and split across the launch years it overlaps. Sales usually grow within a year, so early launch years are slightly overstated.</p>
+Values are company-reported worldwide product sales, converted to US dollars at Federal Reserve average rates; geographic mix differences are not adjusted. Launch Year 1 is the 12 months after each drug’s FDA approval date. Companies report by fiscal year, so each annual total is spread evenly over its days and split across the launch years it overlaps. Sales usually grow within a year, so early launch years are slightly overstated. Worldwide sales are aligned to the US approval date, so a drug sold elsewhere first (Alecensa in Japan from 2014) has higher early launch years, and one launched outside the US later has lower ones.</p>
 <p>These assumptions are documented in the Methods &amp; Data tab and surfaced in the dashboard interface to prevent over-interpretation.</p>
 <hr></section><section id="what-this-framework-doesand-does-notdo" class="level2"><h2 class="anchored" data-anchor-id="what-this-framework-doesand-does-notdo"><span class="smallcaps">6. What this framework does—and does not—do</span></h2>
 <section id="what-it-does" class="level3"><h3 class="anchored" data-anchor-id="what-it-does">What it does</h3>
@@ -6104,9 +6102,9 @@ Values are company-reported worldwide product sales, converted to US dollars at 
 <p><img src="https://raw.githubusercontent.com/poncest/launch-curve-forecaster/main/screenshots/executive_brief.png" class="img-fluid"></p>
 <p>An executive-facing summary that surfaces:</p>
 <ul>
-<li>Key metrics (analog count, Year-5 revenue range, cost of delay, median Year-1 revenue)</li>
+<li>Key metrics (analog count, historical median Year-5 revenue and range, delay exposure, median Year-1 revenue)</li>
 <li>Launch trajectory scenarios with P25/P50/P75 bands</li>
-<li>Two explicit decision trade-offs: launch timing and forecast commitment</li>
+<li>Two explicit decision trade-offs: launch timing and the forecast benchmark</li>
 <li>Selected analog summary table</li>
 </ul>
 <p>The decision boxes explicitly frame trade-offs in terms stakeholders recognize: “Speed vs.&nbsp;readiness” and “Alignment vs.&nbsp;credibility risk.”</p>
@@ -6117,6 +6115,7 @@ Values are company-reported worldwide product sales, converted to US dollars at 
 <li>Select therapeutic focus (solid tumors, hematology, or both)</li>
 <li>Run sensitivity checks: exclude the top-performing analog, or analogs below a Year-5 revenue level</li>
 <li>Configure launch delay scenarios (0–4 quarters)</li>
+<li>Download a dated scenario record for the approval file</li>
 </ul>
 <p>The Selection Rationale panel updates dynamically, showing live statistics and a governance note reminding users that criteria should be documented before examining outcomes.</p>
 </section><section id="analog-explorer" class="level3"><h3 class="anchored" data-anchor-id="analog-explorer">Analog Explorer</h3>
@@ -6226,7 +6225,7 @@ Note
 <p>In launch planning, clarity about what we don’t know is often more valuable than false confidence about what we do.</p>
 </div>
 </div>
-<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; replaced the deferred-only delay estimate with a cost of delay that assumes a fixed exclusivity end date; added a product mode that scales analog launch shapes to an expected Year-5 revenue; expanded the technical lesson on tab rendering; expanded the analog set from 10 to 30 (every eligible 2013–2017 oncology launch) and aligned launch years to exact approval dates.</em></p>
+<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; replaced the deferred-only delay estimate with a cost of delay that assumes a fixed exclusivity end date; added a product mode that scales analog launch shapes to an expected Year-5 revenue; expanded the technical lesson on tab rendering; expanded the analog set from 10 to 30 (every eligible 2013–2017 oncology launch) and aligned launch years to exact approval dates. After an external review: relabeled the delay cost as an exposure estimate rather than a lower bound, described percentiles as historical reference points, added a downloadable scenario record, and stated that the direction of the remaining selection bias is unknown.</em></p>
 
 
 <!-- -->
@@ -12882,7 +12881,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Earlier versions of this post reported a random-split R² of <strong>0.84</strong> and a time-based R² of <strong>0.04</strong>, and attributed the gap to temporal drift. Both figures were wrong. A date-parsing bug (<code>lubridate::ymd()</code> read month-only registry dates such as “2005-08” as 2020-05-08) mis-dated 609 trials, dropped 975 others, and produced the spurious 0.84. A follow-up check also found 74 Phase 2/3 trials counted twice. The data have been rebuilt and the models retrained; the numbers below are the corrected ones. The conclusion—registry data cannot forecast trial duration—still holds. The size of the random-split result does not.</p>
+<p>Earlier versions of this post reported a random-split R² of <strong>0.84</strong> and a time-based R² of <strong>0.04</strong>, and attributed the gap to temporal drift. Both figures were wrong. A date-parsing bug (<code>lubridate::ymd()</code> read month-only registry dates such as “2005-08” as 2020-05-08) mis-dated 609 trials, dropped 975 others, and produced the spurious 0.84. A follow-up check also found 74 Phase 2/3 trials counted twice. The data have been rebuilt and the models retrained; the numbers below are the corrected ones. The conclusion—the registry features and models tested here did not support reliable forecasts for later trials—still holds. The size of the random-split result does not.</p>
 </div>
 </div>
 <hr>
@@ -12900,9 +12899,9 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <p>The emphasis is on aligning validation strategy with intended use, rather than maximizing retrospective fit.</p>
 <hr>
 </section>
-<section id="when-random-validation-appears-convincing" class="level2">
-<h2 class="anchored" data-anchor-id="when-random-validation-appears-convincing"><span class="smallcaps">3. When random validation appears convincing</span></h2>
-<p>Using a conventional random train/test split, the model appeared to perform well:</p>
+<section id="what-a-random-split-shows" class="level2">
+<h2 class="anchored" data-anchor-id="what-a-random-split-shows"><span class="smallcaps">3. What a random split shows</span></h2>
+<p>A conventional random train/test split shows a modest retrospective signal:</p>
 <ul>
 <li>R² ≈ 0.24 (mean of five random splits)<br>
 </li>
@@ -12914,7 +12913,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 </section>
 <section id="what-changes-under-time-based-validation" class="level2">
 <h2 class="anchored" data-anchor-id="what-changes-under-time-based-validation"><span class="smallcaps">4. What changes under time-based validation</span></h2>
-<p>When the validation strategy was changed to reflect prospective use—training on trials started by 2015 (n = 2,079) and testing on trials started 2016–2018 (n = 378)—almost all of that signal disappeared. The trials, features, recipe and tuning grid are the same in every row; only the split, or the test trials it is scored on, changes:</p>
+<p>When the validation strategy was changed to resemble the intended use—training on trials started by 2015 (n = 2,079) and testing on trials started 2016–2018 (n = 378)—almost all of that signal disappeared. The trials, features, recipe and tuning grid are the same in every row; only the split, or the test trials it is scored on, changes:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 56%">
@@ -12950,14 +12949,23 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <p>Three things explain the result:</p>
 <ol type="1">
 <li><strong>Registry feature limitations</strong>: Key drivers of duration—protocol complexity, endpoint strategy, enrollment velocity, and operational execution—are largely absent from ClinicalTrials.gov. What signal the registry fields do carry is weak and partly specific to the era the model was trained on.</li>
-<li><strong>Right-truncation of the test window</strong>: Only completed trials are included, so a trial started in 2016–2018 had to finish by the January 2026 data pull (the longest ran 112 months), while earlier trials could run up to 15 years. Long trials are missing, so the test set runs shorter (on average about 13% shorter than predicted) and slightly narrower than the training data, and both lower R². Scoring the random split on the same window cuts its R² from 0.24 to 0.13: roughly half of the gap (40–80% across five splits, and probably more, since the check uses one 112-month cap) is the window, and the rest is the cost of predicting later trials.</li>
-<li><strong>Later trials only look shorter</strong>: among completed trials, median duration is 64 months for trials started by 2015 and 52 months for 2016–2018, but among the earlier trials no longer than 112 months the median is 56. A censoring-aware check (below) confirms the shortening is the truncation, not a change in practice. It also explains a puzzle in the table: errors in months get <em>smaller</em> as R² falls, because the missing long trials are the ones a model misses by the most months. Neither metric is immune to the window; the middle row is the fairer comparison.</li>
+<li><strong>Right-truncation of the test window</strong>: Only completed trials are included, so a trial started in 2016–2018 had to finish by the January 2026 data pull (the longest ran 112 months), while earlier trials could run up to 15 years. Long trials are missing, so the test set runs shorter (on average about 13% shorter than predicted) and slightly narrower than the training data, and both lower R². Scoring the random split on the same window cuts its R² from 0.24 to 0.13. As a sensitivity check, that suggests the window accounts for a large part of the gap (40–80% across five splits). It illustrates the window’s effect rather than decomposing the gap: the comparisons also differ in cohort, training data and follow-up, and one 112-month cap is not each trial’s own follow-up limit.</li>
+<li><strong>Later trials only look shorter</strong>: among completed trials, median duration is 64 months for trials started by 2015 and 52 months for 2016–2018, but among the earlier trials no longer than 112 months the median is 56. A censoring-aware check (below) points to the truncation rather than a change in practice. It also explains a puzzle in the table: errors in months get <em>smaller</em> as R² falls, because the missing long trials are the ones a model misses by the most months. Neither metric is immune to the window; the middle row is the fairer comparison.</li>
 </ol>
 <section id="a-censoring-aware-check" class="level3">
 <h3 class="anchored" data-anchor-id="a-censoring-aware-check">A censoring-aware check</h3>
-<p>Dropping unfinished trials is the root of the truncation problem, so I pulled every Phase 2/3 cancer treatment trial started 1990–2018, of any status, and let unfinished trials enter as censored observations (20,562 trials after exclusions). Counting the trials still running, the Kaplan–Meier median duration is 68 months for 1990–2015 starts and 73 months for 2016–2018 starts. Later trials are not shorter at all.</p>
-<p>With features known at study start only, trained on 1990–2015 starts and tested on 2016–2018 starts, a Weibull survival model predicts a median of 73 months against an actual 73; the same features fitted to completed trials only predict 57. Ranking ability is equally weak for both (concordance 0.56). Handling censoring fixes a 16-month bias, but registry fields still cannot say <em>which</em> trials will run long.</p>
-<p>Under these conditions, low prospective R² is not a modeling failure. The time-based number is, if anything, a pessimistic estimate because of the truncated window, but even the most generous comparison leaves registry fields explaining a small fraction of the variation.</p>
+<p>Dropping unfinished trials is the root of the truncation problem, so I pulled every Phase 2/3 cancer treatment trial started 1990–2018, of any status, and let unfinished trials enter as censored observations (20,562 trials after exclusions). Counting the trials still running, the Kaplan–Meier median duration is 68 months for 1990–2015 starts and 73 months for 2016–2018 starts. On this measure, later trials are not shorter.</p>
+<p>That check censors terminated trials at their stop date, which assumes termination says nothing about when a trial would have finished. Two alternatives give the same direction. Counting termination as the end of the study, the medians are 58 and 60 months. Treating termination as a competing event, half of the trials have completed by 76 and 84 months. Later trials are not shorter under any of the three.</p>
+<p>With features known at study start only, trained on 1990–2015 starts and tested on 2016–2018 starts, a Weibull survival model predicts a median of 73 months against an actual 73; the same features fitted to completed trials only predict 57. Ranking ability is equally weak for both (concordance 0.56). Handling censoring fixes a 16-month bias in the overall median, but matching a median is aggregate agreement, not individual calibration: these registry features do not say <em>which</em> trials will run long.</p>
+</section>
+<section id="against-simple-benchmarks" class="level3">
+<h3 class="anchored" data-anchor-id="against-simple-benchmarks">Against simple benchmarks</h3>
+<p>Does the model beat rules a planner could apply by hand? On the time-based split, the median absolute error is 15.2 months for the model, against 18.6 for predicting the training average, 19.8 for the phase median and 19.3 for phase-by-sponsor medians. The model wins by a few months, so the registry fields carry some signal. Much of that margin comes from final enrollment, sites and countries, which are known only in hindsight: with pre-start inputs alone, the model’s median error (18.3 months) is about the same as the constant’s.</p>
+</section>
+<section id="what-the-time-based-split-is-and-is-not" class="level3">
+<h3 class="anchored" data-anchor-id="what-the-time-based-split-is-and-is-not">What the time-based split is, and is not</h3>
+<p>The time-based split measures whether patterns from earlier start-year cohorts carry over to later ones, using records retrieved in 2026. It is not a historical backtest: a model built in 2016 could not have known the eventual end dates of every trial started before then, and registry fields are updated after the fact. A stricter test would limit outcomes and predictors to what the registry showed at each forecast date, which needs archived snapshots I do not have.</p>
+<p>Under these conditions, a low R² on later trials is not a modeling failure. The time-based number is, if anything, a pessimistic estimate because of the truncated window, but even the most generous comparison leaves registry fields explaining a small fraction of the variation.</p>
 <p>The result is also robust to how the cohort was defined. The oncology cohort comes from a keyword-based registry query, and about 8% of modeled trials (203 of 2,457) list no cancer term in their conditions field. Refitting without them moves test R² from 0.030 to 0.018 and leaves the conclusions unchanged.</p>
 <hr>
 </section>
@@ -13005,7 +13013,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <p>The dashboard is structured to make validation behavior visible and to discourage overinterpretation of point predictions.</p>
 </blockquote>
 <p><strong>Executive Brief</strong> Surfaces key metrics (R², MAE, sample size) with appropriate caveats about prospective use limitations. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/executive_brief.png" class="img-fluid"></p>
-<p><strong>Duration Forecaster</strong> Interactive scenario sandbox for exploring how trial characteristics relate to predicted duration—positioned as educational, not operational. Each estimate comes with the range that 2016–2018 test trials actually landed in relative to their estimates (pooled across all test trials, with the upper end likely too low), which makes the model’s uncertainty visible. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png" class="img-fluid"></p>
+<p><strong>Model Sandbox</strong> Shows how the fitted model responds to trial characteristics, positioned as educational, not operational. Each estimate comes with the historical test-error range: how far 2016–2018 test trials landed from their estimates, pooled across all test trials. Its coverage for a new trial has not been established, and the upper end is likely too low, but it makes the model’s uncertainty visible. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/forecaster.png" class="img-fluid"></p>
 <p><strong>Feature Explorer</strong> Visualizes Elastic Net coefficients and feature distributions to understand which registry variables the model weighted. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/explorer.png" class="img-fluid"></p>
 <p><strong>Model Performance</strong> Diagnostic plots comparing actual vs.&nbsp;predicted duration, with error breakdown by phase and sponsor type. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/performance.png" class="img-fluid"></p>
 <p><strong>Methods &amp; Data</strong> Documents the data pipeline, inclusion criteria, and validation methodology—including the key lesson on why time-based validation matters. <img src="https://raw.githubusercontent.com/poncest/clinical-trial-forecaster/main/screenshots/methods.png" class="img-fluid"></p>
@@ -13019,7 +13027,7 @@ Ratings.”</span> January 20. <a href="https://stevenponce.netlify.app/projects
 <li><strong>Data acquisition</strong> – ClinicalTrials.gov API (oncology interventional trials)</li>
 <li><strong>Cohort filtering</strong> – Treatment purpose, Phase 1/2 through Phase 3, completed studies</li>
 <li><strong>Feature engineering</strong> – Log transforms, ratios, categorical encoding</li>
-<li><strong>Validation design</strong> – Time-based split aligned to prospective use</li>
+<li><strong>Validation design</strong> – Time-based split by start year (cross-cohort transfer; not a historical backtest)</li>
 <li><strong>Modeling</strong> – Elastic Net regression via tidymodels</li>
 <li><strong>Diagnostics</strong> – Error analysis and residual inspection</li>
 </ol>
@@ -13074,7 +13082,7 @@ Note
 <p>In trial analytics, recognizing the limits of available data is as important as extracting signal from it.</p>
 </div>
 </div>
-<p><em>Updated October 2026: corrected a date-parsing bug that invalidated the original headline numbers (see the correction note at the top); removed duplicate Phase 2/3 records; rebuilt the data, retrained the models, and replaced the temporal-drift explanation with the right-truncation analysis, including a truncation-matched random split. Also added the cohort robustness check, the random-vs-time-based comparison, the pre-start-features check, a censoring-aware survival check on a full all-status pull, and the forecaster’s likely range.</em></p>
+<p><em>Updated October 2026: corrected a date-parsing bug that invalidated the original headline numbers (see the correction note at the top); removed duplicate Phase 2/3 records; rebuilt the data, retrained the models, and replaced the temporal-drift explanation with the right-truncation analysis, including a truncation-matched random split. Also added the cohort robustness check, the random-vs-time-based comparison, the pre-start-features check, a censoring-aware survival check on a full all-status pull, and the forecaster’s likely range. Later in October: narrowed the conclusions to the features and models tested, added simple benchmarks, a check on how terminated trials are treated, and regression checks; relabeled the forecaster as a model sandbox.</em></p>
 
 
 <!-- -->
