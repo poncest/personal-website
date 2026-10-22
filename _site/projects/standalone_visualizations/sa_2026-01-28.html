@@ -647,7 +647,7 @@ Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq, Kadcyla, Xofigo, Cyram
 <p><strong>Hematology (10):</strong><br>
 Imbruvica, Darzalex, Venclexta, Calquence, Pomalyst, Gazyva, Zydelig, Blincyto, Ninlaro, Empliciti</p>
 <p>Lartruvo, withdrawn in 2019 after its confirmatory trial failed, is kept on purpose: leaving out launches that failed would bias the bands upward. The repository lists every screened drug and why it was kept or dropped.</p>
-<p>Approval years range from 2013–2017, providing five full years of disclosed revenue for every analog while remaining recent enough to reflect modern launch dynamics.</p>
+<p>Approval years range from 2013–2017, so every analog has a full five-year observation window while remaining recent enough to reflect modern launch dynamics. Within that window, a few reported values are missing (mostly launch years), which leaves five launch years blank across the set.</p>
 <hr></section><section id="technical-lessons-from-the-build" class="level2"><h2 class="anchored" data-anchor-id="technical-lessons-from-the-build"><span class="smallcaps">9. Technical lessons from the build</span></h2>
 <p>This project surfaced an important technical insight about Shiny development with CSS-based UI frameworks.</p>
 <section id="the-problem" class="level3"><h3 class="anchored" data-anchor-id="the-problem">The Problem</h3>
@@ -657,7 +657,7 @@ Imbruvica, Darzalex, Venclexta, Calquence, Pomalyst, Gazyva, Zydelig, Blincyto, 
 <p>The catch is that it has to cover <strong>every</strong> output that depends on shared state. A later review found six small text outputs (the range line and both decision cards) without it. After a selection change, the headline number updated while the range beside it stayed stale. The complete fix pairs <code>suspendWhenHidden = FALSE</code> on all dependent outputs with a <code>shown</code> event triggered on each tab switch, and verifies the result by changing a selection and checking that every number moves together.</p>
 <p>This discovery became the most valuable technical lesson from the project.</p>
 <hr></section></section><section id="why-this-framing-matters-for-commercial-analytics" class="level2"><h2 class="anchored" data-anchor-id="why-this-framing-matters-for-commercial-analytics"><span class="smallcaps">10. Why this framing matters for commercial analytics</span></h2>
-<p>In pharmaceutical commercial planning, forecasts are rarely wrong because of poor algorithms. They’re wrong because:</p>
+<p>This project suggests that in analog-based launch planning, the choice of comparators and assumptions can move the answer more than the method: widening the analog set alone cut the benchmark by three quarters. The failure modes it is built to guard against:</p>
 <ul>
 <li>Analog selection was post-hoc rationalized</li>
 <li>Assumptions weren’t documented or tested</li>
@@ -726,7 +726,7 @@ Note
 <p>In launch planning, clarity about what we don’t know is often more valuable than false confidence about what we do.</p>
 </div>
 </div>
-<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; replaced the deferred-only delay estimate with a cost of delay that assumes a fixed exclusivity end date; added a product mode that scales analog launch shapes to an expected Year-5 revenue; expanded the technical lesson on tab rendering; expanded the analog set from 10 to 30 (every eligible 2013–2017 oncology launch) and aligned launch years to exact approval dates. After an external review: relabeled the delay cost as an exposure estimate rather than a lower bound, described percentiles as historical reference points, added a downloadable scenario record, and stated that the direction of the remaining selection bias is unknown.</em></p>
+<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; replaced the deferred-only delay estimate with a cost of delay that assumes a fixed exclusivity end date; added a product mode that scales analog launch shapes to an expected Year-5 revenue; expanded the technical lesson on tab rendering; expanded the analog set from 10 to 30 (every eligible 2013–2017 oncology launch) and aligned launch years to exact approval dates. After an external review: relabeled the delay cost as an exposure estimate rather than a lower bound, described percentiles as historical reference points, added a downloadable scenario record (criteria are saved when a selection is applied, so the record always matches its results), and stated that the direction of the remaining selection bias is unknown.</em></p>
 
 
 <!-- -->
@@ -1613,144 +1613,150 @@ Decision Support Framework.”</span> January 28. <a href="https://stevenponce.n
 <span id="cb2-405"><a href="#cb2-405" aria-hidden="true" tabindex="-1"></a>upward. The repository lists every screened drug and why it was kept or</span>
 <span id="cb2-406"><a href="#cb2-406" aria-hidden="true" tabindex="-1"></a>dropped.</span>
 <span id="cb2-407"><a href="#cb2-407" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-408"><a href="#cb2-408" aria-hidden="true" tabindex="-1"></a>Approval years range from 2013–2017, providing five full years of</span>
-<span id="cb2-409"><a href="#cb2-409" aria-hidden="true" tabindex="-1"></a>disclosed revenue for every analog while remaining recent enough to</span>
-<span id="cb2-410"><a href="#cb2-410" aria-hidden="true" tabindex="-1"></a>reflect modern launch dynamics.</span>
-<span id="cb2-411"><a href="#cb2-411" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-412"><a href="#cb2-412" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb2-408"><a href="#cb2-408" aria-hidden="true" tabindex="-1"></a>Approval years range from 2013–2017, so every analog has a full</span>
+<span id="cb2-409"><a href="#cb2-409" aria-hidden="true" tabindex="-1"></a>five-year observation window while remaining recent enough to reflect</span>
+<span id="cb2-410"><a href="#cb2-410" aria-hidden="true" tabindex="-1"></a>modern launch dynamics. Within that window, a few reported values are</span>
+<span id="cb2-411"><a href="#cb2-411" aria-hidden="true" tabindex="-1"></a>missing (mostly launch years), which leaves five launch years blank</span>
+<span id="cb2-412"><a href="#cb2-412" aria-hidden="true" tabindex="-1"></a>across the set.</span>
 <span id="cb2-413"><a href="#cb2-413" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-414"><a href="#cb2-414" aria-hidden="true" tabindex="-1"></a><span class="fu">## [9. Technical lessons from the build]{.smallcaps}</span></span>
+<span id="cb2-414"><a href="#cb2-414" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
 <span id="cb2-415"><a href="#cb2-415" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-416"><a href="#cb2-416" aria-hidden="true" tabindex="-1"></a>This project surfaced an important technical insight about Shiny</span>
-<span id="cb2-417"><a href="#cb2-417" aria-hidden="true" tabindex="-1"></a>development with CSS-based UI frameworks.</span>
-<span id="cb2-418"><a href="#cb2-418" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-419"><a href="#cb2-419" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem</span></span>
+<span id="cb2-416"><a href="#cb2-416" aria-hidden="true" tabindex="-1"></a><span class="fu">## [9. Technical lessons from the build]{.smallcaps}</span></span>
+<span id="cb2-417"><a href="#cb2-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-418"><a href="#cb2-418" aria-hidden="true" tabindex="-1"></a>This project surfaced an important technical insight about Shiny</span>
+<span id="cb2-419"><a href="#cb2-419" aria-hidden="true" tabindex="-1"></a>development with CSS-based UI frameworks.</span>
 <span id="cb2-420"><a href="#cb2-420" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-421"><a href="#cb2-421" aria-hidden="true" tabindex="-1"></a>When using shiny.semantic (which relies on Semantic UI's CSS-based tab</span>
-<span id="cb2-422"><a href="#cb2-422" aria-hidden="true" tabindex="-1"></a>switching), outputs don't render automatically when users navigate to a</span>
-<span id="cb2-423"><a href="#cb2-423" aria-hidden="true" tabindex="-1"></a>tab. Shiny's lazy evaluation assumes it knows when tabs become</span>
-<span id="cb2-424"><a href="#cb2-424" aria-hidden="true" tabindex="-1"></a>visible—but CSS-based tabs don't notify Shiny of visibility changes.</span>
-<span id="cb2-425"><a href="#cb2-425" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-426"><a href="#cb2-426" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Solution</span></span>
+<span id="cb2-421"><a href="#cb2-421" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem</span></span>
+<span id="cb2-422"><a href="#cb2-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-423"><a href="#cb2-423" aria-hidden="true" tabindex="-1"></a>When using shiny.semantic (which relies on Semantic UI's CSS-based tab</span>
+<span id="cb2-424"><a href="#cb2-424" aria-hidden="true" tabindex="-1"></a>switching), outputs don't render automatically when users navigate to a</span>
+<span id="cb2-425"><a href="#cb2-425" aria-hidden="true" tabindex="-1"></a>tab. Shiny's lazy evaluation assumes it knows when tabs become</span>
+<span id="cb2-426"><a href="#cb2-426" aria-hidden="true" tabindex="-1"></a>visible—but CSS-based tabs don't notify Shiny of visibility changes.</span>
 <span id="cb2-427"><a href="#cb2-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-428"><a href="#cb2-428" aria-hidden="true" tabindex="-1"></a>Adding <span class="in">`outputOptions(output, "output_name", suspendWhenHidden = FALSE)`</span></span>
-<span id="cb2-429"><a href="#cb2-429" aria-hidden="true" tabindex="-1"></a>forces Shiny to render regardless of perceived visibility. This pattern</span>
-<span id="cb2-430"><a href="#cb2-430" aria-hidden="true" tabindex="-1"></a>isn't documented in standard Shiny guides but is essential for CSS-based</span>
-<span id="cb2-431"><a href="#cb2-431" aria-hidden="true" tabindex="-1"></a>tab frameworks.</span>
-<span id="cb2-432"><a href="#cb2-432" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-433"><a href="#cb2-433" aria-hidden="true" tabindex="-1"></a>The catch is that it has to cover **every** output that depends on</span>
-<span id="cb2-434"><a href="#cb2-434" aria-hidden="true" tabindex="-1"></a>shared state. A later review found six small text outputs (the range</span>
-<span id="cb2-435"><a href="#cb2-435" aria-hidden="true" tabindex="-1"></a>line and both decision cards) without it. After a selection change, the</span>
-<span id="cb2-436"><a href="#cb2-436" aria-hidden="true" tabindex="-1"></a>headline number updated while the range beside it stayed stale. The</span>
-<span id="cb2-437"><a href="#cb2-437" aria-hidden="true" tabindex="-1"></a>complete fix pairs <span class="in">`suspendWhenHidden = FALSE`</span> on all dependent outputs</span>
-<span id="cb2-438"><a href="#cb2-438" aria-hidden="true" tabindex="-1"></a>with a <span class="in">`shown`</span> event triggered on each tab switch, and verifies the</span>
-<span id="cb2-439"><a href="#cb2-439" aria-hidden="true" tabindex="-1"></a>result by changing a selection and checking that every number moves</span>
-<span id="cb2-440"><a href="#cb2-440" aria-hidden="true" tabindex="-1"></a>together.</span>
-<span id="cb2-441"><a href="#cb2-441" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-442"><a href="#cb2-442" aria-hidden="true" tabindex="-1"></a>This discovery became the most valuable technical lesson from the</span>
-<span id="cb2-443"><a href="#cb2-443" aria-hidden="true" tabindex="-1"></a>project.</span>
-<span id="cb2-444"><a href="#cb2-444" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-445"><a href="#cb2-445" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb2-428"><a href="#cb2-428" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Solution</span></span>
+<span id="cb2-429"><a href="#cb2-429" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-430"><a href="#cb2-430" aria-hidden="true" tabindex="-1"></a>Adding <span class="in">`outputOptions(output, "output_name", suspendWhenHidden = FALSE)`</span></span>
+<span id="cb2-431"><a href="#cb2-431" aria-hidden="true" tabindex="-1"></a>forces Shiny to render regardless of perceived visibility. This pattern</span>
+<span id="cb2-432"><a href="#cb2-432" aria-hidden="true" tabindex="-1"></a>isn't documented in standard Shiny guides but is essential for CSS-based</span>
+<span id="cb2-433"><a href="#cb2-433" aria-hidden="true" tabindex="-1"></a>tab frameworks.</span>
+<span id="cb2-434"><a href="#cb2-434" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-435"><a href="#cb2-435" aria-hidden="true" tabindex="-1"></a>The catch is that it has to cover **every** output that depends on</span>
+<span id="cb2-436"><a href="#cb2-436" aria-hidden="true" tabindex="-1"></a>shared state. A later review found six small text outputs (the range</span>
+<span id="cb2-437"><a href="#cb2-437" aria-hidden="true" tabindex="-1"></a>line and both decision cards) without it. After a selection change, the</span>
+<span id="cb2-438"><a href="#cb2-438" aria-hidden="true" tabindex="-1"></a>headline number updated while the range beside it stayed stale. The</span>
+<span id="cb2-439"><a href="#cb2-439" aria-hidden="true" tabindex="-1"></a>complete fix pairs <span class="in">`suspendWhenHidden = FALSE`</span> on all dependent outputs</span>
+<span id="cb2-440"><a href="#cb2-440" aria-hidden="true" tabindex="-1"></a>with a <span class="in">`shown`</span> event triggered on each tab switch, and verifies the</span>
+<span id="cb2-441"><a href="#cb2-441" aria-hidden="true" tabindex="-1"></a>result by changing a selection and checking that every number moves</span>
+<span id="cb2-442"><a href="#cb2-442" aria-hidden="true" tabindex="-1"></a>together.</span>
+<span id="cb2-443"><a href="#cb2-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-444"><a href="#cb2-444" aria-hidden="true" tabindex="-1"></a>This discovery became the most valuable technical lesson from the</span>
+<span id="cb2-445"><a href="#cb2-445" aria-hidden="true" tabindex="-1"></a>project.</span>
 <span id="cb2-446"><a href="#cb2-446" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-447"><a href="#cb2-447" aria-hidden="true" tabindex="-1"></a><span class="fu">## [10. Why this framing matters for commercial analytics]{.smallcaps}</span></span>
+<span id="cb2-447"><a href="#cb2-447" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
 <span id="cb2-448"><a href="#cb2-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-449"><a href="#cb2-449" aria-hidden="true" tabindex="-1"></a>In pharmaceutical commercial planning, forecasts are rarely wrong</span>
-<span id="cb2-450"><a href="#cb2-450" aria-hidden="true" tabindex="-1"></a>because of poor algorithms. They're wrong because:</span>
-<span id="cb2-451"><a href="#cb2-451" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-452"><a href="#cb2-452" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Analog selection was post-hoc rationalized</span>
-<span id="cb2-453"><a href="#cb2-453" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Assumptions weren't documented or tested</span>
-<span id="cb2-454"><a href="#cb2-454" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Ranges were too narrow to capture actual uncertainty</span>
-<span id="cb2-455"><a href="#cb2-455" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Trade-offs weren't made explicit to decision-makers</span>
-<span id="cb2-456"><a href="#cb2-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-457"><a href="#cb2-457" aria-hidden="true" tabindex="-1"></a>This framework addresses these failure modes directly:</span>
-<span id="cb2-458"><a href="#cb2-458" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-459"><a href="#cb2-459" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Governance-first selection** prevents cherry-picking</span>
-<span id="cb2-460"><a href="#cb2-460" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Documented assumptions** create audit trails</span>
-<span id="cb2-461"><a href="#cb2-461" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**P25/P50/P75 bands** acknowledge inherent uncertainty</span>
-<span id="cb2-462"><a href="#cb2-462" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Explicit trade-off framing** connects analysis to decisions</span>
-<span id="cb2-463"><a href="#cb2-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-464"><a href="#cb2-464" aria-hidden="true" tabindex="-1"></a>The goal is not better predictions, but **better-structured</span>
-<span id="cb2-465"><a href="#cb2-465" aria-hidden="true" tabindex="-1"></a>conversations** about what forecasts can and cannot support.</span>
-<span id="cb2-466"><a href="#cb2-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-467"><a href="#cb2-467" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb2-468"><a href="#cb2-468" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-469"><a href="#cb2-469" aria-hidden="true" tabindex="-1"></a><span class="fu">## [Appendix: Methodology &amp; Build Notes]{.smallcaps}</span></span>
+<span id="cb2-449"><a href="#cb2-449" aria-hidden="true" tabindex="-1"></a><span class="fu">## [10. Why this framing matters for commercial analytics]{.smallcaps}</span></span>
+<span id="cb2-450"><a href="#cb2-450" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-451"><a href="#cb2-451" aria-hidden="true" tabindex="-1"></a>This project suggests that in analog-based launch planning, the choice</span>
+<span id="cb2-452"><a href="#cb2-452" aria-hidden="true" tabindex="-1"></a>of comparators and assumptions can move the answer more than the</span>
+<span id="cb2-453"><a href="#cb2-453" aria-hidden="true" tabindex="-1"></a>method: widening the analog set alone cut the benchmark by three</span>
+<span id="cb2-454"><a href="#cb2-454" aria-hidden="true" tabindex="-1"></a>quarters. The failure modes it is built to guard against:</span>
+<span id="cb2-455"><a href="#cb2-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-456"><a href="#cb2-456" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Analog selection was post-hoc rationalized</span>
+<span id="cb2-457"><a href="#cb2-457" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Assumptions weren't documented or tested</span>
+<span id="cb2-458"><a href="#cb2-458" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Ranges were too narrow to capture actual uncertainty</span>
+<span id="cb2-459"><a href="#cb2-459" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Trade-offs weren't made explicit to decision-makers</span>
+<span id="cb2-460"><a href="#cb2-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-461"><a href="#cb2-461" aria-hidden="true" tabindex="-1"></a>This framework addresses these failure modes directly:</span>
+<span id="cb2-462"><a href="#cb2-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-463"><a href="#cb2-463" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Governance-first selection** prevents cherry-picking</span>
+<span id="cb2-464"><a href="#cb2-464" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Documented assumptions** create audit trails</span>
+<span id="cb2-465"><a href="#cb2-465" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**P25/P50/P75 bands** acknowledge inherent uncertainty</span>
+<span id="cb2-466"><a href="#cb2-466" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Explicit trade-off framing** connects analysis to decisions</span>
+<span id="cb2-467"><a href="#cb2-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-468"><a href="#cb2-468" aria-hidden="true" tabindex="-1"></a>The goal is not better predictions, but **better-structured</span>
+<span id="cb2-469"><a href="#cb2-469" aria-hidden="true" tabindex="-1"></a>conversations** about what forecasts can and cannot support.</span>
 <span id="cb2-470"><a href="#cb2-470" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-471"><a href="#cb2-471" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Sources</span></span>
+<span id="cb2-471"><a href="#cb2-471" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
 <span id="cb2-472"><a href="#cb2-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-473"><a href="#cb2-473" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**FDA Drug Approvals:** Approval dates (T=0), initial indications</span>
-<span id="cb2-474"><a href="#cb2-474" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Company-reported revenue:** Full-year worldwide product sales from</span>
-<span id="cb2-475"><a href="#cb2-475" aria-hidden="true" tabindex="-1"></a>    annual reports and results releases (SEC 10-K and 8-K filings;</span>
-<span id="cb2-476"><a href="#cb2-476" aria-hidden="true" tabindex="-1"></a>    AstraZeneca and Roche results announcements), with a source link</span>
-<span id="cb2-477"><a href="#cb2-477" aria-hidden="true" tabindex="-1"></a>    for every value</span>
-<span id="cb2-478"><a href="#cb2-478" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Federal Reserve:** Annual average CHF/USD rates to convert Roche's</span>
-<span id="cb2-479"><a href="#cb2-479" aria-hidden="true" tabindex="-1"></a>    Tecentriq sales</span>
-<span id="cb2-480"><a href="#cb2-480" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-481"><a href="#cb2-481" aria-hidden="true" tabindex="-1"></a><span class="fu">### Technical Stack</span></span>
-<span id="cb2-482"><a href="#cb2-482" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-483"><a href="#cb2-483" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Language:** R (4.3+)</span>
-<span id="cb2-484"><a href="#cb2-484" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Framework:** Shiny (modular architecture)</span>
-<span id="cb2-485"><a href="#cb2-485" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**UI:** shiny.semantic (Appsilon)</span>
-<span id="cb2-486"><a href="#cb2-486" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Visualization:** ggplot2, ggiraph</span>
-<span id="cb2-487"><a href="#cb2-487" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Tables:** reactable</span>
-<span id="cb2-488"><a href="#cb2-488" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Deployment:** shinyapps.io</span>
-<span id="cb2-489"><a href="#cb2-489" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-490"><a href="#cb2-490" aria-hidden="true" tabindex="-1"></a><span class="fu">### Key Design Choices</span></span>
-<span id="cb2-491"><a href="#cb2-491" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-492"><a href="#cb2-492" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Launch years counted from each drug's FDA approval date, with</span>
-<span id="cb2-493"><a href="#cb2-493" aria-hidden="true" tabindex="-1"></a>    fiscal-year sales split across them by days</span>
-<span id="cb2-494"><a href="#cb2-494" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Percentiles calculated across analog set (not confidence intervals)</span>
-<span id="cb2-495"><a href="#cb2-495" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Revenue scaled to millions USD for readability</span>
-<span id="cb2-496"><a href="#cb2-496" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>All data from public sources to ensure reproducibility</span>
-<span id="cb2-497"><a href="#cb2-497" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-498"><a href="#cb2-498" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb2-499"><a href="#cb2-499" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-500"><a href="#cb2-500" aria-hidden="true" tabindex="-1"></a><span class="fu">## Purpose, Scope, and Disclaimer</span></span>
+<span id="cb2-473"><a href="#cb2-473" aria-hidden="true" tabindex="-1"></a><span class="fu">## [Appendix: Methodology &amp; Build Notes]{.smallcaps}</span></span>
+<span id="cb2-474"><a href="#cb2-474" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-475"><a href="#cb2-475" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Sources</span></span>
+<span id="cb2-476"><a href="#cb2-476" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-477"><a href="#cb2-477" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**FDA Drug Approvals:** Approval dates (T=0), initial indications</span>
+<span id="cb2-478"><a href="#cb2-478" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Company-reported revenue:** Full-year worldwide product sales from</span>
+<span id="cb2-479"><a href="#cb2-479" aria-hidden="true" tabindex="-1"></a>    annual reports and results releases (SEC 10-K and 8-K filings;</span>
+<span id="cb2-480"><a href="#cb2-480" aria-hidden="true" tabindex="-1"></a>    AstraZeneca and Roche results announcements), with a source link</span>
+<span id="cb2-481"><a href="#cb2-481" aria-hidden="true" tabindex="-1"></a>    for every value</span>
+<span id="cb2-482"><a href="#cb2-482" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Federal Reserve:** Annual average CHF/USD rates to convert Roche's</span>
+<span id="cb2-483"><a href="#cb2-483" aria-hidden="true" tabindex="-1"></a>    Tecentriq sales</span>
+<span id="cb2-484"><a href="#cb2-484" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-485"><a href="#cb2-485" aria-hidden="true" tabindex="-1"></a><span class="fu">### Technical Stack</span></span>
+<span id="cb2-486"><a href="#cb2-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-487"><a href="#cb2-487" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Language:** R (4.3+)</span>
+<span id="cb2-488"><a href="#cb2-488" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Framework:** Shiny (modular architecture)</span>
+<span id="cb2-489"><a href="#cb2-489" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**UI:** shiny.semantic (Appsilon)</span>
+<span id="cb2-490"><a href="#cb2-490" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Visualization:** ggplot2, ggiraph</span>
+<span id="cb2-491"><a href="#cb2-491" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Tables:** reactable</span>
+<span id="cb2-492"><a href="#cb2-492" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**Deployment:** shinyapps.io</span>
+<span id="cb2-493"><a href="#cb2-493" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-494"><a href="#cb2-494" aria-hidden="true" tabindex="-1"></a><span class="fu">### Key Design Choices</span></span>
+<span id="cb2-495"><a href="#cb2-495" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-496"><a href="#cb2-496" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Launch years counted from each drug's FDA approval date, with</span>
+<span id="cb2-497"><a href="#cb2-497" aria-hidden="true" tabindex="-1"></a>    fiscal-year sales split across them by days</span>
+<span id="cb2-498"><a href="#cb2-498" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Percentiles calculated across analog set (not confidence intervals)</span>
+<span id="cb2-499"><a href="#cb2-499" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Revenue scaled to millions USD for readability</span>
+<span id="cb2-500"><a href="#cb2-500" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>All data from public sources to ensure reproducibility</span>
 <span id="cb2-501"><a href="#cb2-501" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-502"><a href="#cb2-502" aria-hidden="true" tabindex="-1"></a>This project is a **portfolio case study** intended to demonstrate</span>
-<span id="cb2-503"><a href="#cb2-503" aria-hidden="true" tabindex="-1"></a>analytical framing, governance, and decision-support design using</span>
-<span id="cb2-504"><a href="#cb2-504" aria-hidden="true" tabindex="-1"></a>publicly available data.</span>
+<span id="cb2-502"><a href="#cb2-502" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb2-503"><a href="#cb2-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-504"><a href="#cb2-504" aria-hidden="true" tabindex="-1"></a><span class="fu">## Purpose, Scope, and Disclaimer</span></span>
 <span id="cb2-505"><a href="#cb2-505" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-506"><a href="#cb2-506" aria-hidden="true" tabindex="-1"></a>It is **not intended for real-world commercial decision-making** and is</span>
-<span id="cb2-507"><a href="#cb2-507" aria-hidden="true" tabindex="-1"></a>not affiliated with any pharmaceutical company. Product names are used</span>
-<span id="cb2-508"><a href="#cb2-508" aria-hidden="true" tabindex="-1"></a>for analytical illustration only.</span>
+<span id="cb2-506"><a href="#cb2-506" aria-hidden="true" tabindex="-1"></a>This project is a **portfolio case study** intended to demonstrate</span>
+<span id="cb2-507"><a href="#cb2-507" aria-hidden="true" tabindex="-1"></a>analytical framing, governance, and decision-support design using</span>
+<span id="cb2-508"><a href="#cb2-508" aria-hidden="true" tabindex="-1"></a>publicly available data.</span>
 <span id="cb2-509"><a href="#cb2-509" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-510"><a href="#cb2-510" aria-hidden="true" tabindex="-1"></a>All data are derived from publicly available sources including company</span>
-<span id="cb2-511"><a href="#cb2-511" aria-hidden="true" tabindex="-1"></a>filings and FDA databases. No proprietary or confidential information is</span>
-<span id="cb2-512"><a href="#cb2-512" aria-hidden="true" tabindex="-1"></a>included.</span>
+<span id="cb2-510"><a href="#cb2-510" aria-hidden="true" tabindex="-1"></a>It is **not intended for real-world commercial decision-making** and is</span>
+<span id="cb2-511"><a href="#cb2-511" aria-hidden="true" tabindex="-1"></a>not affiliated with any pharmaceutical company. Product names are used</span>
+<span id="cb2-512"><a href="#cb2-512" aria-hidden="true" tabindex="-1"></a>for analytical illustration only.</span>
 <span id="cb2-513"><a href="#cb2-513" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-514"><a href="#cb2-514" aria-hidden="true" tabindex="-1"></a>This work does not constitute investment advice, commercial guidance, or</span>
-<span id="cb2-515"><a href="#cb2-515" aria-hidden="true" tabindex="-1"></a>strategic recommendations.</span>
-<span id="cb2-516"><a href="#cb2-516" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-517"><a href="#cb2-517" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
-<span id="cb2-518"><a href="#cb2-518" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-519"><a href="#cb2-519" aria-hidden="true" tabindex="-1"></a><span class="fu">## Closing Reflection</span></span>
+<span id="cb2-514"><a href="#cb2-514" aria-hidden="true" tabindex="-1"></a>All data are derived from publicly available sources including company</span>
+<span id="cb2-515"><a href="#cb2-515" aria-hidden="true" tabindex="-1"></a>filings and FDA databases. No proprietary or confidential information is</span>
+<span id="cb2-516"><a href="#cb2-516" aria-hidden="true" tabindex="-1"></a>included.</span>
+<span id="cb2-517"><a href="#cb2-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-518"><a href="#cb2-518" aria-hidden="true" tabindex="-1"></a>This work does not constitute investment advice, commercial guidance, or</span>
+<span id="cb2-519"><a href="#cb2-519" aria-hidden="true" tabindex="-1"></a>strategic recommendations.</span>
 <span id="cb2-520"><a href="#cb2-520" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-521"><a href="#cb2-521" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
-<span id="cb2-522"><a href="#cb2-522" aria-hidden="true" tabindex="-1"></a>The value of this framework lies not in its predictions, but in its</span>
-<span id="cb2-523"><a href="#cb2-523" aria-hidden="true" tabindex="-1"></a>structure. By making analog selection defensible, assumptions</span>
-<span id="cb2-524"><a href="#cb2-524" aria-hidden="true" tabindex="-1"></a>transparent, and trade-offs explicit, it provides a foundation for</span>
-<span id="cb2-525"><a href="#cb2-525" aria-hidden="true" tabindex="-1"></a>**disciplined commercial planning conversations**—conversations that</span>
-<span id="cb2-526"><a href="#cb2-526" aria-hidden="true" tabindex="-1"></a>connect forecast ranges to revenue-at-risk and timing decisions to</span>
-<span id="cb2-527"><a href="#cb2-527" aria-hidden="true" tabindex="-1"></a>resource commitments.</span>
-<span id="cb2-528"><a href="#cb2-528" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-529"><a href="#cb2-529" aria-hidden="true" tabindex="-1"></a>In launch planning, clarity about what we don't know is often more</span>
-<span id="cb2-530"><a href="#cb2-530" aria-hidden="true" tabindex="-1"></a>valuable than false confidence about what we do.</span>
-<span id="cb2-531"><a href="#cb2-531" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-521"><a href="#cb2-521" aria-hidden="true" tabindex="-1"></a>------------------------------------------------------------------------</span>
+<span id="cb2-522"><a href="#cb2-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-523"><a href="#cb2-523" aria-hidden="true" tabindex="-1"></a><span class="fu">## Closing Reflection</span></span>
+<span id="cb2-524"><a href="#cb2-524" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-525"><a href="#cb2-525" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb2-526"><a href="#cb2-526" aria-hidden="true" tabindex="-1"></a>The value of this framework lies not in its predictions, but in its</span>
+<span id="cb2-527"><a href="#cb2-527" aria-hidden="true" tabindex="-1"></a>structure. By making analog selection defensible, assumptions</span>
+<span id="cb2-528"><a href="#cb2-528" aria-hidden="true" tabindex="-1"></a>transparent, and trade-offs explicit, it provides a foundation for</span>
+<span id="cb2-529"><a href="#cb2-529" aria-hidden="true" tabindex="-1"></a>**disciplined commercial planning conversations**—conversations that</span>
+<span id="cb2-530"><a href="#cb2-530" aria-hidden="true" tabindex="-1"></a>connect forecast ranges to revenue-at-risk and timing decisions to</span>
+<span id="cb2-531"><a href="#cb2-531" aria-hidden="true" tabindex="-1"></a>resource commitments.</span>
 <span id="cb2-532"><a href="#cb2-532" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-533"><a href="#cb2-533" aria-hidden="true" tabindex="-1"></a>*Updated October 2026: revenue figures relabeled as Year-5 revenue</span>
-<span id="cb2-534"><a href="#cb2-534" aria-hidden="true" tabindex="-1"></a>rather than peak; all 60 revenue values re-sourced from company filings</span>
-<span id="cb2-535"><a href="#cb2-535" aria-hidden="true" tabindex="-1"></a>(35 changed; see the correction note at the top); corrected the</span>
-<span id="cb2-536"><a href="#cb2-536" aria-hidden="true" tabindex="-1"></a>data-source, era-effects, launch-year alignment and outcome-filter</span>
-<span id="cb2-537"><a href="#cb2-537" aria-hidden="true" tabindex="-1"></a>descriptions; replaced the deferred-only delay estimate with a cost of</span>
-<span id="cb2-538"><a href="#cb2-538" aria-hidden="true" tabindex="-1"></a>delay that assumes a fixed exclusivity end date; added a product mode</span>
-<span id="cb2-539"><a href="#cb2-539" aria-hidden="true" tabindex="-1"></a>that scales analog launch shapes to an expected Year-5 revenue; expanded the technical</span>
-<span id="cb2-540"><a href="#cb2-540" aria-hidden="true" tabindex="-1"></a>lesson on tab rendering; expanded the analog set from 10 to 30 (every</span>
-<span id="cb2-541"><a href="#cb2-541" aria-hidden="true" tabindex="-1"></a>eligible 2013–2017 oncology launch) and aligned launch years to exact</span>
-<span id="cb2-542"><a href="#cb2-542" aria-hidden="true" tabindex="-1"></a>approval dates. After an external review: relabeled the delay cost as</span>
-<span id="cb2-543"><a href="#cb2-543" aria-hidden="true" tabindex="-1"></a>an exposure estimate rather than a lower bound, described percentiles as</span>
-<span id="cb2-544"><a href="#cb2-544" aria-hidden="true" tabindex="-1"></a>historical reference points, added a downloadable scenario record, and</span>
-<span id="cb2-545"><a href="#cb2-545" aria-hidden="true" tabindex="-1"></a>stated that the direction of the remaining selection bias is unknown.*</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb2-533"><a href="#cb2-533" aria-hidden="true" tabindex="-1"></a>In launch planning, clarity about what we don't know is often more</span>
+<span id="cb2-534"><a href="#cb2-534" aria-hidden="true" tabindex="-1"></a>valuable than false confidence about what we do.</span>
+<span id="cb2-535"><a href="#cb2-535" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-536"><a href="#cb2-536" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-537"><a href="#cb2-537" aria-hidden="true" tabindex="-1"></a>*Updated October 2026: revenue figures relabeled as Year-5 revenue</span>
+<span id="cb2-538"><a href="#cb2-538" aria-hidden="true" tabindex="-1"></a>rather than peak; all 60 revenue values re-sourced from company filings</span>
+<span id="cb2-539"><a href="#cb2-539" aria-hidden="true" tabindex="-1"></a>(35 changed; see the correction note at the top); corrected the</span>
+<span id="cb2-540"><a href="#cb2-540" aria-hidden="true" tabindex="-1"></a>data-source, era-effects, launch-year alignment and outcome-filter</span>
+<span id="cb2-541"><a href="#cb2-541" aria-hidden="true" tabindex="-1"></a>descriptions; replaced the deferred-only delay estimate with a cost of</span>
+<span id="cb2-542"><a href="#cb2-542" aria-hidden="true" tabindex="-1"></a>delay that assumes a fixed exclusivity end date; added a product mode</span>
+<span id="cb2-543"><a href="#cb2-543" aria-hidden="true" tabindex="-1"></a>that scales analog launch shapes to an expected Year-5 revenue; expanded the technical</span>
+<span id="cb2-544"><a href="#cb2-544" aria-hidden="true" tabindex="-1"></a>lesson on tab rendering; expanded the analog set from 10 to 30 (every</span>
+<span id="cb2-545"><a href="#cb2-545" aria-hidden="true" tabindex="-1"></a>eligible 2013–2017 oncology launch) and aligned launch years to exact</span>
+<span id="cb2-546"><a href="#cb2-546" aria-hidden="true" tabindex="-1"></a>approval dates. After an external review: relabeled the delay cost as</span>
+<span id="cb2-547"><a href="#cb2-547" aria-hidden="true" tabindex="-1"></a>an exposure estimate rather than a lower bound, described percentiles as</span>
+<span id="cb2-548"><a href="#cb2-548" aria-hidden="true" tabindex="-1"></a>historical reference points, added a downloadable scenario record</span>
+<span id="cb2-549"><a href="#cb2-549" aria-hidden="true" tabindex="-1"></a>(criteria are saved when a selection is applied, so the record always</span>
+<span id="cb2-550"><a href="#cb2-550" aria-hidden="true" tabindex="-1"></a>matches its results), and stated that the direction of the remaining</span>
+<span id="cb2-551"><a href="#cb2-551" aria-hidden="true" tabindex="-1"></a>selection bias is unknown.*</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 <footer class="footer"><div class="nav-footer">
