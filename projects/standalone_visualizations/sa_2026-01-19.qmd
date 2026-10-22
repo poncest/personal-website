@@ -161,15 +161,31 @@ Three things explain the result:
     roughly half of the gap (40–80% across five splits, and probably
     more, since the check uses one 112-month cap) is the window, and
     the rest is the cost of predicting later trials.
-3.  **Later trials look shorter, partly by construction**: median
+3.  **Later trials only look shorter**: among completed trials, median
     duration is 64 months for trials started by 2015 and 52 months for
     2016–2018, but among the earlier trials no longer than 112 months
-    the median is 56. Most of the apparent shortening is the truncation
-    above, not a change in practice. It also explains a puzzle in the
+    the median is 56. A censoring-aware check (below) confirms the
+    shortening is the truncation, not a change in practice. It also explains a puzzle in the
     table: errors in months get *smaller* as R² falls, because the
     missing long trials are the ones a model misses by the most months.
     Neither metric is immune to the window; the middle row is the
     fairer comparison.
+
+### A censoring-aware check
+
+Dropping unfinished trials is the root of the truncation problem, so I
+pulled every Phase 2/3 cancer treatment trial started 1990–2018, of any
+status, and let unfinished trials enter as censored observations
+(20,562 trials after exclusions). Counting the trials still running,
+the Kaplan–Meier median duration is 68 months for 1990–2015 starts and
+73 months for 2016–2018 starts. Later trials are not shorter at all.
+
+With features known at study start only, trained on 1990–2015 starts
+and tested on 2016–2018 starts, a Weibull survival model predicts a
+median of 73 months against an actual 73; the same features fitted to
+completed trials only predict 57. Ranking ability is equally weak for
+both (concordance 0.56). Handling censoring fixes a 16-month bias, but
+registry fields still cannot say *which* trials will run long.
 
 Under these conditions, low prospective R² is not a modeling failure.
 The time-based number is, if anything, a pessimistic estimate because
@@ -335,4 +351,5 @@ removed duplicate Phase 2/3 records; rebuilt the data, retrained the
 models, and replaced the temporal-drift explanation with the
 right-truncation analysis, including a truncation-matched random split. Also added the cohort
 robustness check, the random-vs-time-based comparison, the
-pre-start-features check, and the forecaster's likely range.*
+pre-start-features check, a censoring-aware survival check on a full
+all-status pull, and the forecaster's likely range.*
