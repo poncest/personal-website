@@ -5992,6 +5992,19 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <p>All 60 revenue values behind the analog curves were re-checked against the companies’ own reports: 35 changed, and 55 are now verified against a primary source. The original dataset had Tecentriq in Swiss francs labeled as US dollars, an Imbruvica series that mixed two definitions, and several values that did not match the filings (Calquence 2019, for example, was $164M reported vs $372M stored). Each value now carries its source and verification status in the repository, and the dashboard figures are recomputed from the corrected data.</p>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Analog set expanded (October 2026)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The original ten analogs were all prominent launches, so the bands overstated a typical launch. Every new oncology molecular entity first approved by the FDA in 2013–2017 was then screened (56 products), and the set grew to <strong>30 analogs</strong>, including modest launches and one withdrawn drug. The median (P50) Year-5 revenue fell from about $4.3B to <strong>$981M</strong>. The figures below use the 30-analog set.</p>
+</div>
+</div>
 <hr>
 <blockquote class="blockquote">
 <p><em>The core challenge in launch planning isn’t predicting success—it’s quantifying how much uncertainty costs when timing shifts.</em></p>
@@ -6033,9 +6046,9 @@ Ponce, Steven. 2026. <span>“From Reflection to Insight.”</span> April
 <p>A delay usually does not move the patent or exclusivity end date. The months lost at launch are therefore lost at the <em>end</em> of exclusivity, when sales are near their peak, not simply shifted later. The framework shows that cost next to the smaller amount of first-year sales that is only deferred:</p>
 <pre><code>Lost if exclusivity end is fixed = delay_quarters / 4 × P50 Year-5 revenue
 Deferred first-year sales        = delay_quarters × (median Year-1 revenue / 4)</code></pre>
-<p>The first figure is a lower bound: every analog was still growing at Year 5, so late-exclusivity sales are likely higher. For a two-quarter delay across all ten analogs it is about $2.1B, against about $261M of first-year sales deferred. Share lost to earlier competitors is not modeled and would add to both.</p>
+<p>The first figure is a lower bound for products still growing at Year 5, as most analogs were. For a two-quarter delay across all 30 analogs it is about $490M, against about $87M of first-year sales deferred. Share lost to earlier competitors is not modeled and would add to both.</p>
 </section><section id="product-mode-analogs-as-shapes" class="level3"><h3 class="anchored" data-anchor-id="product-mode-analogs-as-shapes">Product Mode: Analogs as Shapes</h3>
-<p>Ten blockbusters’ dollar figures say little about a mid-size product. In practice, analogs supply the <em>shape</em> of a launch, and the size comes from the product’s own forecast. The Scenario Builder therefore takes an optional expected Year-5 revenue. Each analog’s curve is divided by its own Year-5 revenue, and the shapes are scaled to that figure. For an expected $1B at Year 5, the median shape implies about $98M in Year 1 (P25–P75: $70M–$135M), and a two-quarter delay costs at least $500M at the end of exclusivity.</p>
+<p>Even a complete analog set’s dollar figures say little about a specific product. In practice, analogs supply the <em>shape</em> of a launch, and the size comes from the product’s own forecast. The Scenario Builder therefore takes an optional expected Year-5 revenue. Each analog’s curve is divided by its own Year-5 revenue, and the shapes are scaled to that figure. For an expected $1B at Year 5, the median shape implies about $129M in Year 1 (P25–P75: $91M–$232M), and a two-quarter delay costs at least $500M at the end of exclusivity. Lartruvo, withdrawn before Year 5, has no defined shape and is left out of this mode.</p>
 <p>This is explicitly labeled as a <strong>Year 1 average-quarter approximation</strong>—a simplification that provides directional magnitude without implying DCF-level precision.</p>
 </section><section id="scenario-bands-from-analog-variation" class="level3"><h3 class="anchored" data-anchor-id="scenario-bands-from-analog-variation">Scenario Bands from Analog Variation</h3>
 <p>Percentile bands (P25/P50/P75) are derived from observed analog performance:</p>
@@ -6048,7 +6061,7 @@ Deferred first-year sales        = delay_quarters × (median Year-1 revenue / 4)
 <strong>P25 (Lower Range):</strong> Lower quartile performance</li>
 </ul>
 <p>These represent <strong>observed variation across analogs</strong>, not statistical confidence intervals. The distinction matters: they quantify historical heterogeneity, not forecasting uncertainty.</p>
-<p>Revenue figures describe <strong>Year-5 revenue</strong>, not a lifetime peak. Every analog is observed from its approval year through the fifth full year after launch, and all ten were still growing at Year 5. Labeling that value “peak” would understate products like Keytruda, whose revenue kept climbing well beyond the observation window.</p>
+<p>Revenue figures describe <strong>Year-5 revenue</strong>, not a lifetime peak. Every analog is observed for five years after approval, and most were still growing at Year 5. Labeling that value “peak” would understate products like Keytruda, whose revenue kept climbing well beyond the observation window.</p>
 </section><section id="selection-statistics" class="level3"><h3 class="anchored" data-anchor-id="selection-statistics">Selection Statistics</h3>
 <p>Dynamic statistics update as criteria change:</p>
 <ul>
@@ -6066,10 +6079,10 @@ Delayed demand is assumed to shift forward in time rather than being permanently
 Some analogs experienced significant post-launch indication expansions, creating potential upward bias in Year-5 revenue estimates. Products without similar expansion potential may underperform these benchmarks.</p>
 <p><strong>Era effects</strong><br>
 The analog set covers FDA approvals from 2013 to 2017 only. Launches after 2018 face different conditions (pricing pressure, value-based contracting, more crowded classes), which this set does not represent.</p>
-<p><strong>Selection bias</strong><br>
-The stated criteria would admit more launches than the ten included (Kisqali, Zejula and Ninlaro, for example). The ten are commercially prominent products, so the bands likely overstate a typical launch.</p>
+<p><strong>Data availability</strong><br>
+Sixteen eligible drugs were dropped because their owner did not report their sales separately for every year, or because ownership changed in the first five years. These are mostly smaller launches, so the bands may still lean slightly high. Five launch years are also missing (for example Kadcyla’s first two), so early-year percentiles rest on 26–29 analogs.</p>
 <p><strong>Worldwide revenue and launch-year alignment</strong><br>
-Values are company-reported worldwide product sales; geographic mix differences are not adjusted. Year 0 is the calendar year of first FDA approval, so it covers anywhere from 10 days (Opdivo) to about 11 months (Ibrance) on market, and Years 1–5 can be offset by up to about 11 months across analogs.</p>
+Values are company-reported worldwide product sales, converted to US dollars at Federal Reserve average rates; geographic mix differences are not adjusted. Launch Year 1 is the 12 months after each drug’s FDA approval date. Companies report by fiscal year, so each annual total is spread evenly over its days and split across the launch years it overlaps. Sales usually grow within a year, so early launch years are slightly overstated.</p>
 <p>These assumptions are documented in the Methods &amp; Data tab and surfaced in the dashboard interface to prevent over-interpretation.</p>
 <hr></section><section id="what-this-framework-doesand-does-notdo" class="level2"><h2 class="anchored" data-anchor-id="what-this-framework-doesand-does-notdo"><span class="smallcaps">6. What this framework does—and does not—do</span></h2>
 <section id="what-it-does" class="level3"><h3 class="anchored" data-anchor-id="what-it-does">What it does</h3>
@@ -6128,12 +6141,12 @@ Values are company-reported worldwide product sales; geographic mix differences 
 <li>Technical implementation details</li>
 </ul>
 <hr></section></section><section id="the-analog-set" class="level2"><h2 class="anchored" data-anchor-id="the-analog-set"><span class="smallcaps">8. The analog set</span></h2>
-<p>The framework includes 10 established oncology launches with product-level revenue reported by their owners:</p>
-<p><strong>Solid tumors (6):</strong><br>
-Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq</p>
-<p><strong>Hematology (4):</strong><br>
-Imbruvica, Darzalex, Venclexta, Calquence</p>
-<p>The 6/4 split reflects real-world prevalence rather than forced symmetry. Adding weaker products to achieve balance would introduce more noise than signal.</p>
+<p>The framework includes every new oncology molecular entity first approved by the FDA in 2013–2017 whose sales one owner reported separately for five years (30 of 56 screened; CAR-T cell therapies are excluded as a different launch model):</p>
+<p><strong>Solid tumors (20):</strong><br>
+Keytruda, Opdivo, Ibrance, Tagrisso, Lynparza, Tecentriq, Kadcyla, Xofigo, Cyramza, Lenvima, Unituxin, Alecensa, Lartruvo, Rubraca, Kisqali, Bavencio, Alunbrig, Imfinzi, Nerlynx, Verzenio</p>
+<p><strong>Hematology (10):</strong><br>
+Imbruvica, Darzalex, Venclexta, Calquence, Pomalyst, Gazyva, Zydelig, Blincyto, Ninlaro, Empliciti</p>
+<p>Lartruvo, withdrawn in 2019 after its confirmatory trial failed, is kept on purpose: leaving out launches that failed would bias the bands upward. The repository lists every screened drug and why it was kept or dropped.</p>
 <p>Approval years range from 2013–2017, providing five full years of disclosed revenue for every analog while remaining recent enough to reflect modern launch dynamics.</p>
 <hr></section><section id="technical-lessons-from-the-build" class="level2"><h2 class="anchored" data-anchor-id="technical-lessons-from-the-build"><span class="smallcaps">9. Technical lessons from the build</span></h2>
 <p>This project surfaced an important technical insight about Shiny development with CSS-based UI frameworks.</p>
@@ -6188,7 +6201,7 @@ Imbruvica, Darzalex, Venclexta, Calquence</p>
 <strong>Deployment:</strong> shinyapps.io</li>
 </ul></section><section id="key-design-choices" class="level3"><h3 class="anchored" data-anchor-id="key-design-choices">Key Design Choices</h3>
 <ul>
-<li>Annual revenue aligned to approval year (Year 0 = partial launch year; Year 1 = first full year) for comparability</li>
+<li>Launch years counted from each drug’s FDA approval date, with fiscal-year sales split across them by days</li>
 <li>Percentiles calculated across analog set (not confidence intervals)</li>
 <li>Revenue scaled to millions USD for readability</li>
 <li>All data from public sources to ensure reproducibility</li>
@@ -6213,7 +6226,7 @@ Note
 <p>In launch planning, clarity about what we don’t know is often more valuable than false confidence about what we do.</p>
 </div>
 </div>
-<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; replaced the deferred-only delay estimate with a cost of delay that assumes a fixed exclusivity end date; added a product mode that scales analog launch shapes to an expected Year-5 revenue; expanded the technical lesson on tab rendering.</em></p>
+<p><em>Updated October 2026: revenue figures relabeled as Year-5 revenue rather than peak; all 60 revenue values re-sourced from company filings (35 changed; see the correction note at the top); corrected the data-source, era-effects, launch-year alignment and outcome-filter descriptions; replaced the deferred-only delay estimate with a cost of delay that assumes a fixed exclusivity end date; added a product mode that scales analog launch shapes to an expected Year-5 revenue; expanded the technical lesson on tab rendering; expanded the analog set from 10 to 30 (every eligible 2013–2017 oncology launch) and aligned launch years to exact approval dates.</em></p>
 
 
 <!-- -->
