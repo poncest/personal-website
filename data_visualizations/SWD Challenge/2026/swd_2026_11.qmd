@@ -55,6 +55,20 @@ Additional information can be found [HERE](https://community.storytellingwithdat
 
 ![Two-panel gap-ribbon chart titled "The gender gap in household work narrowed more among married adults." Among married U.S. adults ages 25–64, the gap between women's and men's average daily household-activity minutes narrowed from 73 to 58, a 15-minute reduction, as men's minutes rose from 88 to 98 and women's fell from 161 to 155. Among adults without a spouse or unmarried partner in the household, the gap fell from 35 to 33 minutes (women 113 to 114, men 78 to 81), a change not statistically detectable. Each panel compares 2003–07 with 2021–25 on the same vertical scale, with a shaded band between the women's and men's lines marking the gap. The two groups' changes differed by 13.6 minutes a day (95% CI 2.8–24.3). Data: U.S. Bureau of Labor Statistics, American Time Use Survey; individual respondents, not couples; 2020 excluded.](swd_2026_11.png){#fig-1}
 
+### Reproducibility
+
+This page contains the R code used to generate the descriptive visualization.
+
+**Data:** Download the ATUS 2003–2025 Activity Summary file from the [U.S. Bureau of Labor Statistics](https://www.bls.gov/tus/data/datafiles-0325.htm) and extract `atussum_0325.dat` to `data/SWDchallenge/2026/` in the personal-website repository.
+
+The chart uses the ATUS final survey weight (`TUFNWGTP`). The reported 95% confidence interval was calculated separately using the 160 official BLS replicate weights.
+
+The [statistical decision record](https://github.com/poncest/SWDchallenge/blob/main/2026/11_Nov/swd_2026_11_decision_record.R) is intended to reproduce that inferential analysis and requires the additional replicate-weights file, `atuswgts_0325.dat`.
+
+The raw data files are not committed to GitHub because of their size. Reproduction also requires the custom plotting utilities and font setup included in this repository.
+
+The published website uses Quarto's frozen execution and caching. To verify the calculations independently, rerun the analysis rather than relying on previously generated output.
+
 ### [**Steps to Create this Graphic**]{.mark}
 
 #### [1. Load Packages & Setup]{.smallcaps}
@@ -405,8 +419,7 @@ This analysis uses custom functions from my personal module library for efficien
 **Functions Used:**
 
 -   **`fonts.R`**: `setup_fonts()`, `get_font_families()` - Font management with showtext
--   **`social_icons.R`**: `create_social_caption()` - Generates formatted social media captions
--   **`image_utils.R`**: `save_plot()` - Consistent plot saving with naming conventions
+-   **`social_icons.R`**: `create_swd_caption()` - Generates the SWD caption with source and social handles
 -   **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()` - Custom ggplot2 themes
 
 **Why custom functions?**\
