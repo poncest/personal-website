@@ -1,0 +1,208 @@
+---
+title: "The Changing Shape of Hot-Air Balloon Accidents"
+subtitle: "An interactive data story about how balloon size, commercial operations, and the limits of accident data shape what we can learn about balloon safety"
+description: "A four-chapter interactive D3 story about U.S. hot-air balloon events recorded by the NTSB, 1980–2025, linked to rated envelope sizes. Recorded events fell from 26.7 to 9.5 per year while giant balloons went from 0 of 267 events in the 1980s to 15 of 57 in 2020–25. The story shows what the records reveal about size, sightseeing, and people aboard — and why they cannot measure accident risk. Reproducible R pipeline; every displayed number is exported by R and checked."
+date: "2026-11-11"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+    orcid: "0000-0003-4457-1633"
+citation:
+  url: "https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2026-11-11.html"
+categories: ["Standalone Visualization", "2026"]
+tags: ["d3", "interactive", "data-journalism", "NTSB", "aviation-safety", "hot-air-balloons", "reproducible-research", "R", "netlify", "2026"]
+image: "thumbnails/sa_2026-11-11.png"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+editor_options:
+  chunk_output_type: inline
+execute:
+  freeze: true
+  eval: false
+editor:
+  markdown:
+    wrap: 72
+---
+
+::: {.callout-note appearance="simple"}
+## Read the interactive story
+
+**→ [The Changing Shape of Hot-Air Balloon
+Accidents](https://balloon-accidents.netlify.app/)**
+
+This page explains the question, the findings, their limits, and how
+the project was built.
+
+← [Back to Steven Ponce's Data Visualization
+Portfolio](https://stevenponce.netlify.app/)
+:::
+
+**What can accident records tell us about hot-air balloon safety, and
+what can't they tell us?**
+
+I analyzed U.S. NTSB hot-air balloon records and built a four-chapter
+interactive story using R and D3. Recorded events became fewer per
+year, and larger balloons accounted for a growing share of them. Among
+events identified as revenue sightseeing, larger balloons carried more
+people.
+
+**The central finding is also the central limitation:** these records
+describe accidents and incidents, not how often balloons of each size
+flew. They cannot establish whether one balloon size is safer than
+another.
+
+**Project at a glance**
+
+|  |  |
+|----|----|
+| **Duration** | November 2026 |
+| **Role** | Analysis, editorial design, visualization, implementation |
+| **Deliverable** | Four-chapter interactive data story |
+| **Tools** | R, D3 v7, HTML/CSS, Playwright (automated checks) |
+| **Data** | NTSB CAROL balloon records; rated sizes from The Hot Air Balloon Database |
+| **Live story** | [balloon-accidents.netlify.app](https://balloon-accidents.netlify.app/) |
+
+------------------------------------------------------------------------
+
+## [1. The question and why it matters]{.smallcaps}
+
+The project began as my [Makeover Monday 2026 Week 45
+chart](https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_45.html).
+Among hot-air balloons recorded in US states in The Hot Air Balloon
+Database, giants made up a growing share of recorded builds (2.2% of
+those built in 2000–2009, 9.9% in 2020–2026), while the median rated
+size stayed at 90,000 cu ft. Those are catalog records, not a census of
+the active fleet.
+
+The natural next question was what the accident record shows about
+balloon size, and especially whether bigger balloons are safer or more
+dangerous. That question is easy to ask and easy to answer badly:
+counting accidents by size looks like evidence about safety, but it is
+not. The goal was a story that shows everything the records *can* say,
+and makes what they cannot say just as visible.
+
+------------------------------------------------------------------------
+
+## [2. What the records show]{.smallcaps}
+
+**The mix changed.** Recorded events fell from 26.7 per year in the
+1980s to 9.5 in 2020–25. Giant balloons were involved in 0 of 267
+recorded events in the 1980s and 15 of 57 in 2020–25.
+
+**The revenue-sightseeing share rose with size.** Revenue sightseeing was
+identified in 22 of 260 (8%) recorded events involving balloons of AX7
+or less, and in 63 of 66 (95%) involving giants (1982–2025).
+
+**Larger balloons carried more people.** In recorded revenue-sightseeing
+events, the median number aboard rose from 3 for AX7 or less to 11 for
+giants.
+
+**Injury shares differed, with wide uncertainty.** Among people aboard
+recorded revenue-sightseeing events, 242 of 752 (32%) aboard giants were
+injured or killed, compared with 145 of 334 (43%) aboard AX10 balloons.
+This exploratory difference was −11.2 percentage points (95% interval:
+−26.0 to +3.6).
+
+------------------------------------------------------------------------
+
+## [3. What the data cannot tell us]{.smallcaps}
+
+The analysis describes recorded NTSB accidents and incidents, not all
+balloon flights. Three limitations govern its interpretation:
+
+- **No size-specific exposure.** Without knowing how many flights or
+  flight hours each balloon size accumulated, event counts cannot be
+  converted into accident rates or relative risk. The FAA reports
+  flight hours only for "lighter-than-air" aircraft as a whole
+  (balloons and airships together), never by balloon size.
+- **Selection into the record.** An event is recorded as an accident
+  only when someone is killed or seriously injured, or the balloon is
+  substantially damaged. The records are not a representative sample of
+  all flights, so the injury shares apply only to the recorded events
+  analyzed.
+- **No causal inference.** Differences across balloon sizes coincide
+  with differences in operation, time period, and other factors. The
+  analysis cannot establish that size caused any observed outcome.
+
+The interval for the giant-versus-AX10 difference in injury share
+includes zero, and even a clearer difference would not resolve the
+missing exposure.
+
+------------------------------------------------------------------------
+
+## [4. How I approached the problem]{.smallcaps}
+
+**Data and populations**
+
+Every event comes from the NTSB CAROL export (895 balloon records). Each
+balloon's model was matched to its rated envelope volume and grouped
+into FAI size classes, from AX7 or less to giant (AX11+, over 211,888
+cu ft); 790 of 870 single-balloon events could be sized. Each chapter
+uses a defined subset. Chapter 1 covers 1980–2025 and shows events of
+unknown size as their own category. Chapters 2–4 begin in 1982, the
+first year with both the revenue-sightseeing flag and onboard counts:
+Chapter 2 includes 704 single-balloon events from 1982–2025, including 47
+whose balloon size is unknown, and Chapters 3 and 4
+use the 227 sized events flagged as revenue sightseeing with onboard
+counts present.
+
+**Four chapters**
+
+1. **The changing mix:** recorded events per year by size and decade.
+2. **Revenue-sightseeing classification by size:** the share of recorded events
+   identified as revenue sightseeing, by balloon size.
+3. **People aboard:** occupants and injury outcomes in
+   revenue-sightseeing events.
+4. **The limit:** giants versus AX10 balloons across six prespecified
+   comparisons, with bootstrap 95% intervals.
+
+**How I kept the analysis defensible**
+
+- **Visible denominators.** Every share is shown with its count ("63 of
+  66 (95%)", not just "95%"), so small groups cannot pass for large
+  ones.
+- **Limits beside the charts.** Each chapter states its limitation next
+  to the graphic, not in a footnote, and the uncertainty interval always
+  appears with the word "exploratory".
+- **Results computed in R and checked.** I used R to calculate and
+  validate every published number, then D3 only to draw it. Automated
+  checks verify the displayed numbers, layouts at desktop and mobile
+  widths, keyboard accessibility, and the fixed comparison scale.
+  Separating the analysis from the browser made the results
+  reproducible and the presentation testable.
+
+**Data attribution**
+
+Balloon sizes come from The Hot Air Balloon Database, a community
+archive, credited on the page with a note on exactly what they were used
+for. Because its redistribution terms are not confirmed, the size lookup
+stays private; the public repository holds the code, the exported story
+data, and the analysis record.
+
+------------------------------------------------------------------------
+
+## [5. Outcome and reflection]{.smallcaps}
+
+**Outcome**
+
+The result is a four-chapter interactive data story that connects
+historical accident records to balloon-size classifications, lets
+readers examine the evidence, and makes uncertainty and data
+limitations visible throughout. Rather than presenting accident counts
+as evidence of safety, it shows both what the records reveal and where
+interpretation must stop.
+
+**Reflection**
+
+The hardest part was editorial, not technical: deciding what not to
+claim, then making that restraint visible rather than burying it in
+footnotes.
+
+------------------------------------------------------------------------
+
+## [6. Explore the project]{.smallcaps}
+
+- [Explore the interactive story](https://balloon-accidents.netlify.app/)
+- [View the source code and analysis](https://github.com/poncest/balloon-accidents-story)
