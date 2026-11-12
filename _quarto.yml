@@ -172,6 +172,43 @@ format:
             var text = cap.textContent.replace(/^\s*Figure\s*\d+\s*[:.]\s*/i, "").trim();
             if (text) img.setAttribute("alt", text);
           });
+          // Share links (Expansion, Batch 9): LinkedIn and Copy link at the end of
+          // each post, above the appendix. Posts live in subfolders of the three
+          // listing sections; the homepage and listing pages are skipped.
+          (function () {
+            if (!/^\/(data_visualizations|projects|behind_the_viz)\//.test(location.pathname)) return;
+            var main = document.querySelector("main");
+            if (!main || main.querySelector(".post-share")) return;
+            var url = location.origin + location.pathname;
+            var box = document.createElement("div");
+            box.className = "post-share";
+            var label = document.createElement("span");
+            label.className = "post-share-label";
+            label.textContent = "Share";
+            var li = document.createElement("a");
+            li.href = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(url);
+            li.target = "_blank";
+            li.rel = "noopener";
+            li.textContent = "LinkedIn";
+            var copy = document.createElement("button");
+            copy.type = "button";
+            copy.className = "post-share-copy";
+            copy.setAttribute("aria-live", "polite");
+            copy.textContent = "Copy link";
+            copy.addEventListener("click", function () {
+              if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+              navigator.clipboard.writeText(url).then(function () {
+                copy.textContent = "Link copied";
+                setTimeout(function () { copy.textContent = "Copy link"; }, 2000);
+              }, function () {});
+            });
+            box.appendChild(label);
+            box.appendChild(li);
+            box.appendChild(copy);
+            var appendix = main.querySelector("#quarto-appendix");
+            if (appendix) appendix.parentNode.insertBefore(box, appendix);
+            else main.appendChild(box);
+          })();
           </script>
     # Resource optimization
     smooth-scroll: true
