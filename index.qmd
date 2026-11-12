@@ -7,20 +7,30 @@ css: assets/styling/home.css
 execute:
   freeze: false
 listing:
-  id: recent-viz
-  contents: data_visualizations
-  exclude:
-    title: "Template"
-  sort: "date desc"
-  type: grid
-  grid-columns: 3
-  max-items: 3
-  page-size: 9999   # stops list.js paging: Quarto counts the whole collection, not max-items
-  image-height: "200px"
-  fields: [image, title, categories, date]
-  sort-ui: false
-  filter-ui: false
-  categories: false
+  - id: recent-viz
+    contents: data_visualizations
+    exclude:
+      title: "Template"
+    sort: "date desc"
+    type: grid
+    grid-columns: 3
+    max-items: 3
+    page-size: 9999   # stops list.js paging: Quarto counts the whole collection, not max-items
+    image-height: "200px"
+    fields: [image, title, categories, date]
+    sort-ui: false
+    filter-ui: false
+    categories: false
+  - id: start-here
+    contents: start-here.yml
+    sort: false
+    type: grid
+    grid-columns: 4
+    image-height: "200px"
+    fields: [image, title, categories]
+    sort-ui: false
+    filter-ui: false
+    categories: false
 ---
 
 ```{=html}
@@ -70,6 +80,15 @@ listing:
 ```
 
 ::: {#recent-viz}
+:::
+
+```{=html}
+<div class="home-section-head home-section-gap">
+  <p class="home-kicker">Start here</p>
+</div>
+```
+
+::: {#start-here}
 :::
 
 ```{r}
