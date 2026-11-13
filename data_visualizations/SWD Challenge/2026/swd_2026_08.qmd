@@ -1,7 +1,7 @@
 ---
 title: "The stage with the lowest odds isn't FDA review"
-subtitle: "Of 1,000 experimental drugs entering Phase I trials, more are lost during Phase II proof-of-concept testing than at any other stage of development"
-description: "A waterfall chart applying published clinical-trial transition rates to 1,000 hypothetical Phase I drug candidates, showing that Phase II proof-of-concept testing — not FDA review — is where the most candidates are lost. Built in R with ggplot2, ggtext, and ggview, sourced from BIO, Informa Pharma Intelligence and QLS Advisors (2011–2020)."
+subtitle: "Of 1,000 hypothetical drug candidates entering Phase I, the lowest stage-specific advancement rate occurs in Phase II—not during FDA review"
+description: "A waterfall chart applying published clinical-trial transition rates to 1,000 hypothetical Phase I drug candidates, showing that Phase II proof-of-concept testing — not FDA review — is the stage with the lowest advancement rate (28.9%). Built in R with ggplot2, ggtext, and ggview, sourced from BIO, Informa Pharma Intelligence and QLS Advisors (2011–2020)."
 date: "2026-08-01"
 author:
   - name: "Steven Ponce"
@@ -52,7 +52,7 @@ Additional information can be found [HERE](https://community.storytellingwithdat
 
 ### Visualization
 
-![Waterfall chart titled "The stage with the lowest odds isn't FDA review." The chart tracks a hypothetical cohort of 1,000 experimental drugs from Phase I trials through FDA approval, with floating bars showing how many candidates are lost at each development stage. Phase II proof-of-concept testing, highlighted in burgundy, eliminates more candidates than any other single stage — 370, compared to 480 in Phase I safety testing, 63 in Phase III confirmation, and just 8 during FDA review. Only 28.9% of candidates advance beyond Phase II, versus a 90.6% approval rate at FDA review. The bridge ends with 79 of the original 1,000 candidates reaching approval. Source: BIO, Informa Pharma Intelligence and QLS Advisors, Clinical Development Success Rates 2011–2020.](swd_2026_08.png){#fig-1}
+![Waterfall chart titled "The stage with the lowest odds isn't FDA review." The chart tracks a hypothetical cohort of 1,000 experimental drugs from Phase I trials through FDA approval, with floating bars showing how many candidates are lost at each development stage. Phase II proof-of-concept testing, highlighted in burgundy, has the lowest advancement rate of any stage: only 28.9% of candidates entering it move on, versus a 90.6% approval rate at FDA review. In absolute numbers, Phase I safety testing removes the most candidates (480), followed by Phase II (370), Phase III confirmation (63) and FDA review (8). The bridge ends with 79 of the original 1,000 candidates reaching approval. Source: BIO, Informa Pharma Intelligence and QLS Advisors, Clinical Development Success Rates 2011–2020.](swd_2026_08.png){#fig-1}
 
 ### [**Steps to Create this Graphic**]{.mark}
 
@@ -197,8 +197,7 @@ clrs <- get_theme_colors(
 ### |-  titles and caption ----
 title_text <- "The stage with the lowest odds isn't FDA review"
 
-subtitle_text <- str_glue("Of 1,000 experimental drugs entering Phase I trials, more are lost during<br>","
-                          Phase II proof-of-concept testing than at any other stage of development")
+subtitle_text <- "Of 1,000 hypothetical drug candidates entering Phase I, the lowest stage-specific<br>advancement rate occurs in Phase II\u2014not during FDA review"
 
 annotation_text <- "Only 28.9% advance beyond Phase II \u2014 by comparison,<br>90.6% of submitted applications receive approval"
 
