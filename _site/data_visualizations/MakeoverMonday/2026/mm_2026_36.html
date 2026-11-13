@@ -78,9 +78,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-6a50bd621f08fdc5c26e43d254df0a90.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../../site_libs/bootstrap/bootstrap-82ddc1a61fbdca658950f445e9e7bcb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../../site_libs/bootstrap/bootstrap-dark-efad1095cfc99db29e26ab62b15fc29c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../../site_libs/bootstrap/bootstrap-82ddc1a61fbdca658950f445e9e7bcb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-d55cae638b822f220971c0561a3e6a8a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/bootstrap/bootstrap-dark-49f5d0f6aa530edecd551bb8840bfb50.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../site_libs/bootstrap/bootstrap-d55cae638b822f220971c0561a3e6a8a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script src="../../../site_libs/quarto-contrib/iconify-2.1.0/iconify-icon.min.js"></script><script id="quarto-search-options" type="application/json">{
@@ -1787,7 +1787,7 @@ Female Animal Characters Out Entirely.”</span> September 7. <a href="https://s
 <p>© 2024–<span class="footer-year">2026</span> Steven Ponce · Built with R + Quarto</p>
 </div>   
     <div class="nav-footer-center">
-<p><a class="me-1" href="https://github.com/poncest" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i></a> <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a> <a class="me-1" href="https://twitter.com/sponce1" title="X/Twitter" aria-label="X (Twitter)" target="_blank" rel="noopener"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a> <a class="me-1" href="https://bsky.app/profile/sponce1.bsky.social" title="Bluesky" aria-label="Bluesky" target="_blank" rel="noopener"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon></a></p>
+<p><a class="me-1" href="https://github.com/poncest" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i></a> <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a> <a class="me-1" href="https://twitter.com/sponce1" title="X/Twitter" aria-label="X (Twitter)" target="_blank" rel="noopener"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a> <a class="me-1" href="https://bsky.app/profile/sponce1.bsky.social" title="Bluesky" aria-label="Bluesky" target="_blank" rel="noopener"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon></a> <a class="me-1" href="../../../data_visualizations.xml" title="RSS feed" aria-label="RSS feed"><i class="fa-solid fa-rss" aria-hidden="true"></i></a></p>
 </div>
     <div class="nav-footer-right">
 <p><a class="me-1" href="https://github.com/poncest/personal-website"><i class="fa-solid fa-code" aria-hidden="true"></i> Source</a> <a class="me-1" href="https://github.com/poncest/personal-website/issues"><i class="fa-solid fa-bug" aria-hidden="true"></i> Issues</a></p>
@@ -1846,6 +1846,43 @@ document.querySelectorAll("img.figure-img:not([alt])").forEach(function (img) {
   var text = cap.textContent.replace(/^\s*Figure\s*\d+\s*[:.]\s*/i, "").trim();
   if (text) img.setAttribute("alt", text);
 });
+// Share links (Expansion, Batch 9): LinkedIn and Copy link at the end of
+// each post, above the appendix. Posts live in subfolders of the three
+// listing sections; the homepage and listing pages are skipped.
+(function () {
+  if (!/^\/(data_visualizations|projects|behind_the_viz)\//.test(location.pathname)) return;
+  var main = document.querySelector("main");
+  if (!main || main.querySelector(".post-share")) return;
+  var url = location.origin + location.pathname;
+  var box = document.createElement("div");
+  box.className = "post-share";
+  var label = document.createElement("span");
+  label.className = "post-share-label";
+  label.textContent = "Share";
+  var li = document.createElement("a");
+  li.href = "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(url);
+  li.target = "_blank";
+  li.rel = "noopener";
+  li.textContent = "LinkedIn";
+  var copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "post-share-copy";
+  copy.setAttribute("aria-live", "polite");
+  copy.textContent = "Copy link";
+  copy.addEventListener("click", function () {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+    navigator.clipboard.writeText(url).then(function () {
+      copy.textContent = "Link copied";
+      setTimeout(function () { copy.textContent = "Copy link"; }, 2000);
+    }, function () {});
+  });
+  box.appendChild(label);
+  box.appendChild(li);
+  box.appendChild(copy);
+  var appendix = main.querySelector("#quarto-appendix");
+  if (appendix) appendix.parentNode.insertBefore(box, appendix);
+  else main.appendChild(box);
+})();
 </script>
 
 

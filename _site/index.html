@@ -47,9 +47,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-6a50bd621f08fdc5c26e43d254df0a90.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-82ddc1a61fbdca658950f445e9e7bcb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-efad1095cfc99db29e26ab62b15fc29c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-82ddc1a61fbdca658950f445e9e7bcb8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-d55cae638b822f220971c0561a3e6a8a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-49f5d0f6aa530edecd551bb8840bfb50.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-d55cae638b822f220971c0561a3e6a8a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script src="site_libs/quarto-contrib/iconify-2.1.0/iconify-icon.min.js"></script>
@@ -97,6 +97,34 @@ ul.task-list li input[type="checkbox"] {
 
     window['quarto-listings'] = window['quarto-listings'] || {};
     window['quarto-listings']['listing-recent-viz'] = new List('listing-recent-viz', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-start-here .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-image','listing-title','listing-categories','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      
+      searchColumns: ["listing-title","listing-description","listing-image","listing-categories"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-start-here'] = new List('listing-start-here', options);
 
     if (window['quarto-listing-loaded']) {
       window['quarto-listing-loaded']();
@@ -592,10 +620,102 @@ Nov 2, 2026
 </div>
 <div class="listing-no-matching d-none">No matching items</div>
 </div>
+<div class="home-section-head home-section-gap">
+  <p class="home-kicker">Start here</p>
+</div>
+<div id="listing-start-here" class="quarto-listing quarto-listing-container-grid">
+<div class="list grid quarto-listing-cols-4">
+<div class="g-col-1" data-index="0" data-categories="RGVjaXNpb24lMjBzdXBwb3J0">
+<a href="projects/standalone_visualizations/sa_2026-01-28.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="projects/standalone_visualizations/thumbnails/sa_2026-01-28.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Launch Curve Forecaster
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('RGVjaXNpb24lMjBzdXBwb3J0'); return false;">Decision support</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Governance-first oncology launch planning with revenue-at-risk analysis.</p>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="1" data-categories="Q2xpbmljYWwlMjBmb3JlY2FzdGluZw==">
+<a href="projects/standalone_visualizations/sa_2026-01-19.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="projects/standalone_visualizations/thumbnails/sa_2026-01-19.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+Clinical Trial Forecaster
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('Q2xpbmljYWwlMjBmb3JlY2FzdGluZw=='); return false;">Clinical forecasting</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Trial duration prediction with a validation-first methodology.</p>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="2" data-categories="SW50ZXJhY3RpdmUlMjBzdG9yeQ==">
+<a href="projects/standalone_visualizations/sa_2026-11-11.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="projects/standalone_visualizations/thumbnails/sa_2026-11-11.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+The Changing Shape of Hot-Air Balloon Accidents
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('SW50ZXJhY3RpdmUlMjBzdG9yeQ=='); return false;">Interactive story</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>What NTSB records can and cannot show about balloon size, sightseeing flights and safety.</p>
+</div>
+</div>
+</div></a>
+</div>
+<div class="g-col-1" data-index="3" data-categories="U3RhdGlzdGljYWwlMjByZWFzb25pbmc=">
+<a href="data_visualizations/MakeoverMonday/2026/mm_2026_44.html" class="quarto-grid-link">
+<div class="quarto-grid-item card h-100 card-left">
+<p class="card-img-top">
+<img loading="lazy" src="data_visualizations/MakeoverMonday/2026/thumbnails/mm_2026_44.png" class="thumbnail-image card-img" style="height: 200px;">
+</p>
+<div class="card-body post-contents">
+<h5 class="no-anchor card-title listing-title">
+The top science systems differ unusually widely in student AI use
+</h5>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('U3RhdGlzdGljYWwlMjByZWFzb25pbmc='); return false;">Statistical reasoning</div>
+
+</div>
+<div class="card-text listing-description delink">
+<p>Only 0.3% of 100,000 random groups matched the spread among the top 11 science systems.</p>
+</div>
+</div>
+</div></a>
+</div>
+</div>
+<div class="listing-no-matching d-none">No matching items</div>
+</div>
 
 <div class="home-stats">
 <div class="home-stat"><span class="home-stat-num">286</span><span class="home-stat-label">visualizations</span></div>
-<div class="home-stat"><span class="home-stat-num">23</span><span class="home-stat-label">projects</span></div>
+<div class="home-stat"><span class="home-stat-num">24</span><span class="home-stat-label">projects</span></div>
 <div class="home-stat"><span class="home-stat-num">2024</span><span class="home-stat-label">publishing since</span></div>
 </div>
 <p class="home-kicker">About</p>
@@ -1028,7 +1148,7 @@ Nov 2, 2026
 <p>© 2024–<span class="footer-year">2026</span> Steven Ponce · Built with R + Quarto</p>
 </div>   
     <div class="nav-footer-center">
-<p><a class="me-1" href="https://github.com/poncest" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i></a> <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a> <a class="me-1" href="https://twitter.com/sponce1" title="X/Twitter" aria-label="X (Twitter)" target="_blank" rel="noopener"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a> <a class="me-1" href="https://bsky.app/profile/sponce1.bsky.social" title="Bluesky" aria-label="Bluesky" target="_blank" rel="noopener"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon></a></p>
+<p><a class="me-1" href="https://github.com/poncest" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener"><i class="fa-brands fa-github" aria-hidden="true"></i></a> <a class="me-1" href="https://www.linkedin.com/in/stevenponce/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a> <a class="me-1" href="https://twitter.com/sponce1" title="X/Twitter" aria-label="X (Twitter)" target="_blank" rel="noopener"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a> <a class="me-1" href="https://bsky.app/profile/sponce1.bsky.social" title="Bluesky" aria-label="Bluesky" target="_blank" rel="noopener"><iconify-icon role="img" inline="" icon="fa6-brands:bluesky" aria-label="Icon bluesky from fa6-brands Iconify.design set." title="Icon bluesky from fa6-brands Iconify.design set."></iconify-icon></a> <a class="me-1" href="./data_visualizations.xml" title="RSS feed" aria-label="RSS feed"><i class="fa-solid fa-rss" aria-hidden="true"></i></a></p>
 </div>
     <div class="nav-footer-right">
 <p><a class="me-1" href="https://github.com/poncest/personal-website"><i class="fa-solid fa-code" aria-hidden="true"></i> Source</a> <a class="me-1" href="https://github.com/poncest/personal-website/issues"><i class="fa-solid fa-bug" aria-hidden="true"></i> Issues</a></p>
@@ -1088,6 +1208,43 @@ document.querySelectorAll("img.figure-img:not([alt])").forEach(function (img) {
   var text = cap.textContent.replace(/^\s*Figure\s*\d+\s*[:.]\s*/i, "").trim();
   if (text) img.setAttribute("alt", text);
 });
+// Share links (Expansion, Batch 9): LinkedIn and Copy link at the end of
+// each post, above the appendix. Posts live in subfolders of the three
+// listing sections; the homepage and listing pages are skipped.
+(function () {
+  if (!/^\/(data_visualizations|projects|behind_the_viz)\//.test(location.pathname)) return;
+  var main = document.querySelector("main");
+  if (!main || main.querySelector(".post-share")) return;
+  var url = location.origin + location.pathname;
+  var box = document.createElement("div");
+  box.className = "post-share";
+  var label = document.createElement("span");
+  label.className = "post-share-label";
+  label.textContent = "Share";
+  var li = document.createElement("a");
+  li.href = "https://www.linkedin.com/feed/?shareActive=true&text=" + encodeURIComponent(url);
+  li.target = "_blank";
+  li.rel = "noopener";
+  li.textContent = "LinkedIn";
+  var copy = document.createElement("button");
+  copy.type = "button";
+  copy.className = "post-share-copy";
+  copy.setAttribute("aria-live", "polite");
+  copy.textContent = "Copy link";
+  copy.addEventListener("click", function () {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+    navigator.clipboard.writeText(url).then(function () {
+      copy.textContent = "Link copied";
+      setTimeout(function () { copy.textContent = "Copy link"; }, 2000);
+    }, function () {});
+  });
+  box.appendChild(label);
+  box.appendChild(li);
+  box.appendChild(copy);
+  var appendix = main.querySelector("#quarto-appendix");
+  if (appendix) appendix.parentNode.insertBefore(box, appendix);
+  else main.appendChild(box);
+})();
 </script>
 
 
