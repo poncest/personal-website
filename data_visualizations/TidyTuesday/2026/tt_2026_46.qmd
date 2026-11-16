@@ -50,9 +50,9 @@ execute:
 ::: {.key-takeaways}
 [Key takeaways]{.key-takeaways-label}
 
-- The higher mortality hazard associated with total cholesterol of 240+ mg/dL was no longer detectable after accounting for age and sex. Adults in that cholesterol group were older on average (51 years versus 46 in the comparison group).
-- In survey-weighted Cox models of 52,634 adults and 7,632 deaths, the estimated hazard ratio at 240+ mg/dL changed from 1.27 (95% CI: 1.14–1.40) before adjustment to 1.00 (0.90–1.11) afterward. The cholesterol–mortality association differed across age groups (interaction p = 0.00025), while cholesterol below 160 mg/dL was associated with higher mortality hazard in all three age groups, relative to 180–199 mg/dL.
-- Individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing. The 18–49 estimate at 240+ mg/dL is sensitive to survey weighting, and the data lack statin use, smoking, and baseline illness information. These associations do not establish cause and effect.
+- Age matters when comparing cholesterol groups. Adults at 240+ mg/dL averaged 51 years old, versus 46 in the comparison group, and the apparent excess mortality hazard was no longer detectable after adjusting for age and sex.
+- In survey-weighted Cox models of 52,634 adults and 7,632 deaths, the hazard ratio at 240+ mg/dL changed from 1.27 (95% CI 1.14–1.40) to 1.00 (0.90–1.11). The association also differed across age groups (interaction p = 0.00025).
+- Cholesterol below 160 mg/dL was associated with higher mortality hazard in all three age groups, but underlying illness and cholesterol-lowering treatment could contribute to this pattern. The dataset lacks statin use, smoking and baseline illness; the 18–49 high-cholesterol estimate is sensitive to survey weighting. Individual comparisons were not adjusted for multiple testing.
 :::
 
 ### [**Steps to Create this Graphic**]{.mark}
@@ -408,7 +408,7 @@ p <- ggplot(cells) +
   labs(title = title_text, subtitle = subtitle_text, caption = caption_text)
 ```
 
-### [7. Save]{.smallcaps}
+#### [7. Save]{.smallcaps}
 
 ```{r}
 #| label: save

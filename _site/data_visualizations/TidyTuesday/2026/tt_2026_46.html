@@ -398,12 +398,8 @@ gtag('config', 'G-SG5QD2EXYM', { 'anonymize_ip': true});
   <li><a href="#tidy-data" id="toc-tidy-data" class="nav-link" data-scroll-target="#tidy-data"><span class="smallcaps">4. Tidy Data</span></a></li>
   <li><a href="#visualization-parameters" id="toc-visualization-parameters" class="nav-link" data-scroll-target="#visualization-parameters"><span class="smallcaps">5. Visualization Parameters</span></a></li>
   <li><a href="#plot" id="toc-plot" class="nav-link" data-scroll-target="#plot"><span class="smallcaps">6. Plot</span></a></li>
-  </ul>
-</li>
-  <li>
-<a href="#save" id="toc-save" class="nav-link" data-scroll-target="#save"><span class="smallcaps">7. Save</span></a>
-  <ul>
-<li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info"><span class="smallcaps">8. Session Info</span></a></li>
+  <li><a href="#save" id="toc-save" class="nav-link" data-scroll-target="#save"><span class="smallcaps">7. Save</span></a></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info"><span class="smallcaps">8. Session Info</span></a></li>
   <li><a href="#github-repository" id="toc-github-repository" class="nav-link" data-scroll-target="#github-repository"><span class="smallcaps">9. GitHub Repository</span></a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="smallcaps">10. References</span></a></li>
   <li><a href="#custom-functions-documentation" id="toc-custom-functions-documentation" class="nav-link" data-scroll-target="#custom-functions-documentation"><span class="smallcaps">11. Custom Functions Documentation</span></a></li>
@@ -460,9 +456,9 @@ Figure&nbsp;1: Tile matrix titled Cholesterol’s link to death looks different 
 <div class="key-takeaways">
 <p><span class="key-takeaways-label">Key takeaways</span></p>
 <ul>
-<li>The higher mortality hazard associated with total cholesterol of 240+ mg/dL was no longer detectable after accounting for age and sex. Adults in that cholesterol group were older on average (51 years versus 46 in the comparison group).</li>
-<li>In survey-weighted Cox models of 52,634 adults and 7,632 deaths, the estimated hazard ratio at 240+ mg/dL changed from 1.27 (95% CI: 1.14–1.40) before adjustment to 1.00 (0.90–1.11) afterward. The cholesterol–mortality association differed across age groups (interaction p = 0.00025), while cholesterol below 160 mg/dL was associated with higher mortality hazard in all three age groups, relative to 180–199 mg/dL.</li>
-<li>Individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing. The 18–49 estimate at 240+ mg/dL is sensitive to survey weighting, and the data lack statin use, smoking, and baseline illness information. These associations do not establish cause and effect.</li>
+<li>Age matters when comparing cholesterol groups. Adults at 240+ mg/dL averaged 51 years old, versus 46 in the comparison group, and the apparent excess mortality hazard was no longer detectable after adjusting for age and sex.</li>
+<li>In survey-weighted Cox models of 52,634 adults and 7,632 deaths, the hazard ratio at 240+ mg/dL changed from 1.27 (95% CI 1.14–1.40) to 1.00 (0.90–1.11). The association also differed across age groups (interaction p = 0.00025).</li>
+<li>Cholesterol below 160 mg/dL was associated with higher mortality hazard in all three age groups, but underlying illness and cholesterol-lowering treatment could contribute to this pattern. The dataset lacks statin use, smoking and baseline illness; the 18–49 high-cholesterol estimate is sensitive to survey weighting. Individual comparisons were not adjusted for multiple testing.</li>
 </ul>
 </div>
 <section id="steps-to-create-this-graphic" class="level3"><h3 class="anchored" data-anchor-id="steps-to-create-this-graphic"><mark><strong>Steps to Create this Graphic</strong></mark></h3>
@@ -821,7 +817,7 @@ Figure&nbsp;1: Tile matrix titled Cholesterol’s link to death looks different 
 <span id="cb6-108"><a href="#cb6-108" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-</section></section><section id="save" class="level3"><h3 class="anchored" data-anchor-id="save"><span class="smallcaps">7. Save</span></h3>
+</section><section id="save" class="level4"><h4 class="anchored" data-anchor-id="save"><span class="smallcaps">7. Save</span></h4>
 <div class="cell">
 <details class="code-fold"><summary>Show code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save</span></span>
@@ -843,7 +839,7 @@ Figure&nbsp;1: Tile matrix titled Cholesterol’s link to death looks different 
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<section id="session-info" class="level4"><h4 class="anchored" data-anchor-id="session-info"><span class="smallcaps">8. Session Info</span></h4>
+</section><section id="session-info" class="level4"><h4 class="anchored" data-anchor-id="session-info"><span class="smallcaps">8. Session Info</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -1507,9 +1503,9 @@ at Different Ages.”</span> November 16. <a href="https://stevenponce.netlify.a
 <span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>::: {.key-takeaways}</span>
 <span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Key takeaways</span><span class="co">]</span>{.key-takeaways-label}</span>
 <span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The higher mortality hazard associated with total cholesterol of 240+ mg/dL was no longer detectable after accounting for age and sex. Adults in that cholesterol group were older on average (51 years versus 46 in the comparison group).</span>
-<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In survey-weighted Cox models of 52,634 adults and 7,632 deaths, the estimated hazard ratio at 240+ mg/dL changed from 1.27 (95% CI: 1.14–1.40) before adjustment to 1.00 (0.90–1.11) afterward. The cholesterol–mortality association differed across age groups (interaction p = 0.00025), while cholesterol below 160 mg/dL was associated with higher mortality hazard in all three age groups, relative to 180–199 mg/dL.</span>
-<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing. The 18–49 estimate at 240+ mg/dL is sensitive to survey weighting, and the data lack statin use, smoking, and baseline illness information. These associations do not establish cause and effect.</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Age matters when comparing cholesterol groups. Adults at 240+ mg/dL averaged 51 years old, versus 46 in the comparison group, and the apparent excess mortality hazard was no longer detectable after adjusting for age and sex.</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>In survey-weighted Cox models of 52,634 adults and 7,632 deaths, the hazard ratio at 240+ mg/dL changed from 1.27 (95% CI 1.14–1.40) to 1.00 (0.90–1.11). The association also differed across age groups (interaction p = 0.00025).</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Cholesterol below 160 mg/dL was associated with higher mortality hazard in all three age groups, but underlying illness and cholesterol-lowering treatment could contribute to this pattern. The dataset lacks statin use, smoking and baseline illness; the 18–49 high-cholesterol estimate is sensitive to survey weighting. Individual comparisons were not adjusted for multiple testing.</span>
 <span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a><span class="fu">### [**Steps to Create this Graphic**]{.mark}</span></span>
@@ -1865,7 +1861,7 @@ at Different Ages.”</span> November 16. <a href="https://stevenponce.netlify.a
 <span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> title_text, <span class="at">subtitle =</span> subtitle_text, <span class="at">caption =</span> caption_text)</span>
 <span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a><span class="fu">### [7. Save]{.smallcaps}</span></span>
+<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [7. Save]{.smallcaps}</span></span>
 <span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save</span></span>
