@@ -520,6 +520,29 @@ Figure&nbsp;1: Tile matrix titled Cholesterol’s link to death looks different 
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Expand for the decision record (how the estimates were made)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>tt_2026_46_decision_record.R</code> holds the full analysis behind the chart:</p>
+<ul>
+<li>Data checks: the derived columns recomputed, the meaning of missing values, follow-up length by cycle, and the sample reconciled with Li, Fu &amp; Zhang (2025).</li>
+<li>Survey weights: 2/10 × WTMEC4YR for 1999–2002 and 1/10 × WTMEC2YR for 2003–2018, as recommended for pooled NHANES cycles.</li>
+<li>Models: crude and age- and sex-adjusted Cox models, robustness checks (age specification, bins, early deaths, weighting), age-group results, and interaction tests.</li>
+<li>Export: the estimates the chart displays, written to <code>tt_2026_46_estimates.csv</code>.</li>
+</ul>
+<p>To reproduce: run the decision record first (it downloads the two NHANES demographic files from the CDC), then <code>2026_46.R</code>.</p>
+</div>
+</div>
+</div>
 </section><section id="examine-the-data" class="level4"><h4 class="anchored" data-anchor-id="examine-the-data"><span class="smallcaps">3. Examine the Data</span></h4>
 <div class="cell">
 <details class="code-fold"><summary>Show code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
@@ -841,7 +864,7 @@ Figure&nbsp;1: Tile matrix titled Cholesterol’s link to death looks different 
 </div>
 </section><section id="session-info" class="level4"><h4 class="anchored" data-anchor-id="session-info"><span class="smallcaps">8. Session Info</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -850,7 +873,7 @@ Figure&nbsp;1: Tile matrix titled Cholesterol’s link to death looks different 
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -901,7 +924,7 @@ loaded via a namespace (and not attached):
 </div>
 </section><section id="github-repository" class="level4"><h4 class="anchored" data-anchor-id="github-repository"><span class="smallcaps">9. GitHub Repository</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -910,7 +933,7 @@ loaded via a namespace (and not attached):
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The complete code for this analysis is available in <a href="https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_46.qmd"><code>tt_2026_46.qmd</code></a>.</p>
 <p>For the full repository, <a href="https://github.com/poncest/personal-website/">click here</a>.</p>
@@ -919,7 +942,7 @@ loaded via a namespace (and not attached):
 </div>
 </section><section id="references" class="level4"><h4 class="anchored" data-anchor-id="references"><span class="smallcaps">10. References</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -928,23 +951,20 @@ loaded via a namespace (and not attached):
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<ol type="1">
-<li>
-<strong>Data Source:</strong>
-<ul>
-<li>TidyTuesday 2026 Week 46: <a href="https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-11-17/readme.md">Cholesterol and Mortality in US Adults</a>
-</li>
-</ul>
-</li>
-</ol>
+<p><strong>Primary Data (TidyTuesday):</strong> 1. TidyTuesday 2026 Week 46: <a href="https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-17">Cholesterol and Mortality in US Adults</a>, curated by Tony Galvan. - One row per adult: total cholesterol, HDL, LDL, triglycerides, two ratios, age, sex, race, survey design columns and mortality status. 52,678 adults from ten NHANES cycles (1999–2018). - The curation script uses the two-year exam weight (WTMEC2YR) for every cycle and has no fasting-subsample weight. The data dictionary reverses the age top-codes: NHANES codes ages 85 and over as 85 in 1999–2006 and ages 80 and over as 80 from 2007. It also says to divide weights by the number of cycles, which is not the CDC rule for 1999–2002. - LDL and triglycerides come from the fasting subsample (about half the adults) and are not used.</p>
+<p><strong>Source Data:</strong> 2. National Center for Health Statistics. National Health and Nutrition Examination Survey, 1999–2018, linked to the <a href="https://www.cdc.gov/nchs/data-linkage/mortality-public.htm">2019 Public-Use Linked Mortality Files</a> (follow-up through December 31, 2019). - The public-use mortality files are perturbed to protect participants’ identities, so some follow-up times and causes of death are synthetic. This matters more for cause-specific analyses, which the chart does not use.</p>
+<p><strong>Enrichment Data:</strong> 3. National Center for Health Statistics. <a href="https://wwwn.cdc.gov/nchs/data/nhanes/public/1999/datafiles/DEMO.htm">NHANES 1999–2000 Demographics (DEMO)</a> and 2001–2002 (DEMO_B): four-year exam weights (WTMEC4YR), joined by SEQN. - Pooled 20-year weights follow the <a href="https://wwwn.cdc.gov/nchs/nhanes/tutorials/default.aspx">NHANES weighting tutorial</a>: 2/10 × WTMEC4YR for 1999–2002, 1/10 × WTMEC2YR for 2003–2018. The file’s survey_weight matches WTMEC2YR exactly for 1999–2002. - Population represented: 212.5 million adults (212.0 million with the dictionary’s simpler rule).</p>
+<p><strong>Analysis Script:</strong> 4. <a href="https://github.com/poncest/tidytuesday/tree/main/2026/Week_46">tt_2026_46_decision_record.R</a>: data checks, weight rebuild, survey-weighted Cox models (<code><a href="https://rdrr.io/pkg/survey/man/svycoxph.html">survey::svycoxph()</a></code>), robustness checks and interaction tests. It writes <code>tt_2026_46_estimates.csv</code>, which the chart reads.</p>
+<p><strong>Prior Coverage:</strong> 5. Li S, Fu Z, Zhang W (2025). <a href="https://doi.org/10.1186/s12889-025-22251-z">Association of high-density lipoprotein cholesterol with all-cause and cause-specific mortality in the general population: insights from NHANES 1999–2018</a>. BMC Public Health 25:1123. Same NHANES cycles, HDL only, with U-shaped curves and forest plots; this chart avoids both designs. Their 51,235 adults and 7,602 deaths sit close to this analysis’s 52,634 and 7,632. Most of the gap is the pregnant participants they excluded, whom this file cannot identify. 6. Yi SW, Yi JJ, Ohrr H (2019). <a href="https://doi.org/10.1038/s41598-018-38461-y">Total cholesterol and all-cause mortality by sex and age: a prospective cohort study among 12.8 million adults</a>. Scientific Reports 9:1596. The Korean U-curve the TidyTuesday readme cites. 7. Zhou D et al.&nbsp;(2022). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9797665">The effect of total cholesterol/high-density lipoprotein cholesterol ratio on mortality risk in the general population</a>. The ratio angle on NHANES was already published, so it was not used here. 8. <a href="https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1591705/epub">Non-HDL cholesterol and mortality by age, NHANES (Frontiers in Nutrition, 2025)</a>. Reports age differences for non-HDL cholesterol; the three age bands here follow its split (under 50, 50–69, 70+).</p>
+<p><strong>Analysis Frame:</strong> - <strong>Population:</strong> 52,634 of 52,678 adults with total cholesterol and HDL measured, excluding HDL above 140 mg/dL, as in Li et al.; 7,632 deaths. - <strong>Measure:</strong> hazard ratios (death rates relative to adults at 180–199 mg/dL) from survey-weighted Cox models stratified by NHANES cycle, because follow-up runs from about 2 to 20 years depending on cycle. Raw “share who died” is never compared across groups. - <strong>Before and after:</strong> at 240+ mg/dL, 1.27 (1.14–1.40) before adjustment; 1.27 adjusting for sex alone; 0.95 (0.86–1.06) adjusting for age alone; 1.00 (0.90–1.11) adjusting for age and sex. Below 160 mg/dL: 1.19, then 1.35. Average age rises from 42 (below 160) to 51 (240+), weighted. - <strong>Robustness of the 240+ result:</strong> 0.96 to 1.05 under quadratic age, age bands, age as the time scale, excluding 1999–2002, bins shifted by 10 mg/dL, and men and women separately. - <strong>Age groups:</strong> at 240+, ages 18–49 1.42 (1.07–1.89), 50–69 1.02 (0.85–1.22), 70+ 0.91 (0.80–1.04). Below 160 mg/dL, higher in every group (1.46, 1.41, 1.27). The pattern differs by age group (interaction test, p = 0.00025). - <strong>Claim limits:</strong> the individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing; the age-dependent pattern overall rests on the interaction test, so individual tiles (such as the two lower cells at ages 50–69) should be read cautiously. The 18–49 estimate at 240+ is based on 128 deaths and is sensitive to survey weighting (1.26, 0.99–1.60, without weights). Statin use, smoking and illness at the exam are not in the data, so the chart shows associations only, not what raising or lowering cholesterol would do. - <strong>Not used:</strong> the cholesterol ratios (already published); cause of death (low cholesterol and heart-disease deaths is likely confounded by statin treatment, which isn’t measured); how much cholesterol adds to predicting death beyond age and sex (0.0008 to 0.0019 in concordance, too small to chart); excluding early deaths (the low-cholesterol excess goes 1.35 → 1.31 → 1.22 at 0, 2 and 5 years, with overlapping intervals; a robustness check, not a finding); LDL and triglycerides (fasting subsample, no fasting weight). - <strong>Scope:</strong> observational and descriptive of associations in US adults, 1999–2018; no clinical or causal claim.</p>
 </div>
 </div>
 </div>
 </section><section id="custom-functions-documentation" class="level4"><h4 class="anchored" data-anchor-id="custom-functions-documentation"><span class="smallcaps">11. Custom Functions Documentation</span></h4>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -953,7 +973,7 @@ loaded via a namespace (and not attached):
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>This analysis uses custom functions from my personal module library for efficiency and consistency across projects.</p>
 <p><strong>Functions Used:</strong></p>
@@ -1567,374 +1587,405 @@ at Different Ages.”</span> November 16. <a href="https://stevenponce.netlify.a
 <span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [3. Examine the Data]{.smallcaps}</span></span>
-<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: examine</span></span>
-<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
-<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: 'hide'</span></span>
-<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a><span class="do">## 3. EXAMINING THE DATA ----</span></span>
-<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(est_raw)</span>
-<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a>est_raw <span class="sc">|&gt;</span> <span class="fu">count</span>(kind, row_key) <span class="sc">|&gt;</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="cn">Inf</span>)</span>
-<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [4. Tidy Data]{.smallcaps}</span></span>
-<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tidy</span></span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for the decision record (how the estimates were made)</span></span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a><span class="in">`tt_2026_46_decision_record.R`</span> holds the full analysis behind the chart:</span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Data checks: the derived columns recomputed, the meaning of missing values, follow-up length by cycle, and the sample reconciled with Li, Fu &amp; Zhang (2025).</span>
+<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Survey weights: 2/10 × WTMEC4YR for 1999–2002 and 1/10 × WTMEC2YR for 2003–2018, as recommended for pooled NHANES cycles.</span>
+<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Models: crude and age- and sex-adjusted Cox models, robustness checks (age specification, bins, early deaths, weighting), age-group results, and interaction tests.</span>
+<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Export: the estimates the chart displays, written to <span class="in">`tt_2026_46_estimates.csv`</span>.</span>
+<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a>To reproduce: run the decision record first (it downloads the two NHANES demographic files from the CDC), then <span class="in">`2026_46.R`</span>.</span>
+<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [3. Examine the Data]{.smallcaps}</span></span>
+<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: examine</span></span>
+<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
+<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: 'hide'</span></span>
 <span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
 <span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a><span class="do">### |- analysis population ----</span></span>
-<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> cm_raw <span class="sc">|&gt;</span></span>
-<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(total_chol, hdl, died), \(x) <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(<span class="fu">na_if</span>(x, <span class="st">"NA"</span>)))))</span>
-<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a>an <span class="ot">&lt;-</span> cm <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(total_chol), <span class="sc">!</span><span class="fu">is.na</span>(hdl), hdl <span class="sc">&lt;=</span> <span class="dv">140</span>)</span>
-<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a>n_adults <span class="ot">&lt;-</span> <span class="fu">nrow</span>(an)</span>
-<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a>n_deaths <span class="ot">&lt;-</span> <span class="fu">sum</span>(an<span class="sc">$</span>died)</span>
+<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a><span class="do">## 3. EXAMINING THE DATA ----</span></span>
+<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(est_raw)</span>
+<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a>est_raw <span class="sc">|&gt;</span> <span class="fu">count</span>(kind, row_key) <span class="sc">|&gt;</span> <span class="fu">print</span>(<span class="at">n =</span> <span class="cn">Inf</span>)</span>
+<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [4. Tidy Data]{.smallcaps}</span></span>
 <span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a><span class="do">### |- estimates ----</span></span>
-<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a>bins_raw <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"&lt;160"</span>, <span class="st">"160-179"</span>, <span class="st">"180-199"</span>, <span class="st">"200-219"</span>, <span class="st">"220-239"</span>, <span class="st">"240+"</span>)</span>
-<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>bins_show <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Below 160"</span>, <span class="st">"160–179"</span>, <span class="st">"180–199"</span>, <span class="st">"200–219"</span>, <span class="st">"220–239"</span>, <span class="st">"240+"</span>)</span>
-<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> est_raw <span class="sc">|&gt;</span></span>
-<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(<span class="fu">c</span>(value, lo, hi, deaths), \(x) <span class="fu">as.numeric</span>(<span class="fu">na_if</span>(x, <span class="st">""</span>))),</span>
-<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">match</span>(bin, bins_raw)</span>
-<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a>hr <span class="ot">&lt;-</span> est <span class="sc">|&gt;</span> <span class="fu">filter</span>(kind <span class="sc">==</span> <span class="st">"hr_weighted"</span>)</span>
-<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a><span class="do">### |- matrix layout: rows top to bottom = the reading order ----</span></span>
-<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a><span class="do">## groups (1), (2), (3) are separated by wider gaps than rows within a group, so the</span></span>
-<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a><span class="do">## matrix reads as three steps, not one heatmap</span></span>
-<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a>row_y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">crude_all =</span> <span class="fl">6.3</span>, <span class="at">adj_all =</span> <span class="fl">4.95</span>, <span class="at">adj_18_49 =</span> <span class="fl">3.3</span>, <span class="at">adj_50_69 =</span> <span class="fl">2.3</span>, <span class="at">adj_70p =</span> <span class="fl">1.3</span>)</span>
+<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tidy</span></span>
+<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a><span class="do">### |- analysis population ----</span></span>
+<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> cm_raw <span class="sc">|&gt;</span></span>
+<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(total_chol, hdl, died), \(x) <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(<span class="fu">na_if</span>(x, <span class="st">"NA"</span>)))))</span>
+<span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a>an <span class="ot">&lt;-</span> cm <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(total_chol), <span class="sc">!</span><span class="fu">is.na</span>(hdl), hdl <span class="sc">&lt;=</span> <span class="dv">140</span>)</span>
+<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a>n_adults <span class="ot">&lt;-</span> <span class="fu">nrow</span>(an)</span>
+<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a>n_deaths <span class="ot">&lt;-</span> <span class="fu">sum</span>(an<span class="sc">$</span>died)</span>
+<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a><span class="do">### |- estimates ----</span></span>
+<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a>bins_raw <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"&lt;160"</span>, <span class="st">"160-179"</span>, <span class="st">"180-199"</span>, <span class="st">"200-219"</span>, <span class="st">"220-239"</span>, <span class="st">"240+"</span>)</span>
+<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a>bins_show <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Below 160"</span>, <span class="st">"160–179"</span>, <span class="st">"180–199"</span>, <span class="st">"200–219"</span>, <span class="st">"220–239"</span>, <span class="st">"240+"</span>)</span>
 <span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a>cells <span class="ot">&lt;-</span> hr <span class="sc">|&gt;</span></span>
+<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> est_raw <span class="sc">|&gt;</span></span>
 <span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">unname</span>(row_y[row_key]),</span>
-<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a>    <span class="at">status =</span> <span class="fu">case_when</span>(</span>
-<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a>      bin <span class="sc">==</span> <span class="st">"180-199"</span> <span class="sc">~</span> <span class="st">"ref"</span>,</span>
-<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a>      lo <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"higher"</span>,</span>
-<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a>      hi <span class="sc">&lt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"lower"</span>,</span>
-<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"unclear"</span></span>
-<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab_hr =</span> <span class="fu">if_else</span>(status <span class="sc">==</span> <span class="st">"ref"</span>, <span class="st">"1.00"</span>, <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, value)),</span>
-<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab_ci =</span> <span class="fu">case_when</span>(</span>
-<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>      status <span class="sc">==</span> <span class="st">"ref"</span> <span class="sc">&amp;</span> row_key <span class="sc">==</span> <span class="st">"crude_all"</span> <span class="sc">~</span> <span class="st">"comparison"</span>,</span>
-<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>      status <span class="sc">==</span> <span class="st">"ref"</span> <span class="sc">~</span> <span class="st">""</span>,</span>
-<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">sprintf</span>(<span class="st">"%.2f–%.2f"</span>, lo, hi)</span>
-<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>    <span class="at">y_hr =</span> <span class="fu">if_else</span>(lab_ci <span class="sc">==</span> <span class="st">""</span>, y, y <span class="sc">+</span> <span class="fl">0.13</span>)</span>
-<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a><span class="do">### |- numbers quoted in copy (all from the export) ----</span></span>
-<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a>pick <span class="ot">&lt;-</span> <span class="cf">function</span>(key, b, <span class="at">k =</span> <span class="st">"hr_weighted"</span>) est <span class="sc">|&gt;</span> <span class="fu">filter</span>(kind <span class="sc">==</span> k, row_key <span class="sc">==</span> key, bin <span class="sc">==</span> b)</span>
-<span id="cb9-189"><a href="#cb9-189" aria-hidden="true" tabindex="-1"></a>crude_240 <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"crude_all"</span>, <span class="st">"240+"</span>)</span>
-<span id="cb9-190"><a href="#cb9-190" aria-hidden="true" tabindex="-1"></a>adj_240 <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_all"</span>, <span class="st">"240+"</span>)</span>
-<span id="cb9-191"><a href="#cb9-191" aria-hidden="true" tabindex="-1"></a>young_240 <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_18_49"</span>, <span class="st">"240+"</span>)</span>
-<span id="cb9-192"><a href="#cb9-192" aria-hidden="true" tabindex="-1"></a>young_unw <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_18_49"</span>, <span class="st">"240+"</span>, <span class="st">"hr_unweighted"</span>)</span>
-<span id="cb9-193"><a href="#cb9-193" aria-hidden="true" tabindex="-1"></a>mean_age <span class="ot">&lt;-</span> est <span class="sc">|&gt;</span></span>
-<span id="cb9-194"><a href="#cb9-194" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(kind <span class="sc">==</span> <span class="st">"mean_age_weighted"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-195"><a href="#cb9-195" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(col)</span>
-<span id="cb9-196"><a href="#cb9-196" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-197"><a href="#cb9-197" aria-hidden="true" tabindex="-1"></a>pct_crude <span class="ot">&lt;-</span> <span class="fu">round</span>((crude_240<span class="sc">$</span>value <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>)</span>
-<span id="cb9-198"><a href="#cb9-198" aria-hidden="true" tabindex="-1"></a>dip <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_50_69"</span>, <span class="st">"200-219"</span>)</span>
-<span id="cb9-199"><a href="#cb9-199" aria-hidden="true" tabindex="-1"></a>pct_dip <span class="ot">&lt;-</span> <span class="fu">round</span>((<span class="dv">1</span> <span class="sc">-</span> dip<span class="sc">$</span>value) <span class="sc">*</span> <span class="dv">100</span>)</span>
-<span id="cb9-200"><a href="#cb9-200" aria-hidden="true" tabindex="-1"></a>age_240 <span class="ot">&lt;-</span> mean_age<span class="sc">$</span>value[mean_age<span class="sc">$</span>bin <span class="sc">==</span> <span class="st">"240+"</span>]</span>
-<span id="cb9-201"><a href="#cb9-201" aria-hidden="true" tabindex="-1"></a>age_ref <span class="ot">&lt;-</span> mean_age<span class="sc">$</span>value[mean_age<span class="sc">$</span>bin <span class="sc">==</span> <span class="st">"180-199"</span>]</span>
-<span id="cb9-202"><a href="#cb9-202" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-203"><a href="#cb9-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-204"><a href="#cb9-204" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [5. Visualization Parameters]{.smallcaps}</span></span>
-<span id="cb9-205"><a href="#cb9-205" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-208"><a href="#cb9-208" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-209"><a href="#cb9-209" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: params</span></span>
-<span id="cb9-210"><a href="#cb9-210" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
-<span id="cb9-211"><a href="#cb9-211" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-212"><a href="#cb9-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-213"><a href="#cb9-213" aria-hidden="true" tabindex="-1"></a><span class="do">### |- plot aesthetics ----</span></span>
-<span id="cb9-214"><a href="#cb9-214" aria-hidden="true" tabindex="-1"></a>clrs <span class="ot">&lt;-</span> <span class="fu">get_theme_colors</span>(</span>
-<span id="cb9-215"><a href="#cb9-215" aria-hidden="true" tabindex="-1"></a>  <span class="at">palette =</span> <span class="fu">list</span>(</span>
-<span id="cb9-216"><a href="#cb9-216" aria-hidden="true" tabindex="-1"></a>    <span class="at">higher  =</span> <span class="st">"#9A4A2E"</span>,</span>
-<span id="cb9-217"><a href="#cb9-217" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower   =</span> <span class="st">"#4D6478"</span>,</span>
-<span id="cb9-218"><a href="#cb9-218" aria-hidden="true" tabindex="-1"></a>    <span class="at">unclear =</span> <span class="st">"#E6DFD3"</span>,</span>
-<span id="cb9-219"><a href="#cb9-219" aria-hidden="true" tabindex="-1"></a>    <span class="at">ref     =</span> <span class="st">"#FFFFFF"</span>,</span>
-<span id="cb9-220"><a href="#cb9-220" aria-hidden="true" tabindex="-1"></a>    <span class="at">ink     =</span> <span class="st">"#2C2825"</span>,</span>
-<span id="cb9-221"><a href="#cb9-221" aria-hidden="true" tabindex="-1"></a>    <span class="at">muted   =</span> <span class="st">"#7A7068"</span>,</span>
-<span id="cb9-222"><a href="#cb9-222" aria-hidden="true" tabindex="-1"></a>    <span class="at">outline =</span> <span class="st">"#7A7068"</span></span>
-<span id="cb9-223"><a href="#cb9-223" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-224"><a href="#cb9-224" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-225"><a href="#cb9-225" aria-hidden="true" tabindex="-1"></a>col_higher <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>higher</span>
-<span id="cb9-226"><a href="#cb9-226" aria-hidden="true" tabindex="-1"></a>col_lower <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>lower</span>
-<span id="cb9-227"><a href="#cb9-227" aria-hidden="true" tabindex="-1"></a>col_unclear <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>unclear</span>
-<span id="cb9-228"><a href="#cb9-228" aria-hidden="true" tabindex="-1"></a>col_ref <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>ref</span>
-<span id="cb9-229"><a href="#cb9-229" aria-hidden="true" tabindex="-1"></a>col_ink <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>ink</span>
-<span id="cb9-230"><a href="#cb9-230" aria-hidden="true" tabindex="-1"></a>col_muted <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>muted</span>
-<span id="cb9-231"><a href="#cb9-231" aria-hidden="true" tabindex="-1"></a>col_outline <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>outline</span>
-<span id="cb9-232"><a href="#cb9-232" aria-hidden="true" tabindex="-1"></a>col_bg <span class="ot">&lt;-</span> clrs<span class="sc">$</span>background</span>
-<span id="cb9-233"><a href="#cb9-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-234"><a href="#cb9-234" aria-hidden="true" tabindex="-1"></a><span class="do">### |- titles and caption ----</span></span>
-<span id="cb9-235"><a href="#cb9-235" aria-hidden="true" tabindex="-1"></a>title_text <span class="ot">&lt;-</span> <span class="st">"Cholesterol's link to death looks different at different ages"</span></span>
-<span id="cb9-236"><a href="#cb9-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-237"><a href="#cb9-237" aria-hidden="true" tabindex="-1"></a>subtitle_text <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
-<span id="cb9-238"><a href="#cb9-238" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Each tile compares the death rate of US adults in one cholesterol group with adults at 180–199 mg/dL (1.00).&lt;br&gt;"</span>,</span>
-<span id="cb9-239"><a href="#cb9-239" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{sprintf('%.2f', crude_240$value)} means a {pct_crude}% higher death rate; "</span>,</span>
-<span id="cb9-240"><a href="#cb9-240" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{sprintf('%.2f', dip$value)} means {pct_dip}% lower."</span></span>
-<span id="cb9-241"><a href="#cb9-241" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-242"><a href="#cb9-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-243"><a href="#cb9-243" aria-hidden="true" tabindex="-1"></a>cue_crude <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
-<span id="cb9-244"><a href="#cb9-244" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Average age in this group: {round(age_240)},</span><span class="sc">\n</span><span class="st">against {round(age_ref)} in the comparison group"</span></span>
-<span id="cb9-245"><a href="#cb9-245" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-246"><a href="#cb9-246" aria-hidden="true" tabindex="-1"></a>note_adj <span class="ot">&lt;-</span> <span class="st">"Taking age and sex into account,</span><span class="sc">\n</span><span class="st">the highest group no longer stands out"</span></span>
-<span id="cb9-247"><a href="#cb9-247" aria-hidden="true" tabindex="-1"></a>note_young <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
-<span id="cb9-248"><a href="#cb9-248" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Based on {young_240$deaths} deaths. Without survey</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb9-249"><a href="#cb9-249" aria-hidden="true" tabindex="-1"></a>  <span class="st">"weights, the interval includes 1.00:</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb9-250"><a href="#cb9-250" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{sprintf('%.2f', young_unw$value)} ({sprintf('%.2f', young_unw$lo)}–{sprintf('%.2f', young_unw$hi)})"</span></span>
-<span id="cb9-251"><a href="#cb9-251" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-252"><a href="#cb9-252" aria-hidden="true" tabindex="-1"></a>note_low <span class="ot">&lt;-</span> <span class="st">"Low cholesterol is associated with higher mortality here;</span><span class="sc">\n</span><span class="st">treatment and underlying illness are not measured."</span></span>
-<span id="cb9-253"><a href="#cb9-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-254"><a href="#cb9-254" aria-hidden="true" tabindex="-1"></a><span class="do">## three caption lines</span></span>
-<span id="cb9-255"><a href="#cb9-255" aria-hidden="true" tabindex="-1"></a>caption_lines <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb9-256"><a href="#cb9-256" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Hazard ratios with 95% intervals, survey-weighted Cox models (CDC 20-year exam weights) stratified by NHANES cycle; rows 2–5 adjusted for age and sex."</span>,</span>
-<span id="cb9-257"><a href="#cb9-257" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glue</span>(</span>
-<span id="cb9-258"><a href="#cb9-258" aria-hidden="true" tabindex="-1"></a>    <span class="st">"{comma(n_adults)} adults, {comma(n_deaths)} deaths, follow-up through 2019; HDL over 140 mg/dL excluded. "</span>,</span>
-<span id="cb9-259"><a href="#cb9-259" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Colour marks intervals entirely above or below 1.00."</span></span>
-<span id="cb9-260"><a href="#cb9-260" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb9-261"><a href="#cb9-261" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Observational: statin use, smoking and illness at the exam are not measured; the pattern does not show what changing cholesterol would do."</span></span>
-<span id="cb9-262"><a href="#cb9-262" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-263"><a href="#cb9-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-264"><a href="#cb9-264" aria-hidden="true" tabindex="-1"></a>caption_text <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
-<span id="cb9-265"><a href="#cb9-265" aria-hidden="true" tabindex="-1"></a>  caption_lines[<span class="dv">1</span>], <span class="st">"&lt;br&gt;"</span>, caption_lines[<span class="dv">2</span>], <span class="st">"&lt;br&gt;"</span>, caption_lines[<span class="dv">3</span>], <span class="st">"&lt;br&gt;"</span>,</span>
-<span id="cb9-266"><a href="#cb9-266" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_social_caption</span>(</span>
-<span id="cb9-267"><a href="#cb9-267" aria-hidden="true" tabindex="-1"></a>    <span class="at">tt_year =</span> <span class="dv">2026</span>,</span>
-<span id="cb9-268"><a href="#cb9-268" aria-hidden="true" tabindex="-1"></a>    <span class="at">tt_week =</span> <span class="dv">46</span>,</span>
-<span id="cb9-269"><a href="#cb9-269" aria-hidden="true" tabindex="-1"></a>    <span class="at">source_text =</span> <span class="st">"NHANES 1999–2018 and NCHS Linked Mortality Files via TidyTuesday"</span></span>
-<span id="cb9-270"><a href="#cb9-270" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-271"><a href="#cb9-271" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-272"><a href="#cb9-272" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-273"><a href="#cb9-273" aria-hidden="true" tabindex="-1"></a><span class="do">### |- plot theme ----</span></span>
-<span id="cb9-274"><a href="#cb9-274" aria-hidden="true" tabindex="-1"></a>base_theme <span class="ot">&lt;-</span> <span class="fu">create_base_theme</span>(clrs)</span>
-<span id="cb9-275"><a href="#cb9-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-276"><a href="#cb9-276" aria-hidden="true" tabindex="-1"></a>weekly_theme <span class="ot">&lt;-</span> <span class="fu">extend_weekly_theme</span>(</span>
-<span id="cb9-277"><a href="#cb9-277" aria-hidden="true" tabindex="-1"></a>  base_theme,</span>
-<span id="cb9-278"><a href="#cb9-278" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb9-279"><a href="#cb9-279" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_textbox_simple</span>(</span>
-<span id="cb9-280"><a href="#cb9-280" aria-hidden="true" tabindex="-1"></a>      <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">family =</span> title_family, <span class="at">size =</span> title_size,</span>
-<span id="cb9-281"><a href="#cb9-281" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.0</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">10</span>)</span>
-<span id="cb9-282"><a href="#cb9-282" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-283"><a href="#cb9-283" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_textbox_simple</span>(</span>
-<span id="cb9-284"><a href="#cb9-284" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> fonts<span class="sc">$</span>subtitle, <span class="at">size =</span> <span class="dv">11</span>, <span class="at">color =</span> col_ink,</span>
-<span id="cb9-285"><a href="#cb9-285" aria-hidden="true" tabindex="-1"></a>      <span class="at">lineheight =</span> <span class="fl">1.3</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">6</span>)</span>
-<span id="cb9-286"><a href="#cb9-286" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-287"><a href="#cb9-287" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.caption =</span> <span class="fu">element_textbox_simple</span>(</span>
-<span id="cb9-288"><a href="#cb9-288" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> fonts<span class="sc">$</span>caption, <span class="at">size =</span> <span class="fl">6.6</span>, <span class="at">color =</span> col_muted,</span>
-<span id="cb9-289"><a href="#cb9-289" aria-hidden="true" tabindex="-1"></a>      <span class="at">lineheight =</span> <span class="fl">1.35</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>)</span>
-<span id="cb9-290"><a href="#cb9-290" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-291"><a href="#cb9-291" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
-<span id="cb9-292"><a href="#cb9-292" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">"left"</span>,</span>
-<span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.location =</span> <span class="st">"plot"</span>,</span>
-<span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">8.5</span>, <span class="at">color =</span> col_muted),</span>
-<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.42</span>, <span class="st">"cm"</span>),</span>
-<span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">2</span>, <span class="at">b =</span> <span class="dv">0</span>),</span>
-<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb9-302"><a href="#cb9-302" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">14</span>, <span class="dv">20</span>, <span class="dv">8</span>, <span class="dv">20</span>)</span>
-<span id="cb9-303"><a href="#cb9-303" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-304"><a href="#cb9-304" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-305"><a href="#cb9-305" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-306"><a href="#cb9-306" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(weekly_theme)</span>
-<span id="cb9-307"><a href="#cb9-307" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-308"><a href="#cb9-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-309"><a href="#cb9-309" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [6. Plot]{.smallcaps}</span></span>
-<span id="cb9-310"><a href="#cb9-310" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-313"><a href="#cb9-313" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-314"><a href="#cb9-314" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plot</span></span>
-<span id="cb9-315"><a href="#cb9-315" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-316"><a href="#cb9-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-317"><a href="#cb9-317" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-318"><a href="#cb9-318" aria-hidden="true" tabindex="-1"></a><span class="do">### |- matrix ----</span></span>
-<span id="cb9-319"><a href="#cb9-319" aria-hidden="true" tabindex="-1"></a>tile_w <span class="ot">&lt;-</span> <span class="fl">0.94</span></span>
-<span id="cb9-320"><a href="#cb9-320" aria-hidden="true" tabindex="-1"></a>tile_h <span class="ot">&lt;-</span> <span class="fl">0.86</span></span>
-<span id="cb9-321"><a href="#cb9-321" aria-hidden="true" tabindex="-1"></a>x_lab  <span class="ot">&lt;-</span> <span class="fl">0.42</span>        </span>
-<span id="cb9-322"><a href="#cb9-322" aria-hidden="true" tabindex="-1"></a>x_note <span class="ot">&lt;-</span> <span class="fl">6.62</span>       </span>
+<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(<span class="fu">c</span>(value, lo, hi, deaths), \(x) <span class="fu">as.numeric</span>(<span class="fu">na_if</span>(x, <span class="st">""</span>))),</span>
+<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a>    <span class="at">col =</span> <span class="fu">match</span>(bin, bins_raw)</span>
+<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a>hr <span class="ot">&lt;-</span> est <span class="sc">|&gt;</span> <span class="fu">filter</span>(kind <span class="sc">==</span> <span class="st">"hr_weighted"</span>)</span>
+<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a><span class="do">### |- matrix layout: rows top to bottom = the reading order ----</span></span>
+<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a><span class="do">## groups (1), (2), (3) are separated by wider gaps than rows within a group, so the</span></span>
+<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a><span class="do">## matrix reads as three steps, not one heatmap</span></span>
+<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a>row_y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">crude_all =</span> <span class="fl">6.3</span>, <span class="at">adj_all =</span> <span class="fl">4.95</span>, <span class="at">adj_18_49 =</span> <span class="fl">3.3</span>, <span class="at">adj_50_69 =</span> <span class="fl">2.3</span>, <span class="at">adj_70p =</span> <span class="fl">1.3</span>)</span>
+<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a>cells <span class="ot">&lt;-</span> hr <span class="sc">|&gt;</span></span>
+<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">unname</span>(row_y[row_key]),</span>
+<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>    <span class="at">status =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a>      bin <span class="sc">==</span> <span class="st">"180-199"</span> <span class="sc">~</span> <span class="st">"ref"</span>,</span>
+<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>      lo <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"higher"</span>,</span>
+<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a>      hi <span class="sc">&lt;</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">"lower"</span>,</span>
+<span id="cb9-189"><a href="#cb9-189" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"unclear"</span></span>
+<span id="cb9-190"><a href="#cb9-190" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-191"><a href="#cb9-191" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab_hr =</span> <span class="fu">if_else</span>(status <span class="sc">==</span> <span class="st">"ref"</span>, <span class="st">"1.00"</span>, <span class="fu">sprintf</span>(<span class="st">"%.2f"</span>, value)),</span>
+<span id="cb9-192"><a href="#cb9-192" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab_ci =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-193"><a href="#cb9-193" aria-hidden="true" tabindex="-1"></a>      status <span class="sc">==</span> <span class="st">"ref"</span> <span class="sc">&amp;</span> row_key <span class="sc">==</span> <span class="st">"crude_all"</span> <span class="sc">~</span> <span class="st">"comparison"</span>,</span>
+<span id="cb9-194"><a href="#cb9-194" aria-hidden="true" tabindex="-1"></a>      status <span class="sc">==</span> <span class="st">"ref"</span> <span class="sc">~</span> <span class="st">""</span>,</span>
+<span id="cb9-195"><a href="#cb9-195" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">sprintf</span>(<span class="st">"%.2f–%.2f"</span>, lo, hi)</span>
+<span id="cb9-196"><a href="#cb9-196" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-197"><a href="#cb9-197" aria-hidden="true" tabindex="-1"></a>    <span class="at">y_hr =</span> <span class="fu">if_else</span>(lab_ci <span class="sc">==</span> <span class="st">""</span>, y, y <span class="sc">+</span> <span class="fl">0.13</span>)</span>
+<span id="cb9-198"><a href="#cb9-198" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-199"><a href="#cb9-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-200"><a href="#cb9-200" aria-hidden="true" tabindex="-1"></a><span class="do">### |- numbers quoted in copy (all from the export) ----</span></span>
+<span id="cb9-201"><a href="#cb9-201" aria-hidden="true" tabindex="-1"></a>pick <span class="ot">&lt;-</span> <span class="cf">function</span>(key, b, <span class="at">k =</span> <span class="st">"hr_weighted"</span>) est <span class="sc">|&gt;</span> <span class="fu">filter</span>(kind <span class="sc">==</span> k, row_key <span class="sc">==</span> key, bin <span class="sc">==</span> b)</span>
+<span id="cb9-202"><a href="#cb9-202" aria-hidden="true" tabindex="-1"></a>crude_240 <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"crude_all"</span>, <span class="st">"240+"</span>)</span>
+<span id="cb9-203"><a href="#cb9-203" aria-hidden="true" tabindex="-1"></a>adj_240 <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_all"</span>, <span class="st">"240+"</span>)</span>
+<span id="cb9-204"><a href="#cb9-204" aria-hidden="true" tabindex="-1"></a>young_240 <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_18_49"</span>, <span class="st">"240+"</span>)</span>
+<span id="cb9-205"><a href="#cb9-205" aria-hidden="true" tabindex="-1"></a>young_unw <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_18_49"</span>, <span class="st">"240+"</span>, <span class="st">"hr_unweighted"</span>)</span>
+<span id="cb9-206"><a href="#cb9-206" aria-hidden="true" tabindex="-1"></a>mean_age <span class="ot">&lt;-</span> est <span class="sc">|&gt;</span></span>
+<span id="cb9-207"><a href="#cb9-207" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(kind <span class="sc">==</span> <span class="st">"mean_age_weighted"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-208"><a href="#cb9-208" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(col)</span>
+<span id="cb9-209"><a href="#cb9-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-210"><a href="#cb9-210" aria-hidden="true" tabindex="-1"></a>pct_crude <span class="ot">&lt;-</span> <span class="fu">round</span>((crude_240<span class="sc">$</span>value <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb9-211"><a href="#cb9-211" aria-hidden="true" tabindex="-1"></a>dip <span class="ot">&lt;-</span> <span class="fu">pick</span>(<span class="st">"adj_50_69"</span>, <span class="st">"200-219"</span>)</span>
+<span id="cb9-212"><a href="#cb9-212" aria-hidden="true" tabindex="-1"></a>pct_dip <span class="ot">&lt;-</span> <span class="fu">round</span>((<span class="dv">1</span> <span class="sc">-</span> dip<span class="sc">$</span>value) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb9-213"><a href="#cb9-213" aria-hidden="true" tabindex="-1"></a>age_240 <span class="ot">&lt;-</span> mean_age<span class="sc">$</span>value[mean_age<span class="sc">$</span>bin <span class="sc">==</span> <span class="st">"240+"</span>]</span>
+<span id="cb9-214"><a href="#cb9-214" aria-hidden="true" tabindex="-1"></a>age_ref <span class="ot">&lt;-</span> mean_age<span class="sc">$</span>value[mean_age<span class="sc">$</span>bin <span class="sc">==</span> <span class="st">"180-199"</span>]</span>
+<span id="cb9-215"><a href="#cb9-215" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-216"><a href="#cb9-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-217"><a href="#cb9-217" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [5. Visualization Parameters]{.smallcaps}</span></span>
+<span id="cb9-218"><a href="#cb9-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-221"><a href="#cb9-221" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-222"><a href="#cb9-222" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: params</span></span>
+<span id="cb9-223"><a href="#cb9-223" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: true</span></span>
+<span id="cb9-224"><a href="#cb9-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-225"><a href="#cb9-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-226"><a href="#cb9-226" aria-hidden="true" tabindex="-1"></a><span class="do">### |- plot aesthetics ----</span></span>
+<span id="cb9-227"><a href="#cb9-227" aria-hidden="true" tabindex="-1"></a>clrs <span class="ot">&lt;-</span> <span class="fu">get_theme_colors</span>(</span>
+<span id="cb9-228"><a href="#cb9-228" aria-hidden="true" tabindex="-1"></a>  <span class="at">palette =</span> <span class="fu">list</span>(</span>
+<span id="cb9-229"><a href="#cb9-229" aria-hidden="true" tabindex="-1"></a>    <span class="at">higher  =</span> <span class="st">"#9A4A2E"</span>,</span>
+<span id="cb9-230"><a href="#cb9-230" aria-hidden="true" tabindex="-1"></a>    <span class="at">lower   =</span> <span class="st">"#4D6478"</span>,</span>
+<span id="cb9-231"><a href="#cb9-231" aria-hidden="true" tabindex="-1"></a>    <span class="at">unclear =</span> <span class="st">"#E6DFD3"</span>,</span>
+<span id="cb9-232"><a href="#cb9-232" aria-hidden="true" tabindex="-1"></a>    <span class="at">ref     =</span> <span class="st">"#FFFFFF"</span>,</span>
+<span id="cb9-233"><a href="#cb9-233" aria-hidden="true" tabindex="-1"></a>    <span class="at">ink     =</span> <span class="st">"#2C2825"</span>,</span>
+<span id="cb9-234"><a href="#cb9-234" aria-hidden="true" tabindex="-1"></a>    <span class="at">muted   =</span> <span class="st">"#7A7068"</span>,</span>
+<span id="cb9-235"><a href="#cb9-235" aria-hidden="true" tabindex="-1"></a>    <span class="at">outline =</span> <span class="st">"#7A7068"</span></span>
+<span id="cb9-236"><a href="#cb9-236" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-237"><a href="#cb9-237" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-238"><a href="#cb9-238" aria-hidden="true" tabindex="-1"></a>col_higher <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>higher</span>
+<span id="cb9-239"><a href="#cb9-239" aria-hidden="true" tabindex="-1"></a>col_lower <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>lower</span>
+<span id="cb9-240"><a href="#cb9-240" aria-hidden="true" tabindex="-1"></a>col_unclear <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>unclear</span>
+<span id="cb9-241"><a href="#cb9-241" aria-hidden="true" tabindex="-1"></a>col_ref <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>ref</span>
+<span id="cb9-242"><a href="#cb9-242" aria-hidden="true" tabindex="-1"></a>col_ink <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>ink</span>
+<span id="cb9-243"><a href="#cb9-243" aria-hidden="true" tabindex="-1"></a>col_muted <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>muted</span>
+<span id="cb9-244"><a href="#cb9-244" aria-hidden="true" tabindex="-1"></a>col_outline <span class="ot">&lt;-</span> clrs<span class="sc">$</span>palette<span class="sc">$</span>outline</span>
+<span id="cb9-245"><a href="#cb9-245" aria-hidden="true" tabindex="-1"></a>col_bg <span class="ot">&lt;-</span> clrs<span class="sc">$</span>background</span>
+<span id="cb9-246"><a href="#cb9-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-247"><a href="#cb9-247" aria-hidden="true" tabindex="-1"></a><span class="do">### |- titles and caption ----</span></span>
+<span id="cb9-248"><a href="#cb9-248" aria-hidden="true" tabindex="-1"></a>title_text <span class="ot">&lt;-</span> <span class="st">"Cholesterol's link to death looks different at different ages"</span></span>
+<span id="cb9-249"><a href="#cb9-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-250"><a href="#cb9-250" aria-hidden="true" tabindex="-1"></a>subtitle_text <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
+<span id="cb9-251"><a href="#cb9-251" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Each tile compares the death rate of US adults in one cholesterol group with adults at 180–199 mg/dL (1.00).&lt;br&gt;"</span>,</span>
+<span id="cb9-252"><a href="#cb9-252" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{sprintf('%.2f', crude_240$value)} means a {pct_crude}% higher death rate; "</span>,</span>
+<span id="cb9-253"><a href="#cb9-253" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{sprintf('%.2f', dip$value)} means {pct_dip}% lower."</span></span>
+<span id="cb9-254"><a href="#cb9-254" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-255"><a href="#cb9-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-256"><a href="#cb9-256" aria-hidden="true" tabindex="-1"></a>cue_crude <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
+<span id="cb9-257"><a href="#cb9-257" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Average age in this group: {round(age_240)},</span><span class="sc">\n</span><span class="st">against {round(age_ref)} in the comparison group"</span></span>
+<span id="cb9-258"><a href="#cb9-258" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-259"><a href="#cb9-259" aria-hidden="true" tabindex="-1"></a>note_adj <span class="ot">&lt;-</span> <span class="st">"Taking age and sex into account,</span><span class="sc">\n</span><span class="st">the highest group no longer stands out"</span></span>
+<span id="cb9-260"><a href="#cb9-260" aria-hidden="true" tabindex="-1"></a>note_young <span class="ot">&lt;-</span> <span class="fu">glue</span>(</span>
+<span id="cb9-261"><a href="#cb9-261" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Based on {young_240$deaths} deaths. Without survey</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb9-262"><a href="#cb9-262" aria-hidden="true" tabindex="-1"></a>  <span class="st">"weights, the interval includes 1.00:</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb9-263"><a href="#cb9-263" aria-hidden="true" tabindex="-1"></a>  <span class="st">"{sprintf('%.2f', young_unw$value)} ({sprintf('%.2f', young_unw$lo)}–{sprintf('%.2f', young_unw$hi)})"</span></span>
+<span id="cb9-264"><a href="#cb9-264" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-265"><a href="#cb9-265" aria-hidden="true" tabindex="-1"></a>note_low <span class="ot">&lt;-</span> <span class="st">"Low cholesterol is associated with higher mortality here;</span><span class="sc">\n</span><span class="st">treatment and underlying illness are not measured."</span></span>
+<span id="cb9-266"><a href="#cb9-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-267"><a href="#cb9-267" aria-hidden="true" tabindex="-1"></a><span class="do">## three caption lines</span></span>
+<span id="cb9-268"><a href="#cb9-268" aria-hidden="true" tabindex="-1"></a>caption_lines <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-269"><a href="#cb9-269" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Hazard ratios with 95% intervals, survey-weighted Cox models (CDC 20-year exam weights) stratified by NHANES cycle; rows 2–5 adjusted for age and sex."</span>,</span>
+<span id="cb9-270"><a href="#cb9-270" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glue</span>(</span>
+<span id="cb9-271"><a href="#cb9-271" aria-hidden="true" tabindex="-1"></a>    <span class="st">"{comma(n_adults)} adults, {comma(n_deaths)} deaths, follow-up through 2019; HDL over 140 mg/dL excluded. "</span>,</span>
+<span id="cb9-272"><a href="#cb9-272" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Colour marks intervals entirely above or below 1.00."</span></span>
+<span id="cb9-273"><a href="#cb9-273" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb9-274"><a href="#cb9-274" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Observational: statin use, smoking and illness at the exam are not measured; the pattern does not show what changing cholesterol would do."</span></span>
+<span id="cb9-275"><a href="#cb9-275" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-276"><a href="#cb9-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-277"><a href="#cb9-277" aria-hidden="true" tabindex="-1"></a>caption_text <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
+<span id="cb9-278"><a href="#cb9-278" aria-hidden="true" tabindex="-1"></a>  caption_lines[<span class="dv">1</span>], <span class="st">"&lt;br&gt;"</span>, caption_lines[<span class="dv">2</span>], <span class="st">"&lt;br&gt;"</span>, caption_lines[<span class="dv">3</span>], <span class="st">"&lt;br&gt;"</span>,</span>
+<span id="cb9-279"><a href="#cb9-279" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_social_caption</span>(</span>
+<span id="cb9-280"><a href="#cb9-280" aria-hidden="true" tabindex="-1"></a>    <span class="at">tt_year =</span> <span class="dv">2026</span>,</span>
+<span id="cb9-281"><a href="#cb9-281" aria-hidden="true" tabindex="-1"></a>    <span class="at">tt_week =</span> <span class="dv">46</span>,</span>
+<span id="cb9-282"><a href="#cb9-282" aria-hidden="true" tabindex="-1"></a>    <span class="at">source_text =</span> <span class="st">"NHANES 1999–2018 and NCHS Linked Mortality Files via TidyTuesday"</span></span>
+<span id="cb9-283"><a href="#cb9-283" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-284"><a href="#cb9-284" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-285"><a href="#cb9-285" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-286"><a href="#cb9-286" aria-hidden="true" tabindex="-1"></a><span class="do">### |- plot theme ----</span></span>
+<span id="cb9-287"><a href="#cb9-287" aria-hidden="true" tabindex="-1"></a>base_theme <span class="ot">&lt;-</span> <span class="fu">create_base_theme</span>(clrs)</span>
+<span id="cb9-288"><a href="#cb9-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-289"><a href="#cb9-289" aria-hidden="true" tabindex="-1"></a>weekly_theme <span class="ot">&lt;-</span> <span class="fu">extend_weekly_theme</span>(</span>
+<span id="cb9-290"><a href="#cb9-290" aria-hidden="true" tabindex="-1"></a>  base_theme,</span>
+<span id="cb9-291"><a href="#cb9-291" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb9-292"><a href="#cb9-292" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_textbox_simple</span>(</span>
+<span id="cb9-293"><a href="#cb9-293" aria-hidden="true" tabindex="-1"></a>      <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">family =</span> title_family, <span class="at">size =</span> title_size,</span>
+<span id="cb9-294"><a href="#cb9-294" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.0</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">10</span>)</span>
+<span id="cb9-295"><a href="#cb9-295" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-296"><a href="#cb9-296" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> <span class="fu">element_textbox_simple</span>(</span>
+<span id="cb9-297"><a href="#cb9-297" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> fonts<span class="sc">$</span>subtitle, <span class="at">size =</span> <span class="dv">11</span>, <span class="at">color =</span> col_ink,</span>
+<span id="cb9-298"><a href="#cb9-298" aria-hidden="true" tabindex="-1"></a>      <span class="at">lineheight =</span> <span class="fl">1.3</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">b =</span> <span class="dv">6</span>)</span>
+<span id="cb9-299"><a href="#cb9-299" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-300"><a href="#cb9-300" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.caption =</span> <span class="fu">element_textbox_simple</span>(</span>
+<span id="cb9-301"><a href="#cb9-301" aria-hidden="true" tabindex="-1"></a>      <span class="at">family =</span> fonts<span class="sc">$</span>caption, <span class="at">size =</span> <span class="fl">6.6</span>, <span class="at">color =</span> col_muted,</span>
+<span id="cb9-302"><a href="#cb9-302" aria-hidden="true" tabindex="-1"></a>      <span class="at">lineheight =</span> <span class="fl">1.35</span>, <span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">8</span>)</span>
+<span id="cb9-303"><a href="#cb9-303" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-304"><a href="#cb9-304" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb9-305"><a href="#cb9-305" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.justification =</span> <span class="st">"left"</span>,</span>
+<span id="cb9-306"><a href="#cb9-306" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.location =</span> <span class="st">"plot"</span>,</span>
+<span id="cb9-307"><a href="#cb9-307" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-308"><a href="#cb9-308" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">8.5</span>, <span class="at">color =</span> col_muted),</span>
+<span id="cb9-309"><a href="#cb9-309" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.key.size =</span> <span class="fu">unit</span>(<span class="fl">0.42</span>, <span class="st">"cm"</span>),</span>
+<span id="cb9-310"><a href="#cb9-310" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">2</span>, <span class="at">b =</span> <span class="dv">0</span>),</span>
+<span id="cb9-311"><a href="#cb9-311" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-312"><a href="#cb9-312" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-313"><a href="#cb9-313" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.ticks =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-314"><a href="#cb9-314" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-315"><a href="#cb9-315" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">14</span>, <span class="dv">20</span>, <span class="dv">8</span>, <span class="dv">20</span>)</span>
+<span id="cb9-316"><a href="#cb9-316" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-317"><a href="#cb9-317" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-318"><a href="#cb9-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-319"><a href="#cb9-319" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(weekly_theme)</span>
+<span id="cb9-320"><a href="#cb9-320" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-321"><a href="#cb9-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-322"><a href="#cb9-322" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [6. Plot]{.smallcaps}</span></span>
 <span id="cb9-323"><a href="#cb9-323" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-324"><a href="#cb9-324" aria-hidden="true" tabindex="-1"></a>row_labels <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb9-325"><a href="#cb9-325" aria-hidden="true" tabindex="-1"></a>    <span class="at">y     =</span> <span class="fu">unname</span>(row_y),</span>
-<span id="cb9-326"><a href="#cb9-326" aria-hidden="true" tabindex="-1"></a>    <span class="at">main  =</span> <span class="fu">c</span>(<span class="st">"(1)  All adults"</span>, <span class="st">"(2)  All adults"</span>, <span class="st">"Ages 18–49"</span>, <span class="st">"Ages 50–69"</span>, <span class="st">"Ages 70+"</span>),</span>
-<span id="cb9-327"><a href="#cb9-327" aria-hidden="true" tabindex="-1"></a>    <span class="at">sub   =</span> <span class="fu">c</span>(<span class="st">"before taking age and sex into account"</span>, <span class="st">"taking age and sex into account"</span>, <span class="st">""</span>, <span class="st">""</span>, <span class="st">""</span>)</span>
-<span id="cb9-328"><a href="#cb9-328" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-326"><a href="#cb9-326" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-327"><a href="#cb9-327" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: plot</span></span>
+<span id="cb9-328"><a href="#cb9-328" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
 <span id="cb9-329"><a href="#cb9-329" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-330"><a href="#cb9-330" aria-hidden="true" tabindex="-1"></a><span class="do">### |- main plot ----</span></span>
-<span id="cb9-331"><a href="#cb9-331" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cells) <span class="sc">+</span></span>
-<span id="cb9-332"><a href="#cb9-332" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Geoms</span></span>
-<span id="cb9-333"><a href="#cb9-333" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="fu">aes</span>(<span class="at">x =</span> col, <span class="at">y =</span> y, <span class="at">fill =</span> status), <span class="at">width =</span> tile_w, <span class="at">height =</span> tile_h, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb9-334"><a href="#cb9-334" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(</span>
-<span id="cb9-335"><a href="#cb9-335" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(cells, status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"unclear"</span>, <span class="st">"ref"</span>)),</span>
-<span id="cb9-336"><a href="#cb9-336" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> col, <span class="at">y =</span> y), <span class="at">width =</span> tile_w, <span class="at">height =</span> tile_h,</span>
-<span id="cb9-337"><a href="#cb9-337" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> col_outline, <span class="at">linewidth =</span> <span class="fl">0.3</span></span>
-<span id="cb9-338"><a href="#cb9-338" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-339"><a href="#cb9-339" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb9-340"><a href="#cb9-340" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
-<span id="cb9-341"><a href="#cb9-341" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> col, <span class="at">y =</span> y_hr, <span class="at">label =</span> lab_hr,</span>
-<span id="cb9-342"><a href="#cb9-342" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">if_else</span>(status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"higher"</span>, <span class="st">"lower"</span>), <span class="st">"on_dark"</span>, <span class="st">"on_light"</span>)</span>
-<span id="cb9-343"><a href="#cb9-343" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-344"><a href="#cb9-344" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">4.1</span></span>
-<span id="cb9-345"><a href="#cb9-345" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-346"><a href="#cb9-346" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb9-347"><a href="#cb9-347" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
-<span id="cb9-348"><a href="#cb9-348" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> col, <span class="at">y =</span> y <span class="sc">-</span> <span class="fl">0.19</span>, <span class="at">label =</span> lab_ci,</span>
-<span id="cb9-349"><a href="#cb9-349" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">if_else</span>(status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"higher"</span>, <span class="st">"lower"</span>), <span class="st">"on_dark"</span>, <span class="st">"on_light"</span>)</span>
-<span id="cb9-350"><a href="#cb9-350" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb9-351"><a href="#cb9-351" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>caption, <span class="at">size =</span> <span class="fl">2.5</span></span>
-<span id="cb9-352"><a href="#cb9-352" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-353"><a href="#cb9-353" aria-hidden="true" tabindex="-1"></a>  <span class="co"># column headers</span></span>
-<span id="cb9-354"><a href="#cb9-354" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-355"><a href="#cb9-355" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">y =</span> <span class="fl">7.4</span>, <span class="at">label =</span> bins_show,</span>
-<span id="cb9-356"><a href="#cb9-356" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">3.3</span>, <span class="at">color =</span> col_ink</span>
-<span id="cb9-357"><a href="#cb9-357" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-358"><a href="#cb9-358" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-359"><a href="#cb9-359" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fl">0.53</span>, <span class="at">y =</span> <span class="fl">7.85</span>, <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> <span class="st">"Total cholesterol, mg/dL"</span>,</span>
-<span id="cb9-360"><a href="#cb9-360" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">3.1</span>, <span class="at">color =</span> col_muted</span>
-<span id="cb9-361"><a href="#cb9-361" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-362"><a href="#cb9-362" aria-hidden="true" tabindex="-1"></a>  <span class="co"># row labels</span></span>
-<span id="cb9-363"><a href="#cb9-363" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb9-364"><a href="#cb9-364" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> row_labels, <span class="fu">aes</span>(<span class="at">x =</span> x_lab, <span class="at">y =</span> y <span class="sc">+</span> <span class="fu">if_else</span>(sub <span class="sc">==</span> <span class="st">""</span>, <span class="dv">0</span>, <span class="fl">0.12</span>), <span class="at">label =</span> main),</span>
-<span id="cb9-365"><a href="#cb9-365" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">3.3</span>, <span class="at">color =</span> col_ink</span>
-<span id="cb9-366"><a href="#cb9-366" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-367"><a href="#cb9-367" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb9-368"><a href="#cb9-368" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(row_labels, sub <span class="sc">!=</span> <span class="st">""</span>), <span class="fu">aes</span>(<span class="at">x =</span> x_lab, <span class="at">y =</span> y <span class="sc">-</span> <span class="fl">0.2</span>, <span class="at">label =</span> sub),</span>
-<span id="cb9-369"><a href="#cb9-369" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.9</span>, <span class="at">color =</span> col_muted</span>
+<span id="cb9-330"><a href="#cb9-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-331"><a href="#cb9-331" aria-hidden="true" tabindex="-1"></a><span class="do">### |- matrix ----</span></span>
+<span id="cb9-332"><a href="#cb9-332" aria-hidden="true" tabindex="-1"></a>tile_w <span class="ot">&lt;-</span> <span class="fl">0.94</span></span>
+<span id="cb9-333"><a href="#cb9-333" aria-hidden="true" tabindex="-1"></a>tile_h <span class="ot">&lt;-</span> <span class="fl">0.86</span></span>
+<span id="cb9-334"><a href="#cb9-334" aria-hidden="true" tabindex="-1"></a>x_lab  <span class="ot">&lt;-</span> <span class="fl">0.42</span>        </span>
+<span id="cb9-335"><a href="#cb9-335" aria-hidden="true" tabindex="-1"></a>x_note <span class="ot">&lt;-</span> <span class="fl">6.62</span>       </span>
+<span id="cb9-336"><a href="#cb9-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-337"><a href="#cb9-337" aria-hidden="true" tabindex="-1"></a>row_labels <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb9-338"><a href="#cb9-338" aria-hidden="true" tabindex="-1"></a>    <span class="at">y     =</span> <span class="fu">unname</span>(row_y),</span>
+<span id="cb9-339"><a href="#cb9-339" aria-hidden="true" tabindex="-1"></a>    <span class="at">main  =</span> <span class="fu">c</span>(<span class="st">"(1)  All adults"</span>, <span class="st">"(2)  All adults"</span>, <span class="st">"Ages 18–49"</span>, <span class="st">"Ages 50–69"</span>, <span class="st">"Ages 70+"</span>),</span>
+<span id="cb9-340"><a href="#cb9-340" aria-hidden="true" tabindex="-1"></a>    <span class="at">sub   =</span> <span class="fu">c</span>(<span class="st">"before taking age and sex into account"</span>, <span class="st">"taking age and sex into account"</span>, <span class="st">""</span>, <span class="st">""</span>, <span class="st">""</span>)</span>
+<span id="cb9-341"><a href="#cb9-341" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-342"><a href="#cb9-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-343"><a href="#cb9-343" aria-hidden="true" tabindex="-1"></a><span class="do">### |- main plot ----</span></span>
+<span id="cb9-344"><a href="#cb9-344" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cells) <span class="sc">+</span></span>
+<span id="cb9-345"><a href="#cb9-345" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Geoms</span></span>
+<span id="cb9-346"><a href="#cb9-346" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="fu">aes</span>(<span class="at">x =</span> col, <span class="at">y =</span> y, <span class="at">fill =</span> status), <span class="at">width =</span> tile_w, <span class="at">height =</span> tile_h, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb9-347"><a href="#cb9-347" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(</span>
+<span id="cb9-348"><a href="#cb9-348" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(cells, status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"unclear"</span>, <span class="st">"ref"</span>)),</span>
+<span id="cb9-349"><a href="#cb9-349" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> col, <span class="at">y =</span> y), <span class="at">width =</span> tile_w, <span class="at">height =</span> tile_h,</span>
+<span id="cb9-350"><a href="#cb9-350" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="cn">NA</span>, <span class="at">color =</span> col_outline, <span class="at">linewidth =</span> <span class="fl">0.3</span></span>
+<span id="cb9-351"><a href="#cb9-351" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-352"><a href="#cb9-352" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb9-353"><a href="#cb9-353" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb9-354"><a href="#cb9-354" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> col, <span class="at">y =</span> y_hr, <span class="at">label =</span> lab_hr,</span>
+<span id="cb9-355"><a href="#cb9-355" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">if_else</span>(status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"higher"</span>, <span class="st">"lower"</span>), <span class="st">"on_dark"</span>, <span class="st">"on_light"</span>)</span>
+<span id="cb9-356"><a href="#cb9-356" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-357"><a href="#cb9-357" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">4.1</span></span>
+<span id="cb9-358"><a href="#cb9-358" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-359"><a href="#cb9-359" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb9-360"><a href="#cb9-360" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb9-361"><a href="#cb9-361" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> col, <span class="at">y =</span> y <span class="sc">-</span> <span class="fl">0.19</span>, <span class="at">label =</span> lab_ci,</span>
+<span id="cb9-362"><a href="#cb9-362" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">if_else</span>(status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"higher"</span>, <span class="st">"lower"</span>), <span class="st">"on_dark"</span>, <span class="st">"on_light"</span>)</span>
+<span id="cb9-363"><a href="#cb9-363" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-364"><a href="#cb9-364" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>caption, <span class="at">size =</span> <span class="fl">2.5</span></span>
+<span id="cb9-365"><a href="#cb9-365" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-366"><a href="#cb9-366" aria-hidden="true" tabindex="-1"></a>  <span class="co"># column headers</span></span>
+<span id="cb9-367"><a href="#cb9-367" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
+<span id="cb9-368"><a href="#cb9-368" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">y =</span> <span class="fl">7.4</span>, <span class="at">label =</span> bins_show,</span>
+<span id="cb9-369"><a href="#cb9-369" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">3.3</span>, <span class="at">color =</span> col_ink</span>
 <span id="cb9-370"><a href="#cb9-370" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb9-371"><a href="#cb9-371" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_lab, <span class="at">y =</span> <span class="fl">4.18</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">label =</span> <span class="st">"(3)  By age group"</span>,</span>
-<span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">3.3</span>, <span class="at">color =</span> col_ink</span>
+<span id="cb9-372"><a href="#cb9-372" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fl">0.53</span>, <span class="at">y =</span> <span class="fl">7.85</span>, <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> <span class="st">"Total cholesterol, mg/dL"</span>,</span>
+<span id="cb9-373"><a href="#cb9-373" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">3.1</span>, <span class="at">color =</span> col_muted</span>
 <span id="cb9-374"><a href="#cb9-374" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-376"><a href="#cb9-376" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_lab, <span class="at">y =</span> <span class="fl">3.85</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">label =</span> <span class="st">"taking age and sex into account"</span>,</span>
-<span id="cb9-377"><a href="#cb9-377" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.9</span>, <span class="at">color =</span> col_muted</span>
-<span id="cb9-378"><a href="#cb9-378" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-379"><a href="#cb9-379" aria-hidden="true" tabindex="-1"></a>  <span class="co"># context row: mean age (subordinate)</span></span>
-<span id="cb9-380"><a href="#cb9-380" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-381"><a href="#cb9-381" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">y =</span> <span class="fl">6.95</span>, <span class="at">label =</span> <span class="fu">round</span>(mean_age<span class="sc">$</span>value),</span>
-<span id="cb9-382"><a href="#cb9-382" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>caption, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> col_muted</span>
+<span id="cb9-375"><a href="#cb9-375" aria-hidden="true" tabindex="-1"></a>  <span class="co"># row labels</span></span>
+<span id="cb9-376"><a href="#cb9-376" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb9-377"><a href="#cb9-377" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> row_labels, <span class="fu">aes</span>(<span class="at">x =</span> x_lab, <span class="at">y =</span> y <span class="sc">+</span> <span class="fu">if_else</span>(sub <span class="sc">==</span> <span class="st">""</span>, <span class="dv">0</span>, <span class="fl">0.12</span>), <span class="at">label =</span> main),</span>
+<span id="cb9-378"><a href="#cb9-378" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">3.3</span>, <span class="at">color =</span> col_ink</span>
+<span id="cb9-379"><a href="#cb9-379" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-380"><a href="#cb9-380" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb9-381"><a href="#cb9-381" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(row_labels, sub <span class="sc">!=</span> <span class="st">""</span>), <span class="fu">aes</span>(<span class="at">x =</span> x_lab, <span class="at">y =</span> y <span class="sc">-</span> <span class="fl">0.2</span>, <span class="at">label =</span> sub),</span>
+<span id="cb9-382"><a href="#cb9-382" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.9</span>, <span class="at">color =</span> col_muted</span>
 <span id="cb9-383"><a href="#cb9-383" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb9-384"><a href="#cb9-384" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-385"><a href="#cb9-385" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_lab, <span class="at">y =</span> <span class="fl">6.95</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">label =</span> <span class="st">"Average age"</span>,</span>
-<span id="cb9-386"><a href="#cb9-386" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.9</span>, <span class="at">color =</span> col_muted</span>
+<span id="cb9-385"><a href="#cb9-385" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_lab, <span class="at">y =</span> <span class="fl">4.18</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">label =</span> <span class="st">"(3)  By age group"</span>,</span>
+<span id="cb9-386"><a href="#cb9-386" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="fl">3.3</span>, <span class="at">color =</span> col_ink</span>
 <span id="cb9-387"><a href="#cb9-387" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-388"><a href="#cb9-388" aria-hidden="true" tabindex="-1"></a>  <span class="co"># notes at the mark: one per step on the right, the low-end caveat below</span></span>
-<span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_note, <span class="at">y =</span> row_y[[<span class="st">"crude_all"</span>]], <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> cue_crude,</span>
-<span id="cb9-391"><a href="#cb9-391" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
-<span id="cb9-392"><a href="#cb9-392" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-388"><a href="#cb9-388" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
+<span id="cb9-389"><a href="#cb9-389" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_lab, <span class="at">y =</span> <span class="fl">3.85</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">label =</span> <span class="st">"taking age and sex into account"</span>,</span>
+<span id="cb9-390"><a href="#cb9-390" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.9</span>, <span class="at">color =</span> col_muted</span>
+<span id="cb9-391"><a href="#cb9-391" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-392"><a href="#cb9-392" aria-hidden="true" tabindex="-1"></a>  <span class="co"># context row: mean age (subordinate)</span></span>
 <span id="cb9-393"><a href="#cb9-393" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_note, <span class="at">y =</span> row_y[[<span class="st">"adj_all"</span>]], <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> note_adj,</span>
-<span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
+<span id="cb9-394"><a href="#cb9-394" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">y =</span> <span class="fl">6.95</span>, <span class="at">label =</span> <span class="fu">round</span>(mean_age<span class="sc">$</span>value),</span>
+<span id="cb9-395"><a href="#cb9-395" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>caption, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> col_muted</span>
 <span id="cb9-396"><a href="#cb9-396" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
 <span id="cb9-397"><a href="#cb9-397" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_note, <span class="at">y =</span> row_y[[<span class="st">"adj_18_49"</span>]], <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> note_young,</span>
-<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
+<span id="cb9-398"><a href="#cb9-398" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_lab, <span class="at">y =</span> <span class="fl">6.95</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">label =</span> <span class="st">"Average age"</span>,</span>
+<span id="cb9-399"><a href="#cb9-399" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.9</span>, <span class="at">color =</span> col_muted</span>
 <span id="cb9-400"><a href="#cb9-400" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"segment"</span>,</span>
-<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span> <span class="sc">-</span> tile_w <span class="sc">/</span> <span class="dv">2</span>, <span class="at">xend =</span> <span class="dv">1</span> <span class="sc">+</span> tile_w <span class="sc">/</span> <span class="dv">2</span>, <span class="at">y =</span> <span class="fl">0.73</span>, <span class="at">yend =</span> <span class="fl">0.73</span>,</span>
-<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> col_ink, <span class="at">linewidth =</span> <span class="fl">0.4</span></span>
-<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
-<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span> <span class="sc">-</span> tile_w <span class="sc">/</span> <span class="dv">2</span>, <span class="at">y =</span> <span class="fl">0.61</span>, <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">label =</span> note_low,</span>
-<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
-<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Scales</span></span>
-<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
-<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="at">higher =</span> col_higher, <span class="at">lower =</span> col_lower, <span class="at">unclear =</span> col_unclear, <span class="at">ref =</span> col_ref),</span>
-<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="st">"higher"</span>, <span class="st">"lower"</span>, <span class="st">"unclear"</span>),</span>
-<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Higher death rate"</span>, <span class="st">"Lower death rate"</span>, <span class="st">"No clear difference"</span>)</span>
-<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">on_dark =</span> <span class="st">"#FFFFFF"</span>, <span class="at">on_light =</span> col_ink), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
-<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_legend</span>(<span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">color =</span> col_outline, <span class="at">linewidth =</span> <span class="fl">0.3</span>))) <span class="sc">+</span></span>
-<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.6</span>, <span class="fl">9.6</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.15</span>, <span class="fl">8.05</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="dv">0</span>)) <span class="sc">+</span></span>
-<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Labs</span></span>
-<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> title_text, <span class="at">subtitle =</span> subtitle_text, <span class="at">caption =</span> caption_text)</span>
-<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [7. Save]{.smallcaps}</span></span>
-<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save</span></span>
-<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a><span class="do">### |- save ----</span></span>
-<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>main_path  <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data_visualizations"</span>, <span class="st">"TidyTuesday"</span>, <span class="st">"2026"</span>, <span class="st">"tt_2026_46.png"</span>)</span>
-<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a>thumb_path <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data_visualizations"</span>, <span class="st">"TidyTuesday"</span>, <span class="st">"2026"</span>, <span class="st">"thumbnails"</span>, <span class="st">"tt_2026_46.png"</span>)</span>
-<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a><span class="co"># Full-size version, for the QMD figure</span></span>
-<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a>ggview<span class="sc">::</span><span class="fu">save_ggplot</span>(<span class="at">plot =</span> p, <span class="at">file   =</span> main_path, <span class="at">width  =</span> fig_w,</span>
-<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> fig_h, <span class="at">units  =</span> <span class="st">"in"</span>, <span class="at">dpi =</span> fig_dpi)</span>
-<span id="cb9-438"><a href="#cb9-438" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-439"><a href="#cb9-439" aria-hidden="true" tabindex="-1"></a><span class="co"># Reduced-size thumbnail, for the YAML `image:` field</span></span>
-<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_create</span>(<span class="fu">dirname</span>(thumb_path))</span>
-<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a>magick<span class="sc">::</span><span class="fu">image_read</span>(main_path) <span class="sc">|&gt;</span></span>
-<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a>  magick<span class="sc">::</span><span class="fu">image_resize</span>(<span class="st">"400"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a>  magick<span class="sc">::</span><span class="fu">image_write</span>(thumb_path)</span>
-<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [8. Session Info]{.smallcaps}</span></span>
-<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for Session Info</span></span>
+<span id="cb9-401"><a href="#cb9-401" aria-hidden="true" tabindex="-1"></a>  <span class="co"># notes at the mark: one per step on the right, the low-end caveat below</span></span>
+<span id="cb9-402"><a href="#cb9-402" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
+<span id="cb9-403"><a href="#cb9-403" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_note, <span class="at">y =</span> row_y[[<span class="st">"crude_all"</span>]], <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> cue_crude,</span>
+<span id="cb9-404"><a href="#cb9-404" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
+<span id="cb9-405"><a href="#cb9-405" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-406"><a href="#cb9-406" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
+<span id="cb9-407"><a href="#cb9-407" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_note, <span class="at">y =</span> row_y[[<span class="st">"adj_all"</span>]], <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> note_adj,</span>
+<span id="cb9-408"><a href="#cb9-408" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
+<span id="cb9-409"><a href="#cb9-409" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-410"><a href="#cb9-410" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
+<span id="cb9-411"><a href="#cb9-411" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> x_note, <span class="at">y =</span> row_y[[<span class="st">"adj_18_49"</span>]], <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">label =</span> note_young,</span>
+<span id="cb9-412"><a href="#cb9-412" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
+<span id="cb9-413"><a href="#cb9-413" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-414"><a href="#cb9-414" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"segment"</span>,</span>
+<span id="cb9-415"><a href="#cb9-415" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span> <span class="sc">-</span> tile_w <span class="sc">/</span> <span class="dv">2</span>, <span class="at">xend =</span> <span class="dv">1</span> <span class="sc">+</span> tile_w <span class="sc">/</span> <span class="dv">2</span>, <span class="at">y =</span> <span class="fl">0.73</span>, <span class="at">yend =</span> <span class="fl">0.73</span>,</span>
+<span id="cb9-416"><a href="#cb9-416" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> col_ink, <span class="at">linewidth =</span> <span class="fl">0.4</span></span>
+<span id="cb9-417"><a href="#cb9-417" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-418"><a href="#cb9-418" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>,</span>
+<span id="cb9-419"><a href="#cb9-419" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span> <span class="sc">-</span> tile_w <span class="sc">/</span> <span class="dv">2</span>, <span class="at">y =</span> <span class="fl">0.61</span>, <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">vjust =</span> <span class="dv">1</span>, <span class="at">label =</span> note_low,</span>
+<span id="cb9-420"><a href="#cb9-420" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> fonts<span class="sc">$</span>text, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> col_ink, <span class="at">lineheight =</span> <span class="fl">1.15</span></span>
+<span id="cb9-421"><a href="#cb9-421" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-422"><a href="#cb9-422" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Scales</span></span>
+<span id="cb9-423"><a href="#cb9-423" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb9-424"><a href="#cb9-424" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="at">higher =</span> col_higher, <span class="at">lower =</span> col_lower, <span class="at">unclear =</span> col_unclear, <span class="at">ref =</span> col_ref),</span>
+<span id="cb9-425"><a href="#cb9-425" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="st">"higher"</span>, <span class="st">"lower"</span>, <span class="st">"unclear"</span>),</span>
+<span id="cb9-426"><a href="#cb9-426" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Higher death rate"</span>, <span class="st">"Lower death rate"</span>, <span class="st">"No clear difference"</span>)</span>
+<span id="cb9-427"><a href="#cb9-427" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-428"><a href="#cb9-428" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="at">on_dark =</span> <span class="st">"#FFFFFF"</span>, <span class="at">on_light =</span> col_ink), <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb9-429"><a href="#cb9-429" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_legend</span>(<span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">color =</span> col_outline, <span class="at">linewidth =</span> <span class="fl">0.3</span>))) <span class="sc">+</span></span>
+<span id="cb9-430"><a href="#cb9-430" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.6</span>, <span class="fl">9.6</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb9-431"><a href="#cb9-431" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.15</span>, <span class="fl">8.05</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb9-432"><a href="#cb9-432" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Labs</span></span>
+<span id="cb9-433"><a href="#cb9-433" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> title_text, <span class="at">subtitle =</span> subtitle_text, <span class="at">caption =</span> caption_text)</span>
+<span id="cb9-434"><a href="#cb9-434" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-435"><a href="#cb9-435" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-436"><a href="#cb9-436" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [7. Save]{.smallcaps}</span></span>
+<span id="cb9-437"><a href="#cb9-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-440"><a href="#cb9-440" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-441"><a href="#cb9-441" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: save</span></span>
+<span id="cb9-442"><a href="#cb9-442" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-443"><a href="#cb9-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-444"><a href="#cb9-444" aria-hidden="true" tabindex="-1"></a><span class="do">### |- save ----</span></span>
+<span id="cb9-445"><a href="#cb9-445" aria-hidden="true" tabindex="-1"></a>main_path  <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data_visualizations"</span>, <span class="st">"TidyTuesday"</span>, <span class="st">"2026"</span>, <span class="st">"tt_2026_46.png"</span>)</span>
+<span id="cb9-446"><a href="#cb9-446" aria-hidden="true" tabindex="-1"></a>thumb_path <span class="ot">&lt;-</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data_visualizations"</span>, <span class="st">"TidyTuesday"</span>, <span class="st">"2026"</span>, <span class="st">"thumbnails"</span>, <span class="st">"tt_2026_46.png"</span>)</span>
+<span id="cb9-447"><a href="#cb9-447" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-448"><a href="#cb9-448" aria-hidden="true" tabindex="-1"></a><span class="co"># Full-size version, for the QMD figure</span></span>
+<span id="cb9-449"><a href="#cb9-449" aria-hidden="true" tabindex="-1"></a>ggview<span class="sc">::</span><span class="fu">save_ggplot</span>(<span class="at">plot =</span> p, <span class="at">file   =</span> main_path, <span class="at">width  =</span> fig_w,</span>
+<span id="cb9-450"><a href="#cb9-450" aria-hidden="true" tabindex="-1"></a>    <span class="at">height =</span> fig_h, <span class="at">units  =</span> <span class="st">"in"</span>, <span class="at">dpi =</span> fig_dpi)</span>
 <span id="cb9-451"><a href="#cb9-451" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo = FALSE}</span></span>
-<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
-<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb9-452"><a href="#cb9-452" aria-hidden="true" tabindex="-1"></a><span class="co"># Reduced-size thumbnail, for the YAML `image:` field</span></span>
+<span id="cb9-453"><a href="#cb9-453" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_create</span>(<span class="fu">dirname</span>(thumb_path))</span>
+<span id="cb9-454"><a href="#cb9-454" aria-hidden="true" tabindex="-1"></a>magick<span class="sc">::</span><span class="fu">image_read</span>(main_path) <span class="sc">|&gt;</span></span>
+<span id="cb9-455"><a href="#cb9-455" aria-hidden="true" tabindex="-1"></a>  magick<span class="sc">::</span><span class="fu">image_resize</span>(<span class="st">"400"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-456"><a href="#cb9-456" aria-hidden="true" tabindex="-1"></a>  magick<span class="sc">::</span><span class="fu">image_write</span>(thumb_path)</span>
 <span id="cb9-457"><a href="#cb9-457" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-458"><a href="#cb9-458" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-459"><a href="#cb9-459" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [9. GitHub Repository]{.smallcaps}</span></span>
+<span id="cb9-460"><a href="#cb9-460" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [8. Session Info]{.smallcaps}</span></span>
 <span id="cb9-461"><a href="#cb9-461" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-462"><a href="#cb9-462" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for GitHub Repo</span></span>
+<span id="cb9-463"><a href="#cb9-463" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for Session Info</span></span>
 <span id="cb9-464"><a href="#cb9-464" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a>The complete code for this analysis is available in <span class="co">[</span><span class="ot">`tt_2026_46.qmd`</span><span class="co">](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_46.qmd)</span>.</span>
-<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a>For the full repository, <span class="co">[</span><span class="ot">click here</span><span class="co">](https://github.com/poncest/personal-website/)</span>.</span>
-<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [10. References]{.smallcaps}</span></span>
-<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for References</span></span>
-<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>**Data Source:**</span>
-<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>TidyTuesday 2026 Week 46: <span class="co">[</span><span class="ot">Cholesterol and Mortality in US Adults</span><span class="co">](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-11-17/readme.md)</span></span>
-<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-465"><a href="#cb9-465" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo = FALSE}</span></span>
+<span id="cb9-466"><a href="#cb9-466" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: true</span></span>
+<span id="cb9-467"><a href="#cb9-467" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb9-468"><a href="#cb9-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-469"><a href="#cb9-469" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span>
+<span id="cb9-470"><a href="#cb9-470" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-471"><a href="#cb9-471" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-472"><a href="#cb9-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-473"><a href="#cb9-473" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [9. GitHub Repository]{.smallcaps}</span></span>
+<span id="cb9-474"><a href="#cb9-474" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-475"><a href="#cb9-475" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb9-476"><a href="#cb9-476" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for GitHub Repo</span></span>
+<span id="cb9-477"><a href="#cb9-477" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-478"><a href="#cb9-478" aria-hidden="true" tabindex="-1"></a>The complete code for this analysis is available in <span class="co">[</span><span class="ot">`tt_2026_46.qmd`</span><span class="co">](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_46.qmd)</span>.</span>
 <span id="cb9-479"><a href="#cb9-479" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [11. Custom Functions Documentation]{.smallcaps}</span></span>
-<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a><span class="fu">##### 📦 Custom Helper Functions</span></span>
-<span id="cb9-484"><a href="#cb9-484" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-485"><a href="#cb9-485" aria-hidden="true" tabindex="-1"></a>This analysis uses custom functions from my personal module library for efficiency and consistency across projects.</span>
-<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a>**Functions Used:**</span>
-<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`fonts.R`**: <span class="in">`setup_fonts()`</span>, <span class="in">`get_font_families()`</span> - Font management with showtext</span>
-<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`social_icons.R`**: <span class="in">`create_social_caption()`</span> - Generates formatted social media captions</span>
-<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`base_theme.R`**: <span class="in">`create_base_theme()`</span>, <span class="in">`extend_weekly_theme()`</span>, <span class="in">`get_theme_colors()`</span> - Custom ggplot2 themes</span>
-<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a>**Why custom functions?**\</span>
-<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a>These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.</span>
+<span id="cb9-480"><a href="#cb9-480" aria-hidden="true" tabindex="-1"></a>For the full repository, <span class="co">[</span><span class="ot">click here</span><span class="co">](https://github.com/poncest/personal-website/)</span>.</span>
+<span id="cb9-481"><a href="#cb9-481" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-482"><a href="#cb9-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-483"><a href="#cb9-483" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-486"><a href="#cb9-486" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-487"><a href="#cb9-487" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: references-setup</span></span>
+<span id="cb9-488"><a href="#cb9-488" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb9-489"><a href="#cb9-489" aria-hidden="true" tabindex="-1"></a>current_year <span class="ot">&lt;-</span> <span class="dv">2026</span></span>
+<span id="cb9-490"><a href="#cb9-490" aria-hidden="true" tabindex="-1"></a>current_week <span class="ot">&lt;-</span> <span class="dv">46</span></span>
+<span id="cb9-491"><a href="#cb9-491" aria-hidden="true" tabindex="-1"></a>create_link <span class="ot">&lt;-</span> <span class="cf">function</span>(text, url) <span class="fu">sprintf</span>(<span class="st">"[%s](%s)"</span>, text, url)</span>
+<span id="cb9-492"><a href="#cb9-492" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-493"><a href="#cb9-493" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-494"><a href="#cb9-494" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [10. References]{.smallcaps}</span></span>
 <span id="cb9-495"><a href="#cb9-495" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>**Source Code:**\</span>
-<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a>View all custom functions → <span class="co">[</span><span class="ot">GitHub: R/utils</span><span class="co">](https://github.com/poncest/personal-website/tree/master/R)</span></span>
-<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-496"><a href="#cb9-496" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb9-497"><a href="#cb9-497" aria-hidden="true" tabindex="-1"></a><span class="fu">##### Expand for References</span></span>
+<span id="cb9-498"><a href="#cb9-498" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-499"><a href="#cb9-499" aria-hidden="true" tabindex="-1"></a>**Primary Data (TidyTuesday):** 1. TidyTuesday <span class="in">`r current_year`</span> Week <span class="in">`r current_week`</span>: <span class="in">`r create_link("Cholesterol and Mortality in US Adults", "https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-17")`</span>, curated by Tony Galvan. - One row per adult: total cholesterol, HDL, LDL, triglycerides, two ratios, age, sex, race, survey design columns and mortality status. 52,678 adults from ten NHANES cycles (1999–2018). - The curation script uses the two-year exam weight (WTMEC2YR) for every cycle and has no fasting-subsample weight. The data dictionary reverses the age top-codes: NHANES codes ages 85 and over as 85 in 1999–2006 and ages 80 and over as 80 from 2007. It also says to divide weights by the number of cycles, which is not the CDC rule for 1999–2002. - LDL and triglycerides come from the fasting subsample (about half the adults) and are not used.</span>
+<span id="cb9-500"><a href="#cb9-500" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-501"><a href="#cb9-501" aria-hidden="true" tabindex="-1"></a>**Source Data:** 2. National Center for Health Statistics. National Health and Nutrition Examination Survey, 1999–2018, linked to the <span class="in">`r create_link("2019 Public-Use Linked Mortality Files", "https://www.cdc.gov/nchs/data-linkage/mortality-public.htm")`</span> (follow-up through December 31, 2019). - The public-use mortality files are perturbed to protect participants' identities, so some follow-up times and causes of death are synthetic. This matters more for cause-specific analyses, which the chart does not use.</span>
+<span id="cb9-502"><a href="#cb9-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-503"><a href="#cb9-503" aria-hidden="true" tabindex="-1"></a>**Enrichment Data:** 3. National Center for Health Statistics. <span class="in">`r create_link("NHANES 1999–2000 Demographics (DEMO)", "https://wwwn.cdc.gov/nchs/data/nhanes/public/1999/datafiles/DEMO.htm")`</span> and 2001–2002 (DEMO_B): four-year exam weights (WTMEC4YR), joined by SEQN. - Pooled 20-year weights follow the <span class="in">`r create_link("NHANES weighting tutorial", "https://wwwn.cdc.gov/nchs/nhanes/tutorials/default.aspx")`</span>: 2/10 × WTMEC4YR for 1999–2002, 1/10 × WTMEC2YR for 2003–2018. The file's survey_weight matches WTMEC2YR exactly for 1999–2002. - Population represented: 212.5 million adults (212.0 million with the dictionary's simpler rule).</span>
+<span id="cb9-504"><a href="#cb9-504" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-505"><a href="#cb9-505" aria-hidden="true" tabindex="-1"></a>**Analysis Script:** 4. <span class="in">`r create_link("tt_2026_46_decision_record.R", "https://github.com/poncest/tidytuesday/tree/main/2026/Week_46")`</span>: data checks, weight rebuild, survey-weighted Cox models (<span class="in">`survey::svycoxph()`</span>), robustness checks and interaction tests. It writes <span class="in">`tt_2026_46_estimates.csv`</span>, which the chart reads.</span>
+<span id="cb9-506"><a href="#cb9-506" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-507"><a href="#cb9-507" aria-hidden="true" tabindex="-1"></a>**Prior Coverage:** 5. Li S, Fu Z, Zhang W (2025). <span class="in">`r create_link("Association of high-density lipoprotein cholesterol with all-cause and cause-specific mortality in the general population: insights from NHANES 1999–2018", "https://doi.org/10.1186/s12889-025-22251-z")`</span>. BMC Public Health 25:1123. Same NHANES cycles, HDL only, with U-shaped curves and forest plots; this chart avoids both designs. Their 51,235 adults and 7,602 deaths sit close to this analysis's 52,634 and 7,632. Most of the gap is the pregnant participants they excluded, whom this file cannot identify. 6. Yi SW, Yi JJ, Ohrr H (2019). <span class="in">`r create_link("Total cholesterol and all-cause mortality by sex and age: a prospective cohort study among 12.8 million adults", "https://doi.org/10.1038/s41598-018-38461-y")`</span>. Scientific Reports 9:1596. The Korean U-curve the TidyTuesday readme cites. 7. Zhou D et al. (2022). <span class="in">`r create_link("The effect of total cholesterol/high-density lipoprotein cholesterol ratio on mortality risk in the general population", "https://pmc.ncbi.nlm.nih.gov/articles/PMC9797665")`</span>. The ratio angle on NHANES was already published, so it was not used here. 8. <span class="in">`r create_link("Non-HDL cholesterol and mortality by age, NHANES (Frontiers in Nutrition, 2025)", "https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1591705/epub")`</span>. Reports age differences for non-HDL cholesterol; the three age bands here follow its split (under 50, 50–69, 70+).</span>
+<span id="cb9-508"><a href="#cb9-508" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-509"><a href="#cb9-509" aria-hidden="true" tabindex="-1"></a>**Analysis Frame:** - **Population:** 52,634 of 52,678 adults with total cholesterol and HDL measured, excluding HDL above 140 mg/dL, as in Li et al.; 7,632 deaths. - **Measure:** hazard ratios (death rates relative to adults at 180–199 mg/dL) from survey-weighted Cox models stratified by NHANES cycle, because follow-up runs from about 2 to 20 years depending on cycle. Raw "share who died" is never compared across groups. - **Before and after:** at 240+ mg/dL, 1.27 (1.14–1.40) before adjustment; 1.27 adjusting for sex alone; 0.95 (0.86–1.06) adjusting for age alone; 1.00 (0.90–1.11) adjusting for age and sex. Below 160 mg/dL: 1.19, then 1.35. Average age rises from 42 (below 160) to 51 (240+), weighted. - **Robustness of the 240+ result:** 0.96 to 1.05 under quadratic age, age bands, age as the time scale, excluding 1999–2002, bins shifted by 10 mg/dL, and men and women separately. - **Age groups:** at 240+, ages 18–49 1.42 (1.07–1.89), 50–69 1.02 (0.85–1.22), 70+ 0.91 (0.80–1.04). Below 160 mg/dL, higher in every group (1.46, 1.41, 1.27). The pattern differs by age group (interaction test, p = 0.00025). - **Claim limits:** the individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing; the age-dependent pattern overall rests on the interaction test, so individual tiles (such as the two lower cells at ages 50–69) should be read cautiously. The 18–49 estimate at 240+ is based on 128 deaths and is sensitive to survey weighting (1.26, 0.99–1.60, without weights). Statin use, smoking and illness at the exam are not in the data, so the chart shows associations only, not what raising or lowering cholesterol would do. - **Not used:** the cholesterol ratios (already published); cause of death (low cholesterol and heart-disease deaths is likely confounded by statin treatment, which isn't measured); how much cholesterol adds to predicting death beyond age and sex (0.0008 to 0.0019 in concordance, too small to chart); excluding early deaths (the low-cholesterol excess goes 1.35 → 1.31 → 1.22 at 0, 2 and 5 years, with overlapping intervals; a robustness check, not a finding); LDL and triglycerides (fasting subsample, no fasting weight). - **Scope:** observational and descriptive of associations in US adults, 1999–2018; no clinical or causal claim.</span>
+<span id="cb9-510"><a href="#cb9-510" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb9-511"><a href="#cb9-511" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-512"><a href="#cb9-512" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-513"><a href="#cb9-513" aria-hidden="true" tabindex="-1"></a><span class="fu">#### [11. Custom Functions Documentation]{.smallcaps}</span></span>
+<span id="cb9-514"><a href="#cb9-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-515"><a href="#cb9-515" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb9-516"><a href="#cb9-516" aria-hidden="true" tabindex="-1"></a><span class="fu">##### 📦 Custom Helper Functions</span></span>
+<span id="cb9-517"><a href="#cb9-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-518"><a href="#cb9-518" aria-hidden="true" tabindex="-1"></a>This analysis uses custom functions from my personal module library for efficiency and consistency across projects.</span>
+<span id="cb9-519"><a href="#cb9-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-520"><a href="#cb9-520" aria-hidden="true" tabindex="-1"></a>**Functions Used:**</span>
+<span id="cb9-521"><a href="#cb9-521" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-522"><a href="#cb9-522" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`fonts.R`**: <span class="in">`setup_fonts()`</span>, <span class="in">`get_font_families()`</span> - Font management with showtext</span>
+<span id="cb9-523"><a href="#cb9-523" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`social_icons.R`**: <span class="in">`create_social_caption()`</span> - Generates formatted social media captions</span>
+<span id="cb9-524"><a href="#cb9-524" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**`base_theme.R`**: <span class="in">`create_base_theme()`</span>, <span class="in">`extend_weekly_theme()`</span>, <span class="in">`get_theme_colors()`</span> - Custom ggplot2 themes</span>
+<span id="cb9-525"><a href="#cb9-525" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-526"><a href="#cb9-526" aria-hidden="true" tabindex="-1"></a>**Why custom functions?**\</span>
+<span id="cb9-527"><a href="#cb9-527" aria-hidden="true" tabindex="-1"></a>These utilities standardize theming, fonts, and output across all my data visualizations. The core analysis (data tidying and visualization logic) uses only standard tidyverse packages.</span>
+<span id="cb9-528"><a href="#cb9-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-529"><a href="#cb9-529" aria-hidden="true" tabindex="-1"></a>**Source Code:**\</span>
+<span id="cb9-530"><a href="#cb9-530" aria-hidden="true" tabindex="-1"></a>View all custom functions → <span class="co">[</span><span class="ot">GitHub: R/utils</span><span class="co">](https://github.com/poncest/personal-website/tree/master/R)</span></span>
+<span id="cb9-531"><a href="#cb9-531" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

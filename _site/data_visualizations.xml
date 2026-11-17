@@ -1864,6 +1864,29 @@ background-color: null;
 font-style: inherit;">```</span></span></code></pre></div></div>
 </details>
 </div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Expand for the decision record (how the estimates were made)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>tt_2026_46_decision_record.R</code> holds the full analysis behind the chart:</p>
+<ul>
+<li>Data checks: the derived columns recomputed, the meaning of missing values, follow-up length by cycle, and the sample reconciled with Li, Fu &amp; Zhang (2025).</li>
+<li>Survey weights: 2/10 × WTMEC4YR for 1999–2002 and 1/10 × WTMEC2YR for 2003–2018, as recommended for pooled NHANES cycles.</li>
+<li>Models: crude and age- and sex-adjusted Cox models, robustness checks (age specification, bins, early deaths, weighting), age-group results, and interaction tests.</li>
+<li>Export: the estimates the chart displays, written to <code>tt_2026_46_estimates.csv</code>.</li>
+</ul>
+<p>To reproduce: run the decision record first (it downloads the two NHANES demographic files from the CDC), then <code>2026_46.R</code>.</p>
+</div>
+</div>
+</div>
 </section><section id="examine-the-data" class="level4"><h4 class="anchored" data-anchor-id="examine-the-data"><span class="smallcaps">3. Examine the Data</span></h4>
 <div class="cell">
 <details class="code-fold"><summary>Show code</summary><div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><span class="in" style="color: #5E5E5E;
@@ -3846,7 +3869,7 @@ font-style: inherit;">```</span></span></code></pre></div></div>
 </div>
 </section><section id="session-info" class="level4"><h4 class="anchored" data-anchor-id="session-info"><span class="smallcaps">8. Session Info</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -3855,7 +3878,7 @@ font-style: inherit;">```</span></span></code></pre></div></div>
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -3906,7 +3929,7 @@ loaded via a namespace (and not attached):
 </div>
 </section><section id="github-repository" class="level4"><h4 class="anchored" data-anchor-id="github-repository"><span class="smallcaps">9. GitHub Repository</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -3915,7 +3938,7 @@ loaded via a namespace (and not attached):
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>The complete code for this analysis is available in <a href="https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_46.qmd"><code>tt_2026_46.qmd</code></a>.</p>
 <p>For the full repository, <a href="https://github.com/poncest/personal-website/">click here</a>.</p>
@@ -3924,7 +3947,7 @@ loaded via a namespace (and not attached):
 </div>
 </section><section id="references" class="level4"><h4 class="anchored" data-anchor-id="references"><span class="smallcaps">10. References</span></h4>
 <div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -3933,23 +3956,20 @@ loaded via a namespace (and not attached):
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<ol type="1">
-<li>
-<strong>Data Source:</strong>
-<ul>
-<li>TidyTuesday 2026 Week 46: <a href="https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-11-17/readme.md">Cholesterol and Mortality in US Adults</a>
-</li>
-</ul>
-</li>
-</ol>
+<p><strong>Primary Data (TidyTuesday):</strong> 1. TidyTuesday 2026 Week 46: <a href="https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-17">Cholesterol and Mortality in US Adults</a>, curated by Tony Galvan. - One row per adult: total cholesterol, HDL, LDL, triglycerides, two ratios, age, sex, race, survey design columns and mortality status. 52,678 adults from ten NHANES cycles (1999–2018). - The curation script uses the two-year exam weight (WTMEC2YR) for every cycle and has no fasting-subsample weight. The data dictionary reverses the age top-codes: NHANES codes ages 85 and over as 85 in 1999–2006 and ages 80 and over as 80 from 2007. It also says to divide weights by the number of cycles, which is not the CDC rule for 1999–2002. - LDL and triglycerides come from the fasting subsample (about half the adults) and are not used.</p>
+<p><strong>Source Data:</strong> 2. National Center for Health Statistics. National Health and Nutrition Examination Survey, 1999–2018, linked to the <a href="https://www.cdc.gov/nchs/data-linkage/mortality-public.htm">2019 Public-Use Linked Mortality Files</a> (follow-up through December 31, 2019). - The public-use mortality files are perturbed to protect participants’ identities, so some follow-up times and causes of death are synthetic. This matters more for cause-specific analyses, which the chart does not use.</p>
+<p><strong>Enrichment Data:</strong> 3. National Center for Health Statistics. <a href="https://wwwn.cdc.gov/nchs/data/nhanes/public/1999/datafiles/DEMO.htm">NHANES 1999–2000 Demographics (DEMO)</a> and 2001–2002 (DEMO_B): four-year exam weights (WTMEC4YR), joined by SEQN. - Pooled 20-year weights follow the <a href="https://wwwn.cdc.gov/nchs/nhanes/tutorials/default.aspx">NHANES weighting tutorial</a>: 2/10 × WTMEC4YR for 1999–2002, 1/10 × WTMEC2YR for 2003–2018. The file’s survey_weight matches WTMEC2YR exactly for 1999–2002. - Population represented: 212.5 million adults (212.0 million with the dictionary’s simpler rule).</p>
+<p><strong>Analysis Script:</strong> 4. <a href="https://github.com/poncest/tidytuesday/tree/main/2026/Week_46">tt_2026_46_decision_record.R</a>: data checks, weight rebuild, survey-weighted Cox models (<code><a href="https://rdrr.io/pkg/survey/man/svycoxph.html">survey::svycoxph()</a></code>), robustness checks and interaction tests. It writes <code>tt_2026_46_estimates.csv</code>, which the chart reads.</p>
+<p><strong>Prior Coverage:</strong> 5. Li S, Fu Z, Zhang W (2025). <a href="https://doi.org/10.1186/s12889-025-22251-z">Association of high-density lipoprotein cholesterol with all-cause and cause-specific mortality in the general population: insights from NHANES 1999–2018</a>. BMC Public Health 25:1123. Same NHANES cycles, HDL only, with U-shaped curves and forest plots; this chart avoids both designs. Their 51,235 adults and 7,602 deaths sit close to this analysis’s 52,634 and 7,632. Most of the gap is the pregnant participants they excluded, whom this file cannot identify. 6. Yi SW, Yi JJ, Ohrr H (2019). <a href="https://doi.org/10.1038/s41598-018-38461-y">Total cholesterol and all-cause mortality by sex and age: a prospective cohort study among 12.8 million adults</a>. Scientific Reports 9:1596. The Korean U-curve the TidyTuesday readme cites. 7. Zhou D et al.&nbsp;(2022). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9797665">The effect of total cholesterol/high-density lipoprotein cholesterol ratio on mortality risk in the general population</a>. The ratio angle on NHANES was already published, so it was not used here. 8. <a href="https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1591705/epub">Non-HDL cholesterol and mortality by age, NHANES (Frontiers in Nutrition, 2025)</a>. Reports age differences for non-HDL cholesterol; the three age bands here follow its split (under 50, 50–69, 70+).</p>
+<p><strong>Analysis Frame:</strong> - <strong>Population:</strong> 52,634 of 52,678 adults with total cholesterol and HDL measured, excluding HDL above 140 mg/dL, as in Li et al.; 7,632 deaths. - <strong>Measure:</strong> hazard ratios (death rates relative to adults at 180–199 mg/dL) from survey-weighted Cox models stratified by NHANES cycle, because follow-up runs from about 2 to 20 years depending on cycle. Raw “share who died” is never compared across groups. - <strong>Before and after:</strong> at 240+ mg/dL, 1.27 (1.14–1.40) before adjustment; 1.27 adjusting for sex alone; 0.95 (0.86–1.06) adjusting for age alone; 1.00 (0.90–1.11) adjusting for age and sex. Below 160 mg/dL: 1.19, then 1.35. Average age rises from 42 (below 160) to 51 (240+), weighted. - <strong>Robustness of the 240+ result:</strong> 0.96 to 1.05 under quadratic age, age bands, age as the time scale, excluding 1999–2002, bins shifted by 10 mg/dL, and men and women separately. - <strong>Age groups:</strong> at 240+, ages 18–49 1.42 (1.07–1.89), 50–69 1.02 (0.85–1.22), 70+ 0.91 (0.80–1.04). Below 160 mg/dL, higher in every group (1.46, 1.41, 1.27). The pattern differs by age group (interaction test, p = 0.00025). - <strong>Claim limits:</strong> the individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing; the age-dependent pattern overall rests on the interaction test, so individual tiles (such as the two lower cells at ages 50–69) should be read cautiously. The 18–49 estimate at 240+ is based on 128 deaths and is sensitive to survey weighting (1.26, 0.99–1.60, without weights). Statin use, smoking and illness at the exam are not in the data, so the chart shows associations only, not what raising or lowering cholesterol would do. - <strong>Not used:</strong> the cholesterol ratios (already published); cause of death (low cholesterol and heart-disease deaths is likely confounded by statin treatment, which isn’t measured); how much cholesterol adds to predicting death beyond age and sex (0.0008 to 0.0019 in concordance, too small to chart); excluding early deaths (the low-cholesterol excess goes 1.35 → 1.31 → 1.22 at 0, 2 and 5 years, with overlapping intervals; a robustness check, not a finding); LDL and triglycerides (fasting subsample, no fasting weight). - <strong>Scope:</strong> observational and descriptive of associations in US adults, 1999–2018; no clinical or causal claim.</p>
 </div>
 </div>
 </div>
 </section><section id="custom-functions-documentation" class="level4"><h4 class="anchored" data-anchor-id="custom-functions-documentation"><span class="smallcaps">11. Custom Functions Documentation</span></h4>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
@@ -3958,7 +3978,7 @@ loaded via a namespace (and not attached):
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>This analysis uses custom functions from my personal module library for efficiency and consistency across projects.</p>
 <p><strong>Functions Used:</strong></p>
