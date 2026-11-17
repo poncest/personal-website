@@ -114,6 +114,19 @@ est_raw <- read_chr(here::here("data/TidyTuesday/2026/tt_2026_46_estimates.csv")
 
 ```
 
+::: {.callout-tip collapse="true"}
+##### Expand for the decision record (how the estimates were made)
+
+`tt_2026_46_decision_record.R` holds the full analysis behind the chart:
+
+- Data checks: the derived columns recomputed, the meaning of missing values, follow-up length by cycle, and the sample reconciled with Li, Fu & Zhang (2025).
+- Survey weights: 2/10 × WTMEC4YR for 1999–2002 and 1/10 × WTMEC2YR for 2003–2018, as recommended for pooled NHANES cycles.
+- Models: crude and age- and sex-adjusted Cox models, robustness checks (age specification, bins, early deaths, weighting), age-group results, and interaction tests.
+- Export: the estimates the chart displays, written to `tt_2026_46_estimates.csv`.
+
+To reproduce: run the decision record first (it downloads the two NHANES demographic files from the CDC), then `2026_46.R`.
+:::
+
 #### [3. Examine the Data]{.smallcaps}
 
 ```{r}
@@ -457,9 +470,18 @@ For the full repository, [click here](https://github.com/poncest/personal-websit
 
 ::: {.callout-tip collapse="true"}
 ##### Expand for References
-1.  **Data Source:**
-    -   TidyTuesday 2026 Week 46: [Cholesterol and Mortality in US Adults](https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-11-17/readme.md)
 
+**Primary Data (TidyTuesday):** 1. TidyTuesday `r current_year` Week `r current_week`: `r create_link("Cholesterol and Mortality in US Adults", "https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-17")`, curated by Tony Galvan. - One row per adult: total cholesterol, HDL, LDL, triglycerides, two ratios, age, sex, race, survey design columns and mortality status. 52,678 adults from ten NHANES cycles (1999–2018). - The curation script uses the two-year exam weight (WTMEC2YR) for every cycle and has no fasting-subsample weight. The data dictionary reverses the age top-codes: NHANES codes ages 85 and over as 85 in 1999–2006 and ages 80 and over as 80 from 2007. It also says to divide weights by the number of cycles, which is not the CDC rule for 1999–2002. - LDL and triglycerides come from the fasting subsample (about half the adults) and are not used.
+
+**Source Data:** 2. National Center for Health Statistics. National Health and Nutrition Examination Survey, 1999–2018, linked to the `r create_link("2019 Public-Use Linked Mortality Files", "https://www.cdc.gov/nchs/data-linkage/mortality-public.htm")` (follow-up through December 31, 2019). - The public-use mortality files are perturbed to protect participants' identities, so some follow-up times and causes of death are synthetic. This matters more for cause-specific analyses, which the chart does not use.
+
+**Enrichment Data:** 3. National Center for Health Statistics. `r create_link("NHANES 1999–2000 Demographics (DEMO)", "https://wwwn.cdc.gov/nchs/data/nhanes/public/1999/datafiles/DEMO.htm")` and 2001–2002 (DEMO_B): four-year exam weights (WTMEC4YR), joined by SEQN. - Pooled 20-year weights follow the `r create_link("NHANES weighting tutorial", "https://wwwn.cdc.gov/nchs/nhanes/tutorials/default.aspx")`: 2/10 × WTMEC4YR for 1999–2002, 1/10 × WTMEC2YR for 2003–2018. The file's survey_weight matches WTMEC2YR exactly for 1999–2002. - Population represented: 212.5 million adults (212.0 million with the dictionary's simpler rule).
+
+**Analysis Script:** 4. `r create_link("tt_2026_46_decision_record.R", "https://github.com/poncest/tidytuesday/tree/main/2026/Week_46")`: data checks, weight rebuild, survey-weighted Cox models (`survey::svycoxph()`), robustness checks and interaction tests. It writes `tt_2026_46_estimates.csv`, which the chart reads.
+
+**Prior Coverage:** 5. Li S, Fu Z, Zhang W (2025). `r create_link("Association of high-density lipoprotein cholesterol with all-cause and cause-specific mortality in the general population: insights from NHANES 1999–2018", "https://doi.org/10.1186/s12889-025-22251-z")`. BMC Public Health 25:1123. Same NHANES cycles, HDL only, with U-shaped curves and forest plots; this chart avoids both designs. Their 51,235 adults and 7,602 deaths sit close to this analysis's 52,634 and 7,632. Most of the gap is the pregnant participants they excluded, whom this file cannot identify. 6. Yi SW, Yi JJ, Ohrr H (2019). `r create_link("Total cholesterol and all-cause mortality by sex and age: a prospective cohort study among 12.8 million adults", "https://doi.org/10.1038/s41598-018-38461-y")`. Scientific Reports 9:1596. The Korean U-curve the TidyTuesday readme cites. 7. Zhou D et al. (2022). `r create_link("The effect of total cholesterol/high-density lipoprotein cholesterol ratio on mortality risk in the general population", "https://pmc.ncbi.nlm.nih.gov/articles/PMC9797665")`. The ratio angle on NHANES was already published, so it was not used here. 8. `r create_link("Non-HDL cholesterol and mortality by age, NHANES (Frontiers in Nutrition, 2025)", "https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2025.1591705/epub")`. Reports age differences for non-HDL cholesterol; the three age bands here follow its split (under 50, 50–69, 70+).
+
+**Analysis Frame:** - **Population:** 52,634 of 52,678 adults with total cholesterol and HDL measured, excluding HDL above 140 mg/dL, as in Li et al.; 7,632 deaths. - **Measure:** hazard ratios (death rates relative to adults at 180–199 mg/dL) from survey-weighted Cox models stratified by NHANES cycle, because follow-up runs from about 2 to 20 years depending on cycle. Raw "share who died" is never compared across groups. - **Before and after:** at 240+ mg/dL, 1.27 (1.14–1.40) before adjustment; 1.27 adjusting for sex alone; 0.95 (0.86–1.06) adjusting for age alone; 1.00 (0.90–1.11) adjusting for age and sex. Below 160 mg/dL: 1.19, then 1.35. Average age rises from 42 (below 160) to 51 (240+), weighted. - **Robustness of the 240+ result:** 0.96 to 1.05 under quadratic age, age bands, age as the time scale, excluding 1999–2002, bins shifted by 10 mg/dL, and men and women separately. - **Age groups:** at 240+, ages 18–49 1.42 (1.07–1.89), 50–69 1.02 (0.85–1.22), 70+ 0.91 (0.80–1.04). Below 160 mg/dL, higher in every group (1.46, 1.41, 1.27). The pattern differs by age group (interaction test, p = 0.00025). - **Claim limits:** the individual cholesterol-group comparisons are exploratory and were not adjusted for multiple testing; the age-dependent pattern overall rests on the interaction test, so individual tiles (such as the two lower cells at ages 50–69) should be read cautiously. The 18–49 estimate at 240+ is based on 128 deaths and is sensitive to survey weighting (1.26, 0.99–1.60, without weights). Statin use, smoking and illness at the exam are not in the data, so the chart shows associations only, not what raising or lowering cholesterol would do. - **Not used:** the cholesterol ratios (already published); cause of death (low cholesterol and heart-disease deaths is likely confounded by statin treatment, which isn't measured); how much cholesterol adds to predicting death beyond age and sex (0.0008 to 0.0019 in concordance, too small to chart); excluding early deaths (the low-cholesterol excess goes 1.35 → 1.31 → 1.22 at 0, 2 and 5 years, with overlapping intervals; a robustness check, not a finding); LDL and triglycerides (fasting subsample, no fasting weight). - **Scope:** observational and descriptive of associations in US adults, 1999–2018; no clinical or causal claim.
 :::
 
 
