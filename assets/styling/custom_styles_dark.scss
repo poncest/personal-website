@@ -12,9 +12,11 @@ $link-hover-color: lighten($link-color, 15%);
 $primary: #d98a82;        // NEW — overrides navy primary coming from _brand.yml
 $secondary: #9aa0a0;      // ink-soft — replaces the old teal secondary
 $border-color: #313839;   // NEW — line
-$navbar-bg: #1d2123;      // surface (was #2d333b)
+$surface: #1d2123;      // Polish batch
+$surface-alt: #262b2d;
+$navbar-bg: $surface;      // surface (was #2d333b)
 $navbar-fg: #ece7dc;      // ink     (was #fafafa)
-$code-block-bg: #262b2d;  // surface-alt (was #1d2123 surface)
+$code-block-bg: $surface-alt;  // surface-alt (was #1d2123 surface)
 $code-color: #d98a82;     // burgundy (was teal)
 $caption-color: #9aa0a0;  // ink-soft (was teal)
 $mark-bg: #2f1e1d;                // dark burgundy-soft
@@ -213,7 +215,7 @@ hr {
 // CARDS (Editorial refresh, Batch 3)
 // Listing grid cards: surface background, hairline border, burgundy on hover.
 .quarto-grid-item.card {
-    background-color: #1d2123;            // surface (DARK FILE: #1d2123)
+    background-color: $surface;
     border: 1px solid $border-color;
     border-radius: 4px;
     box-shadow: none;
@@ -227,7 +229,7 @@ hr {
 
 // Thumbnails: keep each chart's top-left (title/subtitle) in view
 .quarto-grid-item .card-img-top {
-    background-color: #262b2d;            // surface-alt (DARK FILE: #262b2d)
+    background-color: $surface-alt;
 }
 
 .quarto-grid-item .card-img-top img,
@@ -251,7 +253,7 @@ hr {
 // GALLERY SIDEBAR (Editorial refresh, Batch 3)
 // "Categories" as a mono kicker; counts in mono; selected category burgundy.
 h5.quarto-listing-category-title {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--bs-font-monospace);
     font-size: 0.72rem;
     font-weight: 500;
     text-transform: uppercase;
@@ -274,7 +276,7 @@ h5.quarto-listing-category-title {
 }
 
 .quarto-listing-category.category-default .quarto-category-count {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--bs-font-monospace);
     font-size: 0.75rem;
     color: $caption-color;
 }
@@ -313,7 +315,7 @@ main div.sourceCode {
 }
 
 .cell details.code-fold > summary {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--bs-font-monospace);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
@@ -407,7 +409,7 @@ main .key-takeaways {
   padding: 1rem 1.25rem;
   border: 1px solid $border-color;
   border-radius: 4px;
-  background-color: #1d2123;
+  background-color: $surface;
 }
 main .key-takeaways > p:first-child {
   margin-bottom: 0.5rem;
@@ -425,6 +427,40 @@ main .key-takeaways ul {
 }
 main .key-takeaways li + li {
   margin-top: 0.35rem;
+}
+
+// FOCUS (Polish batch)
+// Visible outline for keyboard users; mouse clicks don't show it.
+:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+}
+
+// MOTION (Polish batch)
+// Native smooth scrolling only for visitors who haven't asked for reduced
+// motion (replaces Quarto's smooth-scroll script, which ignores the setting).
+@media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+}
+
+// Cards clip outlines (overflow: hidden), so draw the ring inside the card.
+.quarto-grid-item.card:has(a:focus-visible) {
+    outline: 2px solid $link-color;
+    outline-offset: -2px;
+}
+
+// OVERFLOW (Polish batch)
+// No sideways scroll on narrow screens; clip keeps sticky elements working.
+html, body { overflow-x: clip; }
+
+// TITLE-AREA CONTRAST (Polish batch)
+// Quarto fades post-title category pills (opacity .6) and meta headings
+// (opacity .8), which fails contrast; show them at full colour.
+body #title-block-header .quarto-categories .quarto-category {
+    opacity: 1;
+}
+body #title-block-header.quarto-title-block.default .quarto-title-meta-heading {
+    opacity: 1;
 }
 
 // TYPOGRAPHY (Editorial refresh, Batch 2)
@@ -472,7 +508,7 @@ div.quarto-figure .quarto-float-caption {
 .quarto-category,
 .listing-category,
 .quarto-title-meta-heading {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--bs-font-monospace);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.75rem;
@@ -490,4 +526,20 @@ div.quarto-figure .quarto-float-caption {
 }
 
 
+// LABELS (Polish batch)
+// Mono capitals stay on section kickers (homepage kickers, sidebar
+// "Categories", Key takeaways). Dates, tags, meta headings, "Show code",
+// share and subscribe text use the body font in sentence case.
+.quarto-grid-item.card .listing-date,
+.quarto-grid-item.card .listing-categories .listing-category,
+body #title-block-header .quarto-categories .quarto-category,
+body #title-block-header.quarto-title-block.default .quarto-title-meta-heading,
+.cell details.code-fold > summary,
+main a.listing-subscribe,
+main .post-share {
+    font-family: var(--bs-body-font-family);
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.85rem;
+}
 

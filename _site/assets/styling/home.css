@@ -14,7 +14,7 @@
 }
 
 .home-kicker {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--bs-font-monospace);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -69,14 +69,14 @@ body.quarto-dark .home-actions .btn-primary {
 .home-figure .sig-rule { stroke: var(--bs-primary); stroke-width: 1.5; stroke-dasharray: 4 4; }
 .home-figure .sig-label {
   fill: var(--bs-primary);
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--bs-font-monospace);
   font-size: 13px;
   font-weight: 600;
 }
 
 .home-figure figcaption {
   margin-top: 0.75rem;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--bs-font-monospace);
   font-size: 0.8rem;
   color: var(--bs-secondary);
 }
@@ -93,7 +93,7 @@ body.quarto-dark .home-actions .btn-primary {
 .home-section-head .home-kicker { margin: 0; }
 
 .home-section-head a {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--bs-font-monospace);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -130,7 +130,7 @@ body.quarto-dark .home-actions .btn-primary {
 }
 
 .home-stat-label {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--bs-font-monospace);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -153,3 +153,18 @@ body.quarto-dark .home-actions .btn-primary {
 
 /* Start here (Expansion, Batch 9): card descriptions below the title in the hierarchy */
 #listing-start-here .listing-description { font-size: 0.95rem; line-height: 1.5; color: var(--bs-secondary); }
+
+
+/* Polish batch: a long headline word wraps instead of overflowing on phones */
+.home-headline { overflow-wrap: break-word; }
+
+
+/* Polish batch: labels in the body font, sentence case (mono stays on kickers) */
+.home-section-head a,
+.home-stat-label {
+  font-family: var(--bs-body-font-family);
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
