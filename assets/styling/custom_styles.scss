@@ -11,9 +11,11 @@ $link-hover-color: darken($link-color, 15%);
 $primary: #a8323f;        // NEW — overrides navy primary coming from _brand.yml
 $secondary: #5c5f5b;      // ink-soft — replaces the old teal secondary
 $border-color: #ddd5c6;   // NEW — line
-$navbar-bg: #fbf9f4;      // surface — light navbar (Batch 2)
+$surface: #fbf9f4;      // Polish batch
+$surface-alt: #efe9dd;
+$navbar-bg: $surface;      // surface — light navbar (Batch 2)
 $navbar-fg: #22282b;      // ink
-$code-block-bg: #efe9dd;  // surface-alt (was #f8f9fa)
+$code-block-bg: $surface-alt;  // surface-alt (was #f8f9fa)
 $code-color: #a8323f;     // burgundy (was #3b4252)
 $caption-color: #5c5f5b;  // ink-soft (was #3b4252)
 $mark-bg: #f3e2e1;                // burgundy-soft (was yellow)
@@ -194,7 +196,7 @@ nav#TOC.toc-active ul li {
 // CARDS (Editorial refresh, Batch 3)
 // Listing grid cards: surface background, hairline border, burgundy on hover.
 .quarto-grid-item.card {
-    background-color: #fbf9f4;            // surface (DARK FILE: #1d2123)
+    background-color: $surface;
     border: 1px solid $border-color;
     border-radius: 4px;
     box-shadow: none;
@@ -208,7 +210,7 @@ nav#TOC.toc-active ul li {
 
 // Thumbnails: keep each chart's top-left (title/subtitle) in view
 .quarto-grid-item .card-img-top {
-    background-color: #efe9dd;            // surface-alt (DARK FILE: #262b2d)
+    background-color: $surface-alt;
 }
 
 .quarto-grid-item .card-img-top img,
@@ -388,7 +390,7 @@ main .key-takeaways {
   padding: 1rem 1.25rem;
   border: 1px solid $border-color;
   border-radius: 4px;
-  background-color: #fbf9f4;
+  background-color: $surface;
 }
 main .key-takeaways > p:first-child {
   margin-bottom: 0.5rem;
