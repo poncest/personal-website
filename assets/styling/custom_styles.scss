@@ -504,3 +504,21 @@ div.quarto-figure .quarto-float-caption {
     color: $link-color;
     border-color: $border-color;
 }
+
+
+// LABELS (Polish batch)
+// Mono capitals stay on section kickers (homepage kickers, sidebar
+// "Categories", Key takeaways). Dates, tags, meta headings, "Show code",
+// share and subscribe text use the body font in sentence case.
+.quarto-grid-item.card .listing-date,
+.quarto-grid-item.card .listing-categories .listing-category,
+body #title-block-header .quarto-categories .quarto-category,
+body #title-block-header.quarto-title-block.default .quarto-title-meta-heading,
+.cell details.code-fold > summary,
+main a.listing-subscribe,
+main .post-share {
+    font-family: var(--bs-body-font-family);
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.85rem;
+}
