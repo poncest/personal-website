@@ -433,6 +433,14 @@ main .key-takeaways li + li {
     outline: 2px solid $link-color;
     outline-offset: 2px;
 }
+
+// MOTION (Polish batch)
+// Native smooth scrolling only for visitors who haven't asked for reduced
+// motion (replaces Quarto's smooth-scroll script, which ignores the setting).
+@media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+}
+
 // Cards clip outlines (overflow: hidden), so draw the ring inside the card.
 .quarto-grid-item.card:has(a:focus-visible) {
     outline: 2px solid $link-color;
