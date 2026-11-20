@@ -408,6 +408,18 @@ main .key-takeaways li + li {
   margin-top: 0.35rem;
 }
 
+// FOCUS (Polish batch)
+// Visible outline for keyboard users; mouse clicks don't show it.
+:focus-visible {
+    outline: 2px solid $link-color;
+    outline-offset: 2px;
+}
+// Cards clip outlines (overflow: hidden), so draw the ring inside the card.
+.quarto-grid-item.card:has(a:focus-visible) {
+    outline: 2px solid $link-color;
+    outline-offset: -2px;
+}
+
 // TYPOGRAPHY (Editorial refresh, Batch 2)
 // Font families come from _brand.yml: Newsreader (headings),
 // Public Sans (body), JetBrains Mono (code/accents).
