@@ -1,0 +1,448 @@
+---
+title: "A divided crowd doesn't mean most people change their answers"
+subtitle: "612 people saw one of 18 phrase pairs that divided the crowd (the majority got 50 to 70% of first answers) twice, a few questions apart. How often did two answers to the same pair differ?"
+description: "Asked the same divided phrase pair again a few questions later, 12.3% of 612 respondents changed their answer, compared with a 46.5% benchmark for two different people. Pooled across 18 CAPphrase pairs with pair-level bootstrap intervals. Built in R with ggplot2, ggtext and showtext."
+date: "2026-11-23"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_47.html"
+categories: ["MakeoverMonday", "2026"]
+tags: [
+  "makeover-monday",
+  "bar-chart",
+  "uncertainty",
+  "bootstrap",
+  "probability-language",
+  "pairwise-comparison",
+  "test-retest",
+  "survey-data",
+  "ggplot2",
+  "ggtext",
+  "showtext",
+  "data-visualization",
+  "2026"
+]
+image: "thumbnails/mm_2026_47.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+```{r}
+#| label: setup-links
+#| include: false
+
+# CENTRALIZED LINK MANAGEMENT
+
+## Weekly inputs (the only lines to edit) ----
+current_year   <- 2026
+current_week   <- 47
+mm_slug        <- "what-does-likely-actually-mean"
+source_article <- "https://adamkucharski.github.io/CAPphrase/"   # SOURCE ARTICLE on the MM page
+data_source    <- "https://zenodo.org/records/18750055"   # DATA SOURCE on the MM page
+
+## Derived (don't edit) ----
+project_id     <- sprintf("mm_%d_%02d", current_year, current_week)
+project_file   <- paste0(project_id, ".qmd")
+mm_page        <- paste0("https://makeovermonday.vercel.app/dataset/", mm_slug)
+chart_original <- sprintf(
+"https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/%d/Week_%02d/original_chart.png", current_year, current_week)
+repo_main      <- "https://github.com/poncest/personal-website/"
+repo_file      <- paste0(
+  repo_main, "blob/master/data_visualizations/MakeoverMonday/",
+  current_year, "/", project_file
+)
+
+## Helper ----
+create_link <- function(text, url) paste0("[", text, "](", url, ")")
+```
+
+### Original
+
+The original visualization comes from `r create_link("What Does 'Likely' Actually Mean? (CAPphrase pairwise comparisons)", source_article)`.
+
+![Original visualization](https://raw.githubusercontent.com/poncest/MakeoverMonday/refs/heads/master/2026/Week_47/original_chart.png)
+
+### Makeover
+
+![Two horizontal bars on a shared 0 to 100% track, titled "A divided crowd doesn't mean most people change their answers." The chart asks how often two answers to the same phrase pair differed across 18 CAPphrase pairs where the majority got 50 to 70% of first answers. When the same person was asked the pair again a few questions later, their two answers differed only 12.3% of the time (burgundy bar; 95% bootstrap interval 7.6% to 15.5%; 612 people re-asked). For two different people, each answering once, the chance of differing answers was 46.5% (stone bar; 95% bootstrap interval 45.1% to 48.1%; from 4,505 first answers). A note explains that this rate sits near 50% by design, because the pairs were chosen to split the crowd. Source: CAPphrase pairwise comparisons, Kucharski (2026).](mm_2026_47.png){#fig-1}
+
+::: {.key-takeaways}
+[Key takeaways]{.key-takeaways-label}
+
+- The original heatmap highlights closely divided phrase pairs as "the most inconsistent." But disagreement between respondents is not the same as an individual changing their answer.
+- Of 612 respondents who saw one of 18 divided phrase pairs twice, 87.7% repeated their choice. Only 12.3% changed it (95% bootstrap interval: 7.6%–15.5%).
+- The repeat occurred nine comparisons later, in the same sitting. Respondents may have remembered their earlier answers, so the findings do not establish whether answers would hold over longer periods.
+:::
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+  if (!require("pacman")) install.packages("pacman")
+  pacman::p_load(
+  tidyverse, ggtext, showtext, scales, glue,
+  ggview, magick, janitor
+)
+})
+
+# Source utility functions
+suppressMessages(
+  source(here::here("R/utils/fonts.R")))
+  source(here::here("R/utils/social_icons.R"))
+  source(here::here("R/themes/base_theme.R"))
+
+### |- figure size ----
+fig_w <- 10
+fig_h <- 7
+fig_dpi <- 320
+
+### |-  fonts ----
+setup_fonts()
+fonts <- get_font_families()
+title_family <- fonts$title_1
+text_family <- fonts$text
+cap_family <- fonts$caption
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+
+csv_path <- here::here("data/MakeoverMonday/2026/pairwise_comparisons.csv")
+
+df_raw <- read_csv(
+  csv_path,
+  col_types = cols(.default = col_character()), na = character()
+) |>
+  clean_names()
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+glimpse(df_raw)
+df_raw |> count(pair_id)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- unordered pair key ----
+df <- df_raw |>
+  mutate(
+    response_id = as.integer(response_id),
+    pair_id     = as.integer(pair_id),
+    a           = pmin(term1, term2),
+    b           = pmax(term1, term2)
+  )
+
+### |- crowd split from comparisons 2-9 (no repeat answers inside) ----
+split_ind <- df |>
+  filter(pair_id %in% 2:9) |>
+  summarise(p_b = mean(selected == b), .by = c(a, b))
+
+### |- the re-ask: comparison 1 shown again as comparison 10 ----
+reask <- df |>
+  filter(pair_id == 1) |>
+  select(response_id, a, b, side_1 = term1, sel_1 = selected) |>
+  inner_join(
+    df |> filter(pair_id == 10) |> select(response_id, a, b, side_10 = term1, sel_10 = selected),
+    by = c("response_id", "a", "b")
+  ) |>
+  left_join(split_ind, by = c("a", "b")) |>
+  mutate(
+    changed  = sel_1 != sel_10,
+    majority = pmax(p_b, 1 - p_b),
+    between  = 2 * p_b * (1 - p_b),    # two different people disagree
+    split    = majority < 0.70         # majority got 50-70% of first answers
+  )
+
+focal <- filter(reask, split)
+focal_pairs <- focal |>
+  summarise(n = n(), between = first(between), .by = c(a, b))
+
+### |- pooled rates (respondent-weighted) ----
+n_pairs <- nrow(focal_pairs)
+n_resp <- nrow(focal)
+rate_within <- mean(focal$changed)
+rate_between <- mean(focal$between)
+rate_repeat <- 1 - rate_within
+
+### |- 95% intervals: bootstrap resampling the 18 pairs ----
+set.seed(47)
+boot <- map(1:4000, \(i) {
+  pick <- focal_pairs |> slice_sample(n = n_pairs, replace = TRUE) |> select(a, b)
+  d <- inner_join(pick, focal, by = c("a", "b"), relationship = "many-to-many")
+  tibble(within = mean(d$changed), between = mean(d$between))
+}) |> list_rbind()
+
+ci <- boot |> summarise(across(everything(), \(x) list(quantile(x, c(0.025, 0.975)))))
+ci_within <- ci$within[[1]]
+ci_between <- ci$between[[1]]
+
+pct1 <- label_percent(accuracy = 0.1)
+
+### |- answers behind the between-person rate ----
+n_between_answers <- df |>
+  filter(pair_id %in% 2:9) |>
+  semi_join(focal_pairs, by = c("a", "b")) |>
+  nrow()
+
+### |- plot data ----
+comma0 <- label_comma(accuracy = 1)
+rng <- \(ci) glue("95% bootstrap interval: {pct1(ci[1])}–{pct1(ci[2])}")
+
+plot_df <- tibble(
+  focus = c("between", "within"),
+  y     = c(2, 1),
+  rate  = c(rate_between, rate_within),
+  lo    = c(ci_between[1], ci_within[1]),
+  hi    = c(ci_between[2], ci_within[2]),
+  head  = c(
+    "Two different people, each answering once",
+    "The same person, asked again a few questions later"
+  ),
+  foot = c(
+    glue("{rng(ci_between)} · from {comma0(n_between_answers)} first answers"),
+    glue("{rng(ci_within)} · {n_resp} people re-asked")
+  )
+) |>
+  mutate(label = pct1(rate))
+
+bar_half <- 0.13
+track_max <- 1.00 
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+
+### |- plot aesthetics ----
+colors <- get_theme_colors(
+  palette = list(
+    within  = "#722F37", 
+    between = "#7A7068", 
+    ink     = "#2C2825",
+    muted   = "#72685F",
+    track   = "#E4DFD6"
+  )
+)
+clrs <- colors$palette
+col_within <- clrs$within
+col_between <- clrs$between
+col_ink <- clrs$ink
+col_muted <- clrs$muted
+col_track <- clrs$track
+
+### |- titles and caption ----
+title_text <- "A divided crowd doesn't mean\nmost people change their answers"
+
+subtitle_text <- glue(
+  "{n_resp} people saw one of {n_pairs} phrase pairs that divided the crowd ",
+  "(the majority got 50 to 70% of first answers)\ntwice, a few questions apart. ",
+  "How often did two answers to the same pair differ?"
+)
+
+note_text <- glue(
+  "Two different people: the chance that two respondents, each answering once, chose differently ",
+  "(first answers in comparisons 2 to 9). The same person: each respondent's first comparison ",
+  "was shown again as their tenth, sides swapped.<br>",
+  "95% bootstrap intervals come from resampling the {n_pairs} phrase pairs. Calculation details in the write-up."
+)
+
+caption_text <- paste0(
+  note_text, "<br>",
+  create_mm_caption(
+    mm_year = 2026,
+    mm_week = 47,
+    source_text = "CAPphrase pairwise comparisons, Kucharski (2026), doi:10.5281/zenodo.18750055"
+  )
+)
+
+sel_note <- "Near 50% by design: these pairs\nwere chosen because the crowd split"
+
+### |- plot theme ----
+base_theme <- create_base_theme(colors)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(
+      family = title_family, size = rel(1.72), color = col_ink, margin = margin(b = 8)
+    ),
+    plot.subtitle = element_text(
+      family = text_family, size = rel(0.80), color = col_muted,
+      lineheight = 1.3, margin = margin(b = 10)
+    ),
+    plot.caption = element_textbox_simple(
+      family = cap_family, size = rel(0.45), color = col_muted,
+      lineheight = 1.3, margin = margin(t = 16), width = unit(1, "npc")
+    ),
+    plot.margin = margin(16, 24, 12, 20)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p <- ggplot(plot_df, aes(y = y)) +
+  geom_rect(aes(xmin = 0, xmax = track_max, ymin = y - bar_half, ymax = y + bar_half), fill = col_track) +
+  geom_rect(aes(xmin = 0, xmax = rate, ymin = y - bar_half, ymax = y + bar_half, fill = focus)) +
+  geom_segment(aes(x = lo, xend = hi, y = y - bar_half - 0.05, yend = y - bar_half - 0.05, color = focus), linewidth = 0.9) +
+  geom_segment(aes(x = lo, xend = lo, y = y - bar_half - 0.08, yend = y - bar_half - 0.02, color = focus), linewidth = 0.9) +
+  geom_segment(aes(x = hi, xend = hi, y = y - bar_half - 0.08, yend = y - bar_half - 0.02, color = focus), linewidth = 0.9) +
+  geom_text(aes(x = 0, y = y + bar_half + 0.10, label = head),
+    hjust = 0, vjust = 0, family = text_family, fontface = "bold", size = 4.7, color = col_ink
+  ) +
+  geom_text(aes(x = 0.006, y = y, label = label),
+    hjust = 0, vjust = 0.5, family = text_family, fontface = "bold", size = 6, color = "white"
+  ) +
+  geom_text(aes(x = 0, y = y - bar_half - 0.14, label = foot),
+    hjust = 0, vjust = 1, family = text_family, size = 3.4, color = col_muted
+  ) +
+  annotate("text",
+    x = track_max, y = 2 + bar_half + 0.10, label = sel_note,
+    hjust = 1, vjust = 0, lineheight = 1.1, family = text_family, size = 3.3, color = col_muted
+  ) +
+  scale_fill_manual(values = c(between = col_between, within = col_within)) +
+  scale_color_manual(values = c(between = col_between, within = col_within)) +
+  scale_x_continuous(limits = c(0, track_max), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0.62, 2.50), expand = c(0, 0)) +
+  coord_cartesian(clip = "off") +
+  labs(title = title_text, subtitle = subtitle_text, caption = caption_text)
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |- save ----
+main_path  <- here::here("data_visualizations", "MakeoverMonday", "2026", "mm_2026_47.png")
+thumb_path <- here::here("data_visualizations", "MakeoverMonday", "2026", "thumbnails", "mm_2026_47.png")
+
+# Full-size version, for the QMD figure
+save_ggplot(
+  plot = p,
+  file = main_path,
+  width = fig_w, height = fig_h,
+  units = "in", dpi = 320,
+)
+
+# Reduced-size thumbnail
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
+```
+
+#### [8. Reproduce]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Session info
+
+```{r, echo = FALSE}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+::: {.callout-tip collapse="true"}
+##### Code
+
+The complete code for this analysis is in `r create_link(project_file, repo_file)`. The full site is in the `r create_link("poncest/personal-website repository", repo_main)`.
+:::
+
+::: {.callout-tip collapse="true"}
+##### References
+
+**Primary Data (Makeover Monday):** 1.
+Makeover Monday `r current_year` Week `r current_week`: `r create_link("What Does 'Likely' Actually Mean?", mm_page)`. File: `pairwise_comparisons.csv`, 51,740 rows: 5,174 respondents, each making 10 comparisons between 19 probability phrases.
+- Comparison 10 repeats each respondent's comparison 1 with the two phrases' sides swapped. The original heatmap's 342 cells reproduce exactly only when this repeat is included.
+- Pairs were not drawn evenly: 113 to 610 respondents per pair in comparisons 1 to 9, against about 272 if pairing were uniform. The 18 divided pairs had 9 to 116 re-asked respondents each.
+- No missing values; every selected phrase is one of its pair's two terms.
+
+**Source Data:** 2.
+Kucharski AJ (2026). CAPphrase: Comparative and Absolute Probability phrase dataset. `r create_link("doi:10.5281/zenodo.18750055", "https://zenodo.org/records/18750055")`. Online quiz with over 5,000 participants; `r create_link("project article", source_article)`.
+- Part 1 is the pairwise comparisons used here. Part 2 (numeric estimates for each phrase) and the demographic file are not used.
+
+**Original Visualization:** 3.
+A 19 by 19 heatmap of the share of respondents choosing one phrase over another, with cells closer to 50/50 coloured red and labelled "most inconsistent." Phrases are ordered by mean numeric estimate, which comes from Part 2 and is not in the Makeover Monday file.
+
+**Analysis frame:**
+- Divided pairs: the majority got 50 to 70% of first answers in comparisons 2 to 9, which contain no repeat answers. This gives 18 pairs and 612 re-asked respondents.
+- Two different people: for each pair, 2p(1 - p), where p is the majority share, weighted by re-asked respondents (46.5%; 46.8% unweighted). On pairs selected this way it falls between 42% and 50% by construction.
+- The same person: the share of re-asked respondents whose comparison 10 answer differed from their comparison 1 answer (12.3%).
+- Intervals: 95% bootstrap, 4,000 resamples of the 18 phrase pairs (seed 47), for both rates.
+- Claim limits: the repeat came nine comparisons later, in the same sitting, so memory may lower the change rate. Sides were always swapped on the repeat, and its effect on the rate is unknown. The chart makes no claim about why respondents disagree.
+:::
+
+::: {.callout-note collapse="true"}
+##### Helper functions
+
+This analysis uses functions from my personal module library. The data tidying and chart logic use standard tidyverse packages.
+
+**Functions used:**
+
+- **`fonts.R`**: `setup_fonts()`, `get_font_families()`: font management with showtext
+- **`social_icons.R`**: `create_social_caption()`: formatted social media captions
+- **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()`: custom ggplot2 themes
+
+[Browse the helper functions on GitHub](https://github.com/poncest/personal-website/tree/master/R)
+:::
