@@ -1,0 +1,423 @@
+---
+title: "18 places account for more filming-location links than the 5,815 places linked once"
+subtitle: "A place is one distinct recorded location. A link is one film or TV series that Wikidata records as filmed there. Places are grouped by their number of links; both sides share one percentage scale."
+description: "Eighteen places linked to 128 or more productions hold 31.8% of Wikidata filming-location links, more than the 28.7% held by the 5,815 places linked once. Places are grouped into powers-of-two reuse classes and shown as shares of places and of links on one scale. Built in R with ggplot2, ggtext and showtext."
+date: "2026-11-24"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_47.html"
+categories: ["TidyTuesday", "2026"]
+tags: [
+  "TidyTuesday",
+  "Filming Locations",
+  "Wikidata",
+  "Movies",
+  "Television",
+  "Diverging Bar Chart",
+  "Concentration",
+  "Distribution",
+  "Data Provenance",
+  "ggtext",
+  "showtext",
+  "ggplot2",
+  "2026"
+]
+image: "thumbnails/tt_2026_47.png"
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    code-link: true
+    code-fold: true
+    code-tools: true
+    code-summary: "Show code"
+editor_options: 
+  chunk_output_type: inline
+execute: 
+  freeze: true
+  cache: true
+  error: false
+  message: false
+  warning: false
+  eval: true
+---
+
+![Mirrored bar chart titled "18 places account for more filming-location links than the 5,815 places linked once." The 18 places linked to 128 or more productions make up 0.3% of the 7,128 recorded places but hold 31.8% of the 20,283 production–place links, more than the 28.7% held by the 5,815 places linked only once, which are 81.6% of all places. Places are grouped into eight classes by number of links (1, 2–3, 4–7, 8–15, 16–31, 32–63, 64–127, 128+), listed in a center column. Bars on the left show each class's share of places and bars on the right its share of links, on the same percentage scale. The once-linked class is a long grey bar on the left and a much shorter one on the right; the 128+ class is a sliver on the left and a burgundy bar on the right. Data: Wikidata filming-location records via Movie Scene Map, TidyTuesday 2026 week 47.](tt_2026_47.png){#fig-1}
+
+::: {.key-takeaways}
+[Key takeaways]{.key-takeaways-label}
+
+- A ranking of filming locations mostly measures how often a short list of places is named again and again. The typical recorded place appears in one production, whether it is a city (78%) or a specific spot (85%).
+- The imbalance does not depend on where the class lines fall. With decade classes, the 25 places linked to 100 or more productions hold 35.8% of all links, and the once-linked class is the same in every scheme because "linked once" is not a chosen cutoff.
+- These are records of locations, not measures of filming activity: a link means Wikidata associates a production with a place, not how much was filmed there. Cities hold 94 of the 100 most-linked places, and 66% of links to cities go to cities with 10 or more links, against 16% for specific spots.
+:::
+
+### [**Steps to Create this Graphic**]{.mark}
+
+#### [1. Load Packages & Setup]{.smallcaps}
+
+```{r}
+#| label: load
+#| warning: false
+#| message: false      
+#| results: "hide"     
+#| cache: false
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse, ggtext, showtext, scales, glue, ggview,
+    ragg, magick
+    )
+})
+
+# Source utility functions
+suppressMessages(source(here::here("R/utils/fonts.R")))
+source(here::here("R/utils/social_icons.R"))
+source(here::here("R/utils/image_utils.R"))
+source(here::here("R/themes/base_theme.R"))
+```
+
+#### [2. Read in the Data]{.smallcaps}
+
+```{r}
+#| label: read
+#| include: true
+#| eval: true
+#| warning: false
+#| cache: false
+
+### |- figure settings ----
+fig_w    <- 12
+fig_h    <- 7.5
+fig_dpi  <- 320
+
+### |- fonts ----
+setup_fonts()
+fonts <- get_font_families()
+title_family <- fonts$title_1
+title_size   <- 28
+
+
+## 2. READ IN THE DATA ----
+## Read every field as character with no NA tokens; restore numbers column by column.
+read_chr <- function(path) {
+  read_csv(path, col_types = cols(.default = col_character()), na = character(), show_col_types = FALSE)
+}
+
+tt_url <- "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-11-24/"
+locations_raw <- read_chr(paste0(tt_url, "locations.csv"))
+production_locations_raw <- read_chr(paste0(tt_url, "production_locations.csv"))
+```
+
+#### [3. Examine the Data]{.smallcaps}
+
+```{r}
+#| label: examine
+#| include: true
+#| eval: true
+#| results: 'hide'
+#| warning: false
+
+## 3. EXAMINING THE DATA ----
+glimpse(locations_raw)
+glimpse(production_locations_raw)
+```
+
+#### [4. Tidy Data]{.smallcaps}
+
+```{r}
+#| label: tidy
+#| warning: false
+
+### |- places with their link counts ----
+locations <- locations_raw |>
+  mutate(n_productions = as.numeric(n_productions))
+
+
+### |- reuse classes: powers of two ----
+class_levels <- c("1", "2–3", "4–7", "8–15", "16–31", "32–63", "64–127", "128+")
+
+reuse <- locations |>
+  mutate(class = cut(n_productions,
+    breaks = c(1, 2, 4, 8, 16, 32, 64, 128, Inf),
+    labels = class_levels, right = FALSE
+  )) |>
+  summarise(places = n(), links = sum(n_productions), .by = class) |>
+  arrange(class) |>
+  mutate(
+    place_share = places / sum(places),
+    link_share = links / sum(links),
+    y = rev(seq_along(class)), # "1" on top, "128+" at the bottom
+    tone = case_when(
+      class == "128+" ~ "subject",
+      class == "1" ~ "comparator",
+      TRUE ~ "context"
+    )
+  )
+
+### |- numbers quoted in copy (all from the data) ----
+n_places <- sum(reuse$places)
+n_links <- sum(reuse$links)
+once <- filter(reuse, class == "1")
+top <- filter(reuse, class == "128+")
+
+
+### |- bar geometry ----
+gap <- 0.10 # half-width of the centre column
+bar_h <- 0.36
+inside_cut <- 0.5 # labels move inside bars this long
+
+bars <- reuse |>
+  mutate(
+    l_xmin = -gap - place_share, l_xmax = -gap,
+    r_xmin = gap, r_xmax = gap + link_share,
+    lab_place = glue("{sprintf('%.1f', 100 * place_share)}% ({comma(places)})"),
+    lab_link = glue("{sprintf('%.1f', 100 * link_share)}% ({comma(links)})")
+  )
+
+grid_at <- c(0, 0.2, 0.4, 0.6, 0.8)
+grid_df <- tibble(x = c(-gap - grid_at, gap + grid_at))
+y_top <- max(bars$y) + 0.55 # gridlines stop below the headings
+y_head <- max(bars$y) + 0.95
+```
+
+#### [5. Visualization Parameters]{.smallcaps}
+
+```{r}
+#| label: params
+#| include: true
+#| warning: false
+#| cache: false
+
+### |- plot aesthetics ----
+clrs <- get_theme_colors(
+  palette = list(
+    subject    = "#722F37",
+    comparator = "#A9A097",
+    edge       = "#8C847C",
+    context    = "#D3CDC4",
+    ink        = "#2C2825",
+    label      = "#655C55",
+    grid       = "#E4DED4"
+  )
+)
+col_subject <- clrs$palette$subject
+col_comparator <- clrs$palette$comparator
+col_edge <- clrs$palette$edge
+col_context <- clrs$palette$context
+col_ink <- clrs$palette$ink
+col_label <- clrs$palette$label
+col_grid <- clrs$palette$grid
+col_bg <- clrs$background
+
+### |- titles and caption ----
+title_text <- glue(
+  "<span style='color:{col_subject}'>{top$places} places</span> account for more ",
+  "filming-location links<br>than the {comma(once$places)} places linked once"
+)
+
+subtitle_text <- glue(
+  "A **place** is one distinct recorded location. A **link** is one film or TV series ",
+  "that Wikidata records as filmed there.<br>",
+  "Places are grouped by their number of links; both sides share one percentage scale."
+)
+
+caption_note <- glue(
+  "Wikidata filming-location (P915) records via Movie Scene Map. ",
+  "Links are production–place associations, not scenes or shooting days.<br>",
+  "The source lists 22,110 Wikidata links; this TidyTuesday extract has {comma(n_links)}."
+)
+
+caption_text <- paste0(
+  caption_note, "<br>",
+  create_social_caption(
+    tt_year = 2026,
+    tt_week = 47,
+    source_text = "Movie Scene Map (Wikidata) via TidyTuesday"
+  )
+)
+
+### |- plot theme ----
+base_theme <- create_base_theme(clrs)
+
+weekly_theme <- extend_weekly_theme(
+  base_theme,
+  theme(
+    plot.title = element_textbox_simple(
+      face = "bold", family = title_family, size = title_size,
+      color = col_ink, lineheight = 1.0, margin = margin(b = 8)
+    ),
+    plot.subtitle = element_textbox_simple(
+      family = fonts$subtitle, size = 12, color = col_ink,
+      lineheight = 1.3, margin = margin(b = 4)
+    ),
+    plot.caption = element_textbox_simple(
+      family = fonts$caption, size = 6.6, color = col_label,
+      lineheight = 1.35, margin = margin(t = 8)
+    ),
+    axis.text.x = element_text(family = fonts$text, size = 9, color = col_label),
+    axis.text.y = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = margin(14, 20, 8, 20)
+  )
+)
+
+theme_set(weekly_theme)
+```
+
+#### [6. Plot]{.smallcaps}
+
+```{r}
+#| label: plot
+#| warning: false
+
+### |- main plot ----
+p <- ggplot(bars) +
+  geom_segment(
+    data = grid_df, aes(x = x, xend = x, y = 0.5, yend = y_top),
+    color = col_grid, linewidth = 0.3
+  ) +
+  geom_rect(aes(xmin = l_xmin, xmax = l_xmax, ymin = y - bar_h, ymax = y + bar_h, fill = tone)) +
+  geom_rect(aes(xmin = r_xmin, xmax = r_xmax, ymin = y - bar_h, ymax = y + bar_h, fill = tone)) +
+  geom_rect(
+    data = filter(bars, tone == "comparator"),
+    aes(xmin = l_xmin, xmax = l_xmax, ymin = y - bar_h, ymax = y + bar_h),
+    fill = NA, color = col_edge, linewidth = 0.4
+  ) +
+  geom_rect(
+    data = filter(bars, tone == "comparator"),
+    aes(xmin = r_xmin, xmax = r_xmax, ymin = y - bar_h, ymax = y + bar_h),
+    fill = NA, color = col_edge, linewidth = 0.4
+  ) +
+  geom_text(
+    data = filter(bars, place_share < inside_cut),
+    aes(x = l_xmin - 0.01, y = y, label = lab_place),
+    hjust = 1, family = fonts$text, size = 3.7, color = col_label
+  ) +
+  geom_text(
+    data = filter(bars, place_share >= inside_cut),
+    aes(x = l_xmin + 0.015, y = y, label = lab_place),
+    hjust = 0, family = fonts$text, fontface = "bold", size = 3.7, color = col_ink
+  ) +
+  geom_text(
+    aes(
+      x = r_xmax + 0.01, y = y, label = lab_link,
+      fontface = if_else(tone == "subject", "bold", "plain"),
+      color = if_else(tone == "subject", "subject", "label")
+    ),
+    hjust = 0, family = fonts$text, size = 3.7
+  ) +
+  geom_text(
+    aes(x = 0, y = y, label = class),
+    family = fonts$text, size = 4.3, color = col_ink
+  ) +
+  annotate("text",
+    x = -gap, y = y_head, hjust = 1, label = glue("Share of the {comma(n_places)} distinct places"),
+    family = fonts$text, fontface = "bold", size = 4.3, color = col_ink
+  ) +
+  annotate("text",
+    x = gap, y = y_head, hjust = 0, label = glue("Share of the {comma(n_links)} production–place links"),
+    family = fonts$text, fontface = "bold", size = 4.3, color = col_ink
+  ) +
+  annotate("text",
+    x = 0, y = y_head, label = "Links per place",
+    family = fonts$text, size = 3.3, color = col_label
+  ) +
+  # Scales
+  scale_fill_manual(
+    values = c(subject = col_subject, comparator = col_comparator, context = col_context),
+    guide = "none"
+  ) +
+  scale_color_manual(values = c(subject = col_subject, label = col_label), guide = "none") +
+  scale_x_continuous(
+    limits = c(-gap - 0.86, gap + 0.86),
+    breaks = grid_df$x,
+    labels = percent(c(grid_at, grid_at)),
+    expand = expansion(0)
+  ) +
+  scale_y_continuous(limits = c(0.45, y_head + 0.35), expand = expansion(0)) +
+  # Labs
+  labs(title = title_text, subtitle = subtitle_text, caption = caption_text)
+
+```
+
+#### [7. Save]{.smallcaps}
+
+```{r}
+#| label: save
+#| warning: false
+
+### |- save ----
+main_path  <- here::here("data_visualizations", "TidyTuesday", "2026", "tt_2026_47.png")
+thumb_path <- here::here("data_visualizations", "TidyTuesday", "2026", "thumbnails", "tt_2026_47.png")
+
+# Full-size version, for the QMD figure
+ggview::save_ggplot(plot = p, file   = main_path, width  = fig_w,
+    height = fig_h, units  = "in", dpi = fig_dpi)
+
+# Reduced-size thumbnail, for the YAML `image:` field
+fs::dir_create(dirname(thumb_path))
+magick::image_read(main_path) |>
+  magick::image_resize("400") |>
+  magick::image_write(thumb_path)
+```
+
+
+#### [8. Reproduce]{.smallcaps}
+
+::: {.callout-tip collapse="true"}
+##### Session info
+
+```{r}
+#| eval: true
+#| warning: false
+
+sessionInfo()
+```
+:::
+
+::: {.callout-tip collapse="true"}
+##### Code
+
+The complete code for this analysis is in [`tt_2026_47.qmd`](https://github.com/poncest/personal-website/blob/master/data_visualizations/TidyTuesday/2026/tt_2026_47.qmd). The full site is in the [poncest/personal-website repository](https://github.com/poncest/personal-website/).
+:::
+
+```{r}
+#| label: references-setup
+#| include: false
+current_year <- 2026
+current_week <- 47
+create_link <- function(text, url) sprintf("[%s](%s)", text, url)
+```
+
+::: {.callout-tip collapse="true"}
+##### References
+
+**Primary Data (TidyTuesday):** 1. TidyTuesday `r current_year` Week `r current_week`: `r create_link("Filming Locations", "https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-11-24")`, curated by `r create_link("Flightmussy", "https://github.com/Flightmussy")`, maker of Movie Scene Map. - Three tables: 7,128 places, 12,134 films and TV series, and 20,283 production–place links in 130 countries. Each link is one Wikidata "filming location" (P915) statement. - The curation keeps only Wikidata statements. Places read from Wikipedia articles and published sources, which the source keeps in separate columns, are not included, and productions recorded only at country level have no place and are left out.
+
+**Source Data:** 2. `r create_link("Movie Scene Map data", "https://moviescenemap.com/data/")` (CC0), from the `r create_link("filmmap-dataset repository", "https://github.com/Flightmussy/filmmap-dataset")` (v1.1.0, read 2026-11-23). - Place category, resolution and country are Movie Scene Map's assignments, not Wikidata fields. In this extract, resolution follows category: every city is "town" and every other place is "exact". - The source counts 22,110 Wikidata statement links; this extract has 20,283. Its documentation does not explain the 1,827-link difference. - The source is rebuilt on every deploy, so these figures describe the TidyTuesday snapshot of 2026-11-24.
+
+**Claim limits:** A link records that Wikidata lists a production at a place. It does not say which scenes were shot there or how much filming took place, and the counts reflect how completely Wikidata records each production.
+
+:::
+
+::: {.callout-note collapse="true"}
+##### Helper functions
+
+This analysis uses functions from my personal module library. The data tidying and chart logic use standard tidyverse packages.
+
+**Functions used:**
+
+- **`fonts.R`**: `setup_fonts()`, `get_font_families()`: font management with showtext
+- **`social_icons.R`**: `create_social_caption()`: formatted social media captions
+- **`base_theme.R`**: `create_base_theme()`, `extend_weekly_theme()`, `get_theme_colors()`: custom ggplot2 themes
+
+[Browse the helper functions on GitHub](https://github.com/poncest/personal-website/tree/master/R)
+:::
+
