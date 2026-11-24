@@ -17,7 +17,117 @@
 <width>144</width>
 </image>
 <generator>quarto-1.9.38</generator>
-<lastBuildDate>Thu, 10 Sep 2026 04:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 24 Nov 2026 05:00:00 GMT</lastBuildDate>
+<item>
+  <title>The Inconsistency That Wasn’t</title>
+  <dc:creator>Steven Ponce</dc:creator>
+  <link>https://stevenponce.netlify.app/behind_the_viz/btv_2026_47.html</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<section id="the-spark" class="level4">
+<h4 class="anchored" data-anchor-id="the-spark"><span class="smallcaps">The Spark</span></h4>
+<p><a href="https://makeovermonday.vercel.app/dataset/what-does-likely-actually-mean">Makeover Monday’s Week 47 challenge</a> featured a 19 × 19 heatmap from the <a href="https://adamkucharski.github.io/CAPphrase/">CAPphrase project</a>. Each cell shows how often respondents judged one probability phrase higher than another. Cells near 50/50 are colored red, and the legend calls them “most inconsistent.”</p>
+<p>I had explored this dataset earlier, in TidyTuesday Week 10 (<a href="https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_10.html">Lost in the Middle</a>), looking at the numeric estimates people give each phrase. This time the label raised a different question: inconsistent at what level, the crowd or the individual? A 50/50 cell says the crowd split. It doesn’t say that any one person wavered.</p>
+</section>
+<section id="the-detour" class="level4">
+<h4 class="anchored" data-anchor-id="the-detour"><span class="smallcaps">The Detour</span></h4>
+<p>The data held a way to test that. Each of 5,174 respondents made ten comparisons, and comparison 10 repeated comparison 1 with the two phrases on swapped sides. The original chart’s 342 cells reproduce exactly only when those repeated answers are included.</p>
+<p>That repeat separates two questions:</p>
+<ul>
+<li><strong>Between people:</strong> how often do two different respondents answer the same pair differently?</li>
+<li><strong>Within a person:</strong> how often does one respondent change their own answer?</li>
+</ul>
+<p>The heatmap shows how the crowd answered. Its label suggests something about how individuals behave. Those are two different questions, and only the repeat can speak to the second.</p>
+<p>I limited the test to the 18 pairs that divided the crowd, where the more popular answer accounted for 50 to 70% of first responses. That left 612 respondents who saw one of those pairs twice.</p>
+</section>
+<section id="the-check" class="level4">
+<h4 class="anchored" data-anchor-id="the-check"><span class="smallcaps">The Check</span></h4>
+<p>The within-person rate is observed: the share of those 612 whose second answer differed from their first. The between-person rate has to be estimated. If a share <em>p</em> of respondents pick one phrase, two independently drawn responses disagree with probability 2<em>p</em>(1 − <em>p</em>).</p>
+<p>Two decisions mattered.</p>
+<p>First, the benchmark could not reuse the answers it was meant to evaluate. My first calculation drew <em>p</em> from answers that included comparison 1, the first half of the repeated question. I corrected that by estimating <em>p</em> from comparisons 2 to 9 only. The correction kept the answers used to estimate crowd disagreement separate from those used to measure individual reversals.</p>
+<p>Second, the selection rule constrained the benchmark before any result arrived:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">between <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">function</span>(p) <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> p <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> p)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">between</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.50</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.60</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.70</span>))</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 0.50 0.48 0.42   &lt;- pairs split 50-70% can only land between 42% and 50%</span></span></code></pre></div></div>
+<p>The benchmark was always going to be close to 50%. Its exact value, 46.5%, comes from the data. It is a yardstick, not an independently observed disagreement rate.</p>
+</section>
+<section id="the-chart" class="level4">
+<h4 class="anchored" data-anchor-id="the-chart"><span class="smallcaps">The Chart</span></h4>
+<div id="fig-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_47.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Two horizontal bars on a shared 0 to 100% track, titled “A divided crowd doesn’t mean most people change their answers.” When the same person was asked a divided phrase pair again a few questions later, their two answers differed 12.3% of the time (burgundy bar; 95% bootstrap interval 7.6% to 15.5%; 612 people re-asked). For two different people, each answering once, the estimated probability of differing answers was 46.5% (stone bar; 95% bootstrap interval 45.1% to 48.1%). A note explains that this rate sits near 50% by design, because the pairs were chosen to split the crowd.
+</figcaption>
+</figure>
+</div>
+<p>Asked the same pair again, 12.3% of the 612 changed their answer, against a 46.5% benchmark for two different people.</p>
+<p>The first version of this chart failed my own comprehension review. I read the two bars as two groups of people, the percentages had no stated meaning, and the intervals had no labels. The final version names two answering situations instead, “two different people, each answering once” and “the same person, asked again a few questions later,” and says what each interval is.</p>
+<p>The limits stay in view. The repeat came nine comparisons later in the same sitting, so memory may have held the change rate down. The sides were always swapped, with an unknown effect. Most respondents kept their original answer within this short quiz. That says nothing about whether answers would hold over weeks, or about why people disagree.</p>
+</section>
+<section id="the-takeaway" class="level4">
+<h4 class="anchored" data-anchor-id="the-takeaway"><span class="smallcaps">The Takeaway</span></h4>
+<p><strong>A statistic can be computed correctly and still be given the wrong meaning. Before attaching a word like “inconsistent” to a number, check that the unit of analysis can support it.</strong></p>
+<p>A split crowd describes the group. Individual inconsistency requires evidence from the same person. This dataset happened to contain the repeat that could supply it. Most datasets don’t, and then the honest move is to describe the split and stop there.</p>
+</section>
+<section id="see-how-it-was-built" class="level4">
+<h4 class="anchored" data-anchor-id="see-how-it-was-built"><span class="smallcaps">See how it was built</span></h4>
+<p>See the full visualization, code, and write-up: <a href="https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_47.html">A Divided Crowd Doesn’t Mean Most People Change Their Answers</a></p>
+
+
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{ponce2026,
+  author = {Ponce, Steven},
+  title = {The {Inconsistency} {That} {Wasn’t}},
+  date = {2026-11-24},
+  url = {https://stevenponce.netlify.app/behind_the_viz/btv_2026_47.html},
+  langid = {en}
+}
+</code></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-ponce2026" class="csl-entry quarto-appendix-citeas">
+Ponce, Steven. 2026. <span>“The Inconsistency That Wasn’t.”</span>
+November 24. <a href="https://stevenponce.netlify.app/behind_the_viz/btv_2026_47.html">https://stevenponce.netlify.app/behind_the_viz/btv_2026_47.html</a>.
+</div></div></section></div> ]]></description>
+  <category>Behind the Viz</category>
+  <category>Lessons Learned</category>
+  <guid>https://stevenponce.netlify.app/behind_the_viz/btv_2026_47.html</guid>
+  <pubDate>Tue, 24 Nov 2026 05:00:00 GMT</pubDate>
+  <media:content url="https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_47.png" medium="image" type="image/png" height="101" width="144"/>
+</item>
 <item>
   <title>The Correlation I Almost Trusted</title>
   <dc:creator>Steven Ponce</dc:creator>

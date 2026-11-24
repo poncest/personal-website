@@ -1,0 +1,135 @@
+---
+title: "The Inconsistency That Wasn't"
+subtitle: "A heatmap called some phrase pairs \"most inconsistent.\" The data held a way to test that label."
+description: "A behind-the-scenes look at a Makeover Monday analysis of the CAPphrase probability-phrase quiz, where a repeated question separated crowd disagreement from individual inconsistency."
+date: "2026-11-24"
+author:
+  - name: "Steven Ponce"
+    url: "https://stevenponce.netlify.app"
+citation:
+  url: "https://stevenponce.netlify.app/behind_the_viz/btv_2026_47.html"
+categories: ["Behind the Viz", "Lessons Learned"]
+tags: ["MakeoverMonday", "data-analysis", "unit-of-analysis", "benchmarks", "survey-data"]
+image: "/data_visualizations/MakeoverMonday/2026/mm_2026_47.png"
+format:
+  html:
+    toc: false
+    code-fold: true
+    code-summary: "Show the check"
+editor_options:
+  chunk_output_type: inline
+execute:
+  freeze: true
+  eval: false
+  error: false
+  message: false
+  warning: false
+---
+
+#### [The Spark]{.smallcaps}
+
+[Makeover Monday's Week 47 challenge](https://makeovermonday.vercel.app/dataset/what-does-likely-actually-mean)
+featured a 19 × 19 heatmap from the
+[CAPphrase project](https://adamkucharski.github.io/CAPphrase/). Each cell shows how often respondents judged one probability phrase
+higher than another. Cells near 50/50 are colored red, and the legend calls
+them "most inconsistent."
+
+I had explored this dataset earlier, in TidyTuesday Week 10
+([Lost in the Middle](https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2026/tt_2026_10.html)),
+looking at the numeric estimates people give each phrase. This time the
+label raised a different question: inconsistent at what level, the crowd or
+the individual? A 50/50 cell says the crowd split. It doesn't say that any
+one person wavered.
+
+#### [The Detour]{.smallcaps}
+
+The data held a way to test that. Each of 5,174 respondents made ten
+comparisons, and comparison 10 repeated comparison 1 with the two phrases on
+swapped sides. The original chart's 342 cells reproduce exactly only when
+those repeated answers are included.
+
+That repeat separates two questions:
+
+- **Between people:** how often do two different respondents answer the same
+  pair differently?
+- **Within a person:** how often does one respondent change their own answer?
+
+The heatmap shows how the crowd answered. Its label suggests something about
+how individuals behave. Those are two different questions, and only the
+repeat can speak to the second.
+
+I limited the test to the 18 pairs that divided the crowd, where
+the more popular answer accounted for 50 to 70% of first responses. That
+left 612 respondents who saw one of those pairs twice.
+
+#### [The Check]{.smallcaps}
+
+The within-person rate is observed: the share of those 612 whose second
+answer differed from their first. The between-person rate has to be
+estimated. If a share *p* of respondents pick one phrase, two independently
+drawn responses disagree with probability 2*p*(1 − *p*).
+
+Two decisions mattered.
+
+First, the benchmark could not reuse the answers it was meant to evaluate.
+My first calculation drew *p* from answers that included comparison 1, the
+first half of the repeated question. I corrected that by estimating *p* from
+comparisons 2 to 9 only. The correction kept the answers used to estimate
+crowd disagreement separate from those used to measure individual reversals.
+
+Second, the selection rule constrained the benchmark before any result
+arrived:
+
+```r
+between <- function(p) 2 * p * (1 - p)
+between(c(0.50, 0.60, 0.70))
+
+# 0.50 0.48 0.42   <- pairs split 50-70% can only land between 42% and 50%
+```
+
+The benchmark was always going to be close to 50%. Its exact value, 46.5%,
+comes from the data. It is a yardstick, not an independently observed
+disagreement rate.
+
+#### [The Chart]{.smallcaps}
+
+![Two horizontal bars on a shared 0 to 100% track, titled "A divided crowd
+doesn't mean most people change their answers." When the same person was
+asked a divided phrase pair again a few questions later, their two answers
+differed 12.3% of the time (burgundy bar; 95% bootstrap interval 7.6% to
+15.5%; 612 people re-asked). For two different people, each answering once,
+the estimated probability of differing answers was 46.5% (stone bar; 95% bootstrap interval
+45.1% to 48.1%). A note explains that this rate sits near 50% by design,
+because the pairs were chosen to split the crowd.](/data_visualizations/MakeoverMonday/2026/mm_2026_47.png){#fig-1}
+
+Asked the same pair again, 12.3% of the 612 changed their answer, against a
+46.5% benchmark for two different people.
+
+The first version of this chart failed my own comprehension review. I read
+the two bars as two groups of people, the percentages had no stated
+meaning, and the intervals had no labels. The final version names two
+answering situations instead, "two different people, each answering once"
+and "the same person, asked again a few questions later," and says what
+each interval is.
+
+The limits stay in view. The repeat came nine comparisons later in the same
+sitting, so memory may have held the change rate down. The sides were always
+swapped, with an unknown effect. Most respondents kept their original answer
+within this short quiz. That says nothing about whether answers would hold
+over weeks, or about why people disagree.
+
+#### [The Takeaway]{.smallcaps}
+
+**A statistic can be computed correctly and still be given the wrong
+meaning. Before attaching a word like "inconsistent" to a number, check that
+the unit of analysis can support it.**
+
+A split crowd describes the group. Individual inconsistency requires
+evidence from the same person. This dataset happened to contain the repeat
+that could supply it. Most datasets don't, and then the honest move is to
+describe the split and stop there.
+
+#### [See how it was built]{.smallcaps}
+
+See the full visualization, code, and write-up:
+[A Divided Crowd Doesn't Mean Most People Change Their Answers](https://stevenponce.netlify.app/data_visualizations/MakeoverMonday/2026/mm_2026_47.html)
